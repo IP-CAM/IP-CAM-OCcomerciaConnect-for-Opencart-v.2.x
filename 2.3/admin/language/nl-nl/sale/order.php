@@ -1,0 +1,132 @@
+<?php
+// Heading
+$_['heading_title']         = 'Bestellingen';
+
+// Text
+$_['text_success']               = 'Succes: Instelling gewijzigd!';
+$_['text_list']                  = 'Lijst';
+$_['text_add']                   = 'Toevoegen';
+$_['text_edit']                  = 'Wijzigen';
+$_['text_order_detail']          = 'Details';
+$_['text_customer_detail']       = 'Klantdetails';
+$_['text_option']                = 'Opties';
+$_['text_store']                 = 'Winkel';
+$_['text_date_added']            = 'besteldatum';
+$_['text_payment_method']        = 'Betaalmethode';
+$_['text_shipping_method']       = 'Verzendmethode';
+$_['text_customer']              = 'Klant';
+$_['text_customer_group']        = 'Klantengroep';
+$_['text_email']                 = 'E-mailadres';
+$_['text_telephone']             = 'Telefoon';
+$_['text_invoice']               = 'Factuur';
+$_['text_reward']                = 'Spaarpunten';
+$_['text_affiliate']             = 'Affiliate';
+$_['text_order']                 = 'Order (#%s)';
+$_['text_payment_address']       = 'Factuuradres';
+$_['text_shipping_address']      = 'Afleveradres';
+$_['text_comment']               = 'Opmerkingen';
+$_['text_history']               = 'Bestelhistory';
+$_['text_history_add']           = 'Bestelhistory toevoegen';
+$_['text_account_custom_field']  = 'Account Custom Fields';
+$_['text_payment_custom_field']  = 'Betaaladres Custom Fields';
+$_['text_shipping_custom_field'] = 'Verzendadres Custom Fields';
+$_['text_browser']               = 'Browser';
+$_['text_ip']                    = 'IP-adres';
+$_['text_forwarded_ip']          = 'Forwarded IP';
+$_['text_user_agent']            = 'User Agent';
+$_['text_accept_language']       = 'Geaccepteerd talen';
+$_['text_order_id']              = 'Bestelnummer:';
+$_['text_fax']                   = 'Fax:';
+$_['text_website']               = 'Website:';
+$_['text_invoice_no']            = 'Factuurnummer:';
+$_['text_invoice_date']          = 'Factuurdatum:';
+$_['text_sku']                   = 'SKU';
+$_['text_upc']                   = 'UPC';
+$_['text_ean']                   = 'EAN';
+$_['text_jan']                   = 'JAN';
+$_['text_isbn']                  = 'ISBN';
+$_['text_mpn']                   = 'MPN';
+$_['text_missing']               = 'Ontbrekende bestellingen';
+$_['text_default']               = 'Default';
+$_['text_product']               = 'Product toevoegen';
+$_['text_voucher']               = 'Tegoedbon(nen) toevoegen';
+$_['text_shipping']              = 'Verzending';
+$_['text_contact']               = 'Contact';
+$_['text_reward_added']          = 'Spaarpunten toegekend!';
+$_['text_reward_removed']        = 'Spaarpunten verwijderd!';
+$_['text_commission_added']      = 'Commissie toegekend!';
+$_['text_commission_removed']    = 'Commissie verwijderd!';
+$_['text_restock']               = 'Product(en) opnieuw aan voorraad toegevoegd';
+$_['text_upload']                = 'Bestand succesvol ge-upload!';
+$_['text_picklist']              = 'Pakbon';
+
+// Column
+$_['column_order_id']       = 'Bestelnummer';
+$_['column_customer']       = 'Klantnaam';
+$_['column_status']         = 'Status';
+$_['column_date_added']     = 'Besteldatum';
+$_['column_date_modified']  = 'Datum gewijzigd';
+$_['column_total']          = 'Totaal';
+$_['column_product']        = 'Product(en)';
+$_['column_model']          = 'Model';
+$_['column_quantity']       = 'Aantal';
+$_['column_price']          = 'Prijs per stuk';
+$_['column_comment']        = 'Opmerkingen';
+$_['column_notify']         = 'Klant ge&iuml;nformeerd';
+$_['column_location']       = 'Locatie';
+$_['column_reference']      = 'Referentie';
+$_['column_action']         = 'Aktie';
+$_['column_weight']         = 'Gewicht product';
+
+// Entry
+$_['entry_store']           = 'Winkel';
+$_['entry_customer']        = 'Klant';
+$_['entry_customer_group']  = 'Klantengroep';
+$_['entry_firstname']       = 'Voornaam';
+$_['entry_lastname']        = 'Achternaam';
+$_['entry_email']           = 'E-mail adres';
+$_['entry_telephone']       = 'Telefoon';
+$_['entry_fax']             = 'Fax';
+$_['entry_address']         = 'Kies adres';
+$_['entry_company']         = 'Bedrijf';
+$_['entry_address_1']       = 'Adres 1';
+$_['entry_address_2']       = 'Adres 2';
+$_['entry_city']            = 'Plaats';
+$_['entry_postcode']        = 'Postcode';
+$_['entry_country']         = 'Land';
+$_['entry_zone']            = 'Regio / Provincie';
+$_['entry_zone_code']       = 'Regio / Provinciecode';
+$_['entry_product']         = 'Product';
+$_['entry_option']          = 'Kies optie(s)';
+$_['entry_quantity']        = 'Aantal';
+$_['entry_to_name']         = 'Naam ontvanger';
+$_['entry_to_email']        = 'E-mail';
+$_['entry_from_name']       = 'Uw naam';
+$_['entry_from_email']      = 'E-mail';
+$_['entry_theme']           = 'Ter gelegenheid van';
+$_['entry_message']         = 'Bericht';
+$_['entry_amount']          = 'Bedrag';
+$_['entry_affiliate']       = 'Affiliate';
+$_['entry_order_status']    = 'Bestelstatus';
+$_['entry_notify']          = 'Klant informeren(Mail)';
+$_['entry_override']        = 'Override';
+$_['entry_comment']         = 'Opmerkingen';
+$_['entry_currency']        = 'Valuta';
+$_['entry_shipping_method'] = 'Verzendmethode';
+$_['entry_payment_method']  = 'Betaalmethode';
+$_['entry_coupon']          = 'Kortingsbon';
+$_['entry_voucher']         = 'Cadeaubon';
+$_['entry_reward']          = 'Spaarpunt(en)';
+$_['entry_order_id']        = 'Bestelnummer';
+$_['entry_total']           = 'Totaal';
+$_['entry_date_added']      = 'Datum geplaatst';
+$_['entry_date_modified']   = 'Datum gewijzigd';
+
+// Help
+$_['help_override']         = 'Als de bestelling geblokkeerd is wegens een IP-adres fraude melding zet dan Override aan.';
+
+// Error
+$_['error_warning']   	= 'Waarschuwing: Controleer of alle verplichte velden volledig zijn ingevuld!';
+$_['error_permission']	= 'Waarschuwing: U heeft geen rechten deze instellingen te wijzigen!';
+$_['error_action']      = 'Waarschuwing: Deze Aktie kon niet worden voltooid!';
+$_['error_filetype']	= 'Waarschuwing: Ongeldig bestandstype!';
