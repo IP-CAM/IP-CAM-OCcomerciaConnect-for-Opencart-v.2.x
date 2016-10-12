@@ -178,7 +178,7 @@ class ControllerextensionmodulecomerciaConnect extends Controller
 
             //save product to comercia connect
             $apiProduct->save();
-
+            $this->response->redirect("developer","module","all");
 
         }
 
