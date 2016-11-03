@@ -3,3 +3,4 @@ system/library/comerciaConnect.php
 admin/controller/extension/module/comerciaConnect.php
 admin/view/template/extension/module/comerciaConnect.tpl
 admin/language/en-gb/extension/module/comerciaConnect.php
+admin/model/extension/comerciaconnect

@@ -1,14 +1,22 @@
 <?php
 namespace comerciaConnect\logic;
-class ProductDescription{
+class ProductDescription
+{
     var $language;
     var $name;
     var $description;
 
-    function __construct($language="",$name="",$description="")
+    function __construct($language = "", $name = "", $description = "")
     {
-        $this->name=$name;
-        $this->language=$language;
-        $this->description=$description;
+        if (is_array($name)) {
+            $data = $name;
+            foreach ($data as $key => $value) {
+                $this->{$key} = $value;
+            }
+        } else {
+            $this->name = $name;
+            $this->language = $language;
+        }
+        $this->description = $description;
     }
 }

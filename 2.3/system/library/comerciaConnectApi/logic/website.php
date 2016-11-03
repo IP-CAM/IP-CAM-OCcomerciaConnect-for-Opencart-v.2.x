@@ -18,7 +18,7 @@
 
         static function getWebsite($session){
             $data = $session->get("website/get");
-            return new Website($session,$data);
+            return new Website($session,$data["data"]);
         }
 
 
