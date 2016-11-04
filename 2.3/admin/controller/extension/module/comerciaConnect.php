@@ -2,6 +2,7 @@
 
 use comerciaConnect\logic\ProductCategory;
 use comerciaConnect\logic\ProductDescription;
+use comerciaConnect\logic\Purchase;
 
 class ControllerextensionmodulecomerciaConnect extends Controller
 {
@@ -111,11 +112,12 @@ class ControllerextensionmodulecomerciaConnect extends Controller
 
     function sync()
     {
-       global $is_in_debug;
-        $is_in_debug=true;
+        global $is_in_debug;
+        //  $is_in_debug=true;
         //load models
         $this->load->model("catalog/product");
         $this->load->model("catalog/category");
+        $this->load->model("extension/comerciaconnect/order");
         $this->load->model("localisation/language");
 
         //prepare variables
@@ -139,48 +141,58 @@ class ControllerextensionmodulecomerciaConnect extends Controller
             $categoriesMap[$category["category_id"]] = $apiCategory;
         }
 
-        $languages=$this->model_localisation_language->getLanguages();
+        $languages = $this->model_localisation_language->getLanguages();
 
         //synchronise products
         $products = $this->model_catalog_product->getProducts();
-        foreach($products as $product){
+        foreach ($products as $product) {
             //add descriptions
-            $productDescriptions=$this->model_catalog_product->getProductDescriptions($product["product_id"]);
-            $descriptions=array();
-            foreach($languages as $language){
-                $descriptions[]= new ProductDescription($language["code"], $productDescriptions[$language["language_id"]]["name"], $productDescriptions[$language["language_id"]]["description"]);
+            $productDescriptions = $this->model_catalog_product->getProductDescriptions($product["product_id"]);
+            $descriptions = array();
+            foreach ($languages as $language) {
+                $descriptions[] = new ProductDescription($language["code"], $productDescriptions[$language["language_id"]]["name"], $productDescriptions[$language["language_id"]]["description"]);
             }
 
             //decide categories
-            $productCategories=$this->model_catalog_product->getProductCategories($product["product_id"]);
-            $categories=array();
-            foreach($productCategories as $category) {
-                $categories[]=$categoriesMap[$category["category_id"]];
+            $productCategories = $this->model_catalog_product->getProductCategories($product["product_id"]);
+            $categories = array();
+            foreach ($productCategories as $category) {
+                $categories[] = $categoriesMap[$category["category_id"]];
             }
 
             //create new api product
-            $apiProduct=new \comerciaConnect\logic\Product($session);
+            $apiProduct = new \comerciaConnect\logic\Product($session);
 
             //product basic information
             $apiProduct->id = $product["product_id"];
             $apiProduct->name = $product["name"];
-            $apiProduct->quantity =$product["quantity"];
+            $apiProduct->quantity = $product["quantity"];
             $apiProduct->price = $product["price"];
             $apiProduct->url = HTTP_CATALOG;
-            $apiProduct->ean=$product["ean"];
-            $apiProduct->isbn=$product["isbn"];
-            $apiProduct->sku=$product["sku"];
+            $apiProduct->ean = $product["ean"];
+            $apiProduct->isbn = $product["isbn"];
+            $apiProduct->sku = $product["sku"];
 
 
             //add arrays
-            $apiProduct->categories=$categories;
-            $apiProduct->descriptions=$descriptions;
+            $apiProduct->categories = $categories;
+            $apiProduct->descriptions = $descriptions;
 
             //save product to comercia connect
             $apiProduct->save();
-            $this->response->redirect("developer","module","all");
+            $this->response->redirect("developer", "module", "all");
 
         }
+
+        //import orders
+        $filter = Purchase::createFilter($session);
+        $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
+        $orders = $filter->getData();
+
+        foreach ($orders as $order) {
+            $this->model_extension_comerciaconnect_order->addOrder($order);
+        }
+
 
     }
 
