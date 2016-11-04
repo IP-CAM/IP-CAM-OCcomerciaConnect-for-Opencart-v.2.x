@@ -17,6 +17,6 @@ $_['entry_api_url'] = 'Api url';
 $_['entry_api_key'] = 'Api Key';
 $_['entry_auth_url'] = 'Api Auth url';
 
-$_['button_sync'] = 'Synchronise';
+$_['button_sync'] = 'Synchronize';
 $_['total'] = 'Total';
 $_['sub_total'] = 'Sub total';
