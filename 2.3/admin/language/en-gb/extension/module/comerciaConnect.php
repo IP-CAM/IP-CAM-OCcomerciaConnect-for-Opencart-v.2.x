@@ -7,7 +7,7 @@ $_['text_extension'] = 'Extensions';
 $_['text_success'] = 'Success: You have modified account module!';
 $_['text_edit'] = 'Edit Account Module';
 
-$_['text_sync'] = 'Synchroinsation';
+$_['text_sync'] = 'Synchronization';
 
 // Entry
 $_['entry_status'] = 'Status';
