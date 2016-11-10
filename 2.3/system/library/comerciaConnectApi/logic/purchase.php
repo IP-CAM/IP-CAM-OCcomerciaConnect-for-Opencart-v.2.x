@@ -36,29 +36,45 @@ class Purchase{
      }
 
     function save(){
-        $this->session->post("purchase/save",$this);
+        if($this->session) {
+            $this->session->post("purchase/save", $this);
+            return true;
+        }
+        return false;
     }
 
     function delete(){
-        $this->session->get("purchase/delete/".$this->id);
+        if($this->session) {
+            $this->session->get("purchase/delete/" . $this->id);
+            return true;
+        }
+        return false;
     }
 
     static function getById($session,$id){
-        $data = $session->get("purchase/getById/".$id);
-        return new Purchase($session,$data["data"]);
+        if($session) {
+            $data = $session->get("purchase/getById/" . $id);
+            return new Purchase($session, $data["data"]);
+        }
+        return false;
     }
 
     static function getAll($session){
-        $data = $session->get("purchase/getAll");
-        $result=array();
-        foreach($data["data"] as $product){
-            $result[]=new Purchase($session,$product);
-        }
-        return $result;
+        if($session) {
+            $data = $session->get("purchase/getAll");
+            $result = array();
+            foreach ($data["data"] as $product) {
+                $result[] = new Purchase($session, $product);
+            }
+            return $result;
+        }return false;
     }
 
     static function createFilter($session){
-        return new PurchaseFilter($session);
+        if($session) {
+            return new PurchaseFilter($session);
+        }
+        return false;
     }
 
 

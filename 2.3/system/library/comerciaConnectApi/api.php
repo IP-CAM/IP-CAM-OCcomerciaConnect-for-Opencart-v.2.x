@@ -46,7 +46,7 @@ class Api
     function createSession($key)
     {
         $client = new HttpClient();
-        $data = $client->post($this->auth_url, array("apiKey" => $key));
+        $data = $client->post($this->auth_url."/request" , array("apiKey" => $key));
         if ($data["success"]) {
             return new Session($this, $data["token"]);
         }

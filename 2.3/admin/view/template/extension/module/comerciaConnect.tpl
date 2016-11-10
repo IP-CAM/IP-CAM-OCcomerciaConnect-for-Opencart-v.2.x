@@ -69,17 +69,17 @@
                 </form>
             </div>
         </div>
-
+<?php if($login_success){ ?>
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title"><i class="fa fa-pencil"></i> <?php echo $text_sync; ?></h3>
+                <h3 class="panel-title"><i class="fa fa-pencil"></i> <?php echo $text_actions; ?></h3>
             </div>
             <div class="panel-body">
                 <a href="<?php echo $sync_url; ?>" class="btn btn-info"><?php echo $button_sync; ?></a>
+                <a href="<?php echo $control_panel_url; ?>" class="btn btn-info"><?php echo $button_control_panel; ?></a>
             </div>
         </div>
-
-
+        <?php } ?>
     </div>
 </div>
 <?php echo $footer; ?>
