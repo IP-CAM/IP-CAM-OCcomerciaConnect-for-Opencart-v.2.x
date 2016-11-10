@@ -6,7 +6,7 @@
         var $url;
 
         private $session;
- 
+
         function __construct($session,$data=array())
         {
             $this->session=$session;

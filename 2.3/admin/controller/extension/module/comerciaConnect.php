@@ -62,8 +62,6 @@ class ControllerextensionmodulecomerciaConnect extends Controller
             'href' => $this->url->link('extension/module/comerciaConnect', 'token=' . $this->session->data['token'], true)
         );
 
-
-
         //the rest of the page
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
@@ -96,7 +94,6 @@ class ControllerextensionmodulecomerciaConnect extends Controller
             $data['comerciaConnect_api_url'] = $this->config->get('comerciaConnect_api_url');
         }
 
-
         //set up api session
         $this->load->library("comerciaConnect");
         $api = $this->comerciaConnect->getApi($data['comerciaConnect_auth_url'], $data['comerciaConnect_api_url']);
@@ -114,7 +111,6 @@ class ControllerextensionmodulecomerciaConnect extends Controller
             $data['control_panel_url']=false;
             $data['login_success']=false;
         }
-
 
         $this->response->setOutput($this->load->view('extension/module/comerciaConnect', $data));
     }
