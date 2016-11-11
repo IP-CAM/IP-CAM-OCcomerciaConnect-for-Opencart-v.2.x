@@ -22,8 +22,5 @@
             $client = new HttpClient();
             return $client->post($this->api->api_url."/".$url,$data,$this->token);
         }
-
-
-
     }
 ?>

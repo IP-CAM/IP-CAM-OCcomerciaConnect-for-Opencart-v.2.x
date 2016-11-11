@@ -3,6 +3,7 @@
 use comerciaConnect\logic\ProductCategory;
 use comerciaConnect\logic\ProductDescription;
 use comerciaConnect\logic\Purchase;
+use comerciaConnect\logic\Website;
 
 class ControllerextensionmodulecomerciaConnect extends Controller
 {
@@ -40,7 +41,8 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         $data['button_cancel'] = $this->language->get('button_cancel');
 
         $data['button_sync'] = $this->language->get('button_sync');
-        $data['text_sync'] = $this->language->get('text_sync');
+        $data['button_control_panel']=$this->language->get('button_control_panel');
+        $data['text_actions'] = $this->language->get('text_actions');
 
         //breadcrumb
         $data['breadcrumbs'] = array();
@@ -60,15 +62,13 @@ class ControllerextensionmodulecomerciaConnect extends Controller
             'href' => $this->url->link('extension/module/comerciaConnect', 'token=' . $this->session->data['token'], true)
         );
 
-
-        //actions
-        $data['action'] = $this->url->link('extension/module/comerciaConnect', 'token=' . $this->session->data['token'], true);
-        $data['sync_url'] = $this->url->link('extension/module/comerciaConnect/sync', 'token=' . $this->session->data['token'], true);
-
+        //the rest of the page
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
 
+
+        //fields
         if (isset($this->request->post['comerciaConnect_status'])) {
             $data['comerciaConnect_status'] = $this->request->post['comerciaConnect_status'];
         } else {
@@ -94,6 +94,23 @@ class ControllerextensionmodulecomerciaConnect extends Controller
             $data['comerciaConnect_api_url'] = $this->config->get('comerciaConnect_api_url');
         }
 
+        //set up api session
+        $this->load->library("comerciaConnect");
+        $api = $this->comerciaConnect->getApi($data['comerciaConnect_auth_url'], $data['comerciaConnect_api_url']);
+        $apiSession = $api->createSession($data['comerciaConnect_api_key']);
+        $website=Website::getWebsite($apiSession);
+
+        //actions
+        $data['action'] = $this->url->link('extension/module/comerciaConnect', 'token=' . $this->session->data['token'], true);
+        $data['sync_url'] = $this->url->link('extension/module/comerciaConnect/sync', 'token=' . $this->session->data['token'], true);
+
+        if($website) {
+            $data['control_panel_url'] = $website->controlPanelUrl();
+            $data['login_success']=true;
+        }else{
+            $data['control_panel_url']=false;
+            $data['login_success']=false;
+        }
 
         $this->response->setOutput($this->load->view('extension/module/comerciaConnect', $data));
     }

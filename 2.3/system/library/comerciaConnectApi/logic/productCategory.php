@@ -19,14 +19,19 @@ class ProductCategory
 
     function save()
     {
-        $this->session->post("productCategory/save", $this);
+        if($this->session) {
+            $this->session->post("productCategory/save", $this);
+        }return false;
     }
 
 
     static function getById($session, $id)
     {
-        $data = $session->get("productCategory/getById/" . $id);
-        return new ProductCategory($session, $data["data"]);
+        if($session) {
+            $data = $session->get("productCategory/getById/" . $id);
+            return new ProductCategory($session, $data["data"]);
+        }
+        return false;
     }
 
     static function getAll($session)

@@ -40,25 +40,39 @@ class Product{
      }
 
     function save(){
-        $this->session->post("product/save",$this);
+        if($this->session) {
+            $this->session->post("product/save", $this);
+            return true;
+        }
+        return false;
     }
 
     function delete(){
-        $this->session->get("product/delete/".$this->id);
+        if($this->session) {
+            $this->session->get("product/delete/" . $this->id);
+            return true;
+        }
+        return false;
     }
 
     static function getById($session,$id){
-        $data = $session->get("product/getById/".$id);
-        return new Product($session,$data["data"]);
+        if($session) {
+            $data = $session->get("product/getById/" . $id);
+            return new Product($session, $data["data"]);
+        }
+        return false;
     }
 
     static function getAll($session){
-        $data = $session->get("product/getAll");
-        $result=array();
-        foreach($data["data"] as $product){
-            $result[]=new Product($session,$product);
+        if($session) {
+            $data = $session->get("product/getAll");
+            $result = array();
+            foreach ($data["data"] as $product) {
+                $result[] = new Product($session, $product);
+            }
+            return $result;
         }
-        return $result;
+        return false;
     }
 
 

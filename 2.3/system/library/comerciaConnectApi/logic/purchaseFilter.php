@@ -16,12 +16,15 @@ class PurchaseFilter
     }
 
     function getData(){
-        $data=$this->session->post("purchase/getByFilter",$this);
-        $result=array();
-        foreach($data["data"] as $purchase){
-            $result[]=new Purchase($this->session,$purchase);
+        if($this->session) {
+            $data = $this->session->post("purchase/getByFilter", $this);
+            $result = array();
+            foreach ($data["data"] as $purchase) {
+                $result[] = new Purchase($this->session, $purchase);
+            }
+            return $result;
         }
-        return $result;
+        return false;
     }
 }
 ?>
