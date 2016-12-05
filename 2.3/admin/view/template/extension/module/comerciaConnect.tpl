@@ -21,8 +21,19 @@
                 <h3 class="panel-title"><i class="fa fa-pencil"></i> <?php echo $text_edit; ?></h3>
             </div>
             <div class="panel-body">
+
                 <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form-account"
                       class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"
+                               for="input-status"><?php echo $entry_simple_connect; ?></label>
+                        <div class="col-sm-10">
+                            <input type="button" id="simple_connect"
+                                   value="<?php echo $button_simple_connect; ?>" class="btn btn-success">
+                        </div>
+                    </div>
+
+
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="input-status"><?php echo $entry_status; ?></label>
                         <div class="col-sm-10">
@@ -43,7 +54,7 @@
                                for="input-status"><?php echo $entry_auth_url; ?></label>
                         <div class="col-sm-10">
                             <input type="text" name="comerciaConnect_auth_url"
-                                   value="<?php echo $comerciaConnect_auth_url; ?>" class="form-control">
+                                   value="<?php echo $comerciaConnect_auth_url; ?>" id="auth_url" class="form-control">
                         </div>
                     </div>
 
@@ -52,7 +63,7 @@
                                for="input-status"><?php echo $entry_api_url; ?></label>
                         <div class="col-sm-10">
                             <input type="text" name="comerciaConnect_api_url"
-                                   value="<?php echo $comerciaConnect_api_url; ?>" class="form-control">
+                                   value="<?php echo $comerciaConnect_api_url; ?>" id="api_url" class="form-control">
                         </div>
                     </div>
 
@@ -62,7 +73,7 @@
                                for="input-status"><?php echo $entry_api_key; ?></label>
                         <div class="col-sm-10">
                             <input type="text" name="comerciaConnect_api_key"
-                                   value="<?php echo $comerciaConnect_api_key; ?>" class="form-control">
+                                   value="<?php echo $comerciaConnect_api_key; ?>" id="api_key" class="form-control">
                         </div>
                     </div>
 
@@ -82,4 +93,19 @@
         <?php } ?>
     </div>
 </div>
+<script>
+    $("#simple_connect").click(function(){
+        var w=800;
+        var h=500;
+        var left = (screen.width/2)-(w/2);
+        var top = (screen.height/2)-(h/2);
+
+          window.open("<?php echo str_replace("&amp;","&",$simple_connect_url);?>", "_blank", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=no, copyhistory=no, width="+w+", height="+h+", top="+top+", left="+left);
+    });
+    function simple_connect_finish(auth_url,api_url,api_key){
+        $("#auth_url").val(auth_url)
+        $("#api_url").val(api_url);
+        $("#api_key").val(api_key);
+    }
+</script>
 <?php echo $footer; ?>
