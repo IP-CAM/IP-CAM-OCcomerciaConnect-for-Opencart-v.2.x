@@ -97,8 +97,8 @@
     $("#simple_connect").click(function(){
         var w=800;
         var h=500;
-        var left = (screen.width/2)-(w/2);
-        var top = (screen.height/2)-(h/2);
+        var left =(screen.width - w) / 2;
+        var top = (screen.width - h) / 2;
 
           window.open("<?php echo str_replace("&amp;","&",$simple_connect_url);?>", "_blank", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=no, copyhistory=no, width="+w+", height="+h+", top="+top+", left="+left);
     });
