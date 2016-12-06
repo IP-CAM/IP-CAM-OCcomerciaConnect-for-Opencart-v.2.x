@@ -123,7 +123,7 @@ class ControllerextensionmodulecomerciaConnect extends Controller
     }
 
     public function simpleconnect(){
-        if (($this->request->server['REQUEST_METHOD'] != 'POST') && $this->validate()) {
+        if ($this->request->server['REQUEST_METHOD'] != 'POST') {
             $this->load->language('extension/module/comerciaConnect');
             $data["entry_simple_connect"] = $this->language->get("entry_simple_connect");
             $data["text_simple_connect"] = $this->language->get("text_simple_connect");
