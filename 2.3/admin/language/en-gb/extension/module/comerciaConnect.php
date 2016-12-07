@@ -21,3 +21,10 @@ $_['button_sync'] = 'Synchronize';
 $_['button_control_panel']="Go to control panel";
 $_['total'] = 'Total';
 $_['sub_total'] = 'Sub total';
+
+$_["entry_simple_connect"]="Simple connect";
+$_["text_simple_connect"]="Fill in an url and click the start button to start the process";
+//this should change in the future when we have a more permanent url. For now for development puposes i made a textfield to fill in an url.
+$_["button_simple_connect_start"]="Start";
+$_["button_simple_connect"]="Start simple connect";
+$_["title_simple_connect"]="Simple connect";

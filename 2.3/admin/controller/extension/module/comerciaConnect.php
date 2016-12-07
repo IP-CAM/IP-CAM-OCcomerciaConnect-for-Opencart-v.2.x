@@ -44,6 +44,12 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         $data['button_control_panel']=$this->language->get('button_control_panel');
         $data['text_actions'] = $this->language->get('text_actions');
 
+        $data["entry_simple_connect"]=$this->language->get("entry_simple_connect");
+        $data["text_simple_connect"]=$this->language->get("text_simple_connect");
+        $data["button_simple_connect_start"]=$this->language->get("button_simple_connect_start");
+        $data["button_simple_connect"]=$this->language->get("button_simple_connect");
+        $data["title_simple_connect"]=$this->language->get("button_simple_connect");
+
         //breadcrumb
         $data['breadcrumbs'] = array();
 
@@ -103,6 +109,7 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         //actions
         $data['action'] = $this->url->link('extension/module/comerciaConnect', 'token=' . $this->session->data['token'], true);
         $data['sync_url'] = $this->url->link('extension/module/comerciaConnect/sync', 'token=' . $this->session->data['token'], true);
+        $data['simple_connect_url'] = $this->url->link('extension/module/comerciaConnect/simpleConnect', 'token=' . $this->session->data['token'], true);
 
         if($website) {
             $data['control_panel_url'] = $website->controlPanelUrl();
@@ -113,6 +120,23 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         }
 
         $this->response->setOutput($this->load->view('extension/module/comerciaConnect', $data));
+    }
+
+    public function simpleconnect(){
+        if ($this->request->server['REQUEST_METHOD'] != 'POST') {
+            $this->load->language('extension/module/comerciaConnect');
+            $data["entry_simple_connect"] = $this->language->get("entry_simple_connect");
+            $data["text_simple_connect"] = $this->language->get("text_simple_connect");
+            $data["button_simple_connect_start"] = $this->language->get("button_simple_connect_start");
+            $data["button_simple_connect"] = $this->language->get("button_simple_connect");
+            $data["title_simple_connect"] = $this->language->get("button_simple_connect");
+            $this->response->setOutput($this->load->view('extension/module/comerciaConnect_simpleConnect', $data));
+        }else{
+           $data["auth_url"]=$this->request->post["authUrl"];
+            $data["api_url"]=$this->request->post["apiUrl"];
+            $data["key"]=$this->request->post["key"];
+            $this->response->setOutput($this->load->view('extension/module/comerciaConnect_simpleConnect_finish', $data));
+        }
     }
 
     protected function validate()
