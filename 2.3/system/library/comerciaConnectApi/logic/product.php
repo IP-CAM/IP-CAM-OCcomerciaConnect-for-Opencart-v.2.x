@@ -14,6 +14,8 @@ class Product{
     var $taxGroup="";
     var $type=PRODUCT_TYPE_PRODUCT;
     var $code="";
+    var $image="";
+    var $brand="";
 
     private $session;
     function __construct($session,$data=array())
