@@ -2,6 +2,64 @@
 
 class ModelExtensionComerciaconnectOrder extends Model
 {
+
+
+    public function sendOrderToApi($order,$session,$productMap){
+        $this->load->model("sale/order");
+        $orderlines=array();
+        $lines=$this->model_sale_order->getOrderProducts($order["order_id"]);
+
+        foreach($lines as $line){
+           $orderLines[] = new OrderLine(array(
+                "product" => $productMap[$line["product_id"]],
+                "price" => $line["price"],
+                "quantity" => $line["quantity"],
+                "tax" => $line["tax"],
+                "priceWithTax"=>$line["tax"]+$line["price"],
+                //todo: fix tax group
+                "taxGroup"=>""
+            ));
+        }
+
+        //todo:export payment methods and delivery methods works same as products.. check samples in api
+
+        $purchase = new Purchase(
+            $session,
+            array(
+                "id" => 1,
+                "date" => time(),
+                "status" => "processing",
+                "email"=>"info@comercia.nl",
+                "phonenumber"=>"0123456789",
+                "deliveryAddress" => array(
+                    "firstName" => $order["shipping_firstname"],
+                    "lastName" => $order["shipping_lastname"],
+                    "street" => $order["shipping_address_1"],
+                    //todo: split street and number
+                    "number" => "",
+                    "postalCode" => $order["shipping_postcode"],
+                    "city" =>$order["shipping_city"] ,
+                    "province" => $order["shipping_zone"],
+                    "country" => $order["shipping_country"]
+                ),
+                "invoiceAddress" => array(
+                    "firstName" => $order["payment_firstname"],
+                    "lastName" => $order["payment_lastname"],
+                    "street" => $order["payment_address_1"],
+                    //todo: split street and number
+                    "number" => "",
+                    "postalCode" => $order["payment_postcode"],
+                    "city" =>$order["payment_city"] ,
+                    "province" => $order["payment_zone"],
+                    "country" => $order["payment_country"]
+                ),
+                "orderLines"=>$orderlines
+
+            )
+        );
+    }
+
+
     function addOrder($order)
     {
         $this->load->language("extension/module/comerciaConnect");

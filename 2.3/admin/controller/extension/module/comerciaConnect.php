@@ -158,8 +158,18 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         //load models
         $this->load->model("catalog/product");
         $this->load->model("catalog/category");
+        $this->load->model("sale/order");
         $this->load->model("extension/comerciaconnect/order");
+        $this->load->model("extension/comerciaconnect/product");
         $this->load->model("localisation/language");
+
+        //last sync
+        $lastSync= $this->config->get('comerciaConnect_last_sync');
+        if(!$lastSync){
+            //make sure lastSync is an int. and not an empty string.
+            $lastSync=0;
+        }
+
 
         //prepare variables
         $authUrl = $this->config->get('comerciaConnect_auth_url');
@@ -168,73 +178,55 @@ class ControllerextensionmodulecomerciaConnect extends Controller
 
         //create session
         $this->load->library("comerciaConnect");
-        $api = $api = $this->comerciaConnect->getApi($authUrl, $apiUrl);
+        $api = $this->comerciaConnect->getApi($authUrl, $apiUrl);
         $session = $api->createSession($apiKey);
 
-        //synchronise categories
+        //export categories
+        //todo:filter on last sync date
         $categories = $this->model_catalog_category->getCategories();
-        $categoriesMap = arraY();
+        $categoriesMap = array();
         foreach ($categories as $category) {
-            $apiCategory = new ProductCategory($session);
-            $apiCategory->name = $category["name"];
-            $apiCategory->id = $category["category_id"];
-            $apiCategory->save();
+            $apiCategory= $this->model_extension_comerciaconnect_product->sendCategoryToApi($category,$session);
             $categoriesMap[$category["category_id"]] = $apiCategory;
         }
 
-        $languages = $this->model_localisation_language->getLanguages();
-
-        //synchronise products
+        //export products
+        //todo:filter on last sync date
         $products = $this->model_catalog_product->getProducts();
+        $productMap=array();
         foreach ($products as $product) {
             //add descriptions
-            $productDescriptions = $this->model_catalog_product->getProductDescriptions($product["product_id"]);
-            $descriptions = array();
-            foreach ($languages as $language) {
-                $descriptions[] = new ProductDescription($language["code"], $productDescriptions[$language["language_id"]]["name"], $productDescriptions[$language["language_id"]]["description"]);
-            }
-
-            //decide categories
-            $productCategories = $this->model_catalog_product->getProductCategories($product["product_id"]);
-            $categories = array();
-            foreach ($productCategories as $category) {
-                $categories[] = $categoriesMap[$category["category_id"]];
-            }
-
-            //create new api product
-            $apiProduct = new \comerciaConnect\logic\Product($session);
-
-            //product basic information
-            $apiProduct->id = $product["product_id"];
-            $apiProduct->name = $product["name"];
-            $apiProduct->quantity = $product["quantity"];
-            $apiProduct->price = $product["price"];
-            $apiProduct->url = HTTP_CATALOG;
-            $apiProduct->ean = $product["ean"];
-            $apiProduct->isbn = $product["isbn"];
-            $apiProduct->sku = $product["sku"];
-
-
-            //add arrays
-            $apiProduct->categories = $categories;
-            $apiProduct->descriptions = $descriptions;
-
-            //save product to comercia connect
-            $apiProduct->save();
-            $this->response->redirect("developer", "module", "all");
-
+            $productMap[$product["product_id"]]=$this->model_extension_comerciaconnect_product->sendProductToApi($product,$session,$categoriesMap);
         }
+
+        //export orders
+        //todo:filter on last sync date
+        $orders = $this->model_sale_order->getOrders();
+        foreach ($orders as $order) {
+            $this->model_extension_comerciaconnect_order->sendOrderToApi($order,$session,$productMap);
+        }
+        $this->model_setting_setting->editSetting('comerciaConnect', array("comerciaConnect_last_sync",time()));
 
         //import orders
         $filter = Purchase::createFilter($session);
         $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
+        $filter->filter("lastUpdate",$lastSync,">");
         $orders = $filter->getData();
-
         foreach ($orders as $order) {
             $this->model_extension_comerciaconnect_order->addOrder($order);
         }
 
+        //import products
+        $filter = Product::createFilter($session);
+        $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
+        $filter->filter("lastUpdate",$lastSync,">");
+        $products = $filter->getData();
+        foreach ($products as $product) {
+            $this->model_extension_comerciaconnect_product->addProduct($product);
+        }
 
+
+        $this->model_setting_setting->editSetting('comerciaConnect', array("comerciaConnect_last_sync",time()));
     }
 
 }
