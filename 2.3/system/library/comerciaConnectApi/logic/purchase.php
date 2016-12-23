@@ -14,6 +14,7 @@ class Purchase{
     var $orderLines;
     var $phoneNumber;
     var $email;
+    var $lastUpdate=0;
 
     private $session;
     function __construct($session,$data=array())
