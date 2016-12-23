@@ -207,6 +207,8 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         }
         $this->model_setting_setting->editSetting('comerciaConnect', array("comerciaConnect_last_sync",time()));
 
+
+        //todo: Make this syncs update when orders and products already exist
         //import orders
         $filter = Purchase::createFilter($session);
         $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
