@@ -5,12 +5,31 @@ use comerciaConnect\logic\ProductCategory;
 
 class ModelExtensionComerciaconnectOrder extends Model
 {
-    //todo: implement add product
-    function addProduct($product){
+
+    function saveProduct($product)
+    {
+        $dbProduct["product_id"] = $product->id;
+        $dbProduct["name"] = $product->name;
+        $dbProduct["quantity"] = $product->quantity;
+        $dbProduct["price"] = $product->price;
+        $dbProduct["ean"] = $product->ean;
+        $dbProduct["isbn"] = $product->isbn;
+        $dbProduct["sku"] = $product->sku;
+        $productId=\comercia\Util::db()->saveDataObject("product",$dbProduct);
+
+
+        foreach($product->descriptions as $description){
+            $language=$this->model_localisation_language->getLanguageByCode($description->language);
+            $dbDescription["language_id"]=$language["language_id"];
+            $dbDescription["product_id"]=$productId;
+            $dbDescription["name"]=$description->name;
+            $dbDescription["description"]=$description;
+            \comercia\Util::db()->saveDataObject("product_description",$dbProduct,array("product_id","language_id"));
+        }
 
     }
 
-    function sendCategoryToApi($category,$session)
+    function sendCategoryToApi($category, $session)
     {
         $apiCategory = new ProductCategory($session);
         $apiCategory->name = $category["name"];
@@ -19,7 +38,7 @@ class ModelExtensionComerciaconnectOrder extends Model
         return $apiCategory;
     }
 
-    function sendProductToApi($product,$session,$categoriesMap)
+    function sendProductToApi($product, $session, $categoriesMap)
     {
         $languages = $this->model_localisation_language->getLanguages();
         $productDescriptions = $this->model_catalog_product->getProductDescriptions($product["product_id"]);

@@ -60,7 +60,7 @@ class ModelExtensionComerciaconnectOrder extends Model
     }
 
 
-    function addOrder($order)
+    function saveOrder($order)
     {
         $this->load->language("extension/module/comerciaConnect");
 
@@ -71,6 +71,7 @@ class ModelExtensionComerciaconnectOrder extends Model
         $dbOrderHistory = array();
 
         //basic info
+        $dbOrderInfo["order_id"]=$order->id;
         $dbOrderInfo["invoice_no"] = 0;
         //todo: lets see in the future how we can get this multi store for now take the default.
         $dbOrderInfo["store_id"] = 0;
@@ -90,7 +91,6 @@ class ModelExtensionComerciaconnectOrder extends Model
         $dbOrderInfo["language_id"] = $this->config->get('config_language_id');
         $dbOrderInfo["currency_id"] = $this->config->get('config_currency_id');
         $dbOrderInfo["currency_value"] = 1;
-        $dbOrderInfo["ip"] = "";
         $dbOrderInfo["ip"] = "";
         $dbOrderInfo["forwarded_ip"] = "";
         $dbOrderInfo["user_agent"] = "";
@@ -159,7 +159,7 @@ class ModelExtensionComerciaconnectOrder extends Model
         $dbOrderInfo["total"] = $this->calculateTotalValue($totals);
 
         //complete and save the order
-        $order_id = $this->saveDataObject("order", $dbOrderInfo);
+        $order_id = \comercia\Util::db()->saveDataObject("order", $dbOrderInfo);
 
         //order history
         $dbOrderHistory["order_id"] = $order_id;
@@ -167,7 +167,7 @@ class ModelExtensionComerciaconnectOrder extends Model
         $dbOrderHistory["notify"] = 0;
         $dbOrderHistory["comment"] = "";
         $dbOrderHistory["date_added"] = date('Y-m-d H:i:s');
-        $this->saveDataObject("order_history", $dbOrderHistory);
+        \comercia\Util::db()->saveDataObject("order_history", $dbOrderHistory);
 
         //add products
         foreach ($order->orderLines as $orderLine) {
@@ -181,36 +181,13 @@ class ModelExtensionComerciaconnectOrder extends Model
             $product["total"]=$orderLine->price*$orderLine->quantity;
             $product["tax"]=$orderLine->tax;
             $product["reward"]=0;
-            $this->saveDataObject("order_product",$product);
+            \comercia\Util::db()->saveDataObject("order_product",$product,array("order_id","product_id"));
         }
 
         $dbTotals=$this->totalsToDbTotals($totals);
-        $this->saveDataObjectArray("order_total",$dbTotals);
+        \comercia\Util::db()->saveDataObjectArray("order_total",$dbTotals);
 
     }
-
-
-    private function saveDataObject($table, $data)
-    {
-        $query = "insert into " . DB_PREFIX . $table . " set ";
-        $i = 0;
-        foreach ($data as $key => $value) {
-            if ($i) {
-                $query .= ",";
-            }
-            $query .= "`" . $key . "`='" . $this->db->escape($value) . "'";
-            $i++;
-        }
-        $this->db->query($query);
-        return $this->db->getLastId();
-    }
-
-    private function saveDataObjectArray($table,$data){
-        foreach($data as $obj){
-            $this->saveDataObject($table,$obj);
-        }
-    }
-
 
     private function totalsToDbTotals($totals)
     {

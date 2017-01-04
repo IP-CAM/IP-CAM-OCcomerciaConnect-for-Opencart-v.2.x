@@ -1,10 +1,9 @@
 <?php
-
+include_once(DIR_SYSTEM."/comercia/util.php");
 use comerciaConnect\logic\ProductCategory;
 use comerciaConnect\logic\ProductDescription;
 use comerciaConnect\logic\Purchase;
 use comerciaConnect\logic\Website;
-
 class ControllerextensionmodulecomerciaConnect extends Controller
 {
     private $error = array();
@@ -182,7 +181,6 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         $session = $api->createSession($apiKey);
 
         //export categories
-        //todo:filter on last sync date
         $categories = $this->model_catalog_category->getCategories();
         $categoriesMap = array();
         foreach ($categories as $category) {
@@ -191,7 +189,6 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         }
 
         //export products
-        //todo:filter on last sync date
         $products = $this->model_catalog_product->getProducts();
         $productMap=array();
         foreach ($products as $product) {
@@ -200,7 +197,6 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         }
 
         //export orders
-        //todo:filter on last sync date
         $orders = $this->model_sale_order->getOrders();
         foreach ($orders as $order) {
             $this->model_extension_comerciaconnect_order->sendOrderToApi($order,$session,$productMap);
@@ -208,14 +204,14 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         $this->model_setting_setting->editSetting('comerciaConnect', array("comerciaConnect_last_sync",time()));
 
 
-        //todo: Make this syncs update when orders and products already exist
         //import orders
         $filter = Purchase::createFilter($session);
         $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
         $filter->filter("lastUpdate",$lastSync,">");
+        $filter->filter("type",PRODUCT_TYPE_PRODUCT);
         $orders = $filter->getData();
         foreach ($orders as $order) {
-            $this->model_extension_comerciaconnect_order->addOrder($order);
+            $this->model_extension_comerciaconnect_order->saveOrder($order);
         }
 
         //import products
@@ -224,7 +220,7 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         $filter->filter("lastUpdate",$lastSync,">");
         $products = $filter->getData();
         foreach ($products as $product) {
-            $this->model_extension_comerciaconnect_product->addProduct($product);
+            $this->model_extension_comerciaconnect_product->saveProduct($product);
         }
 
 
