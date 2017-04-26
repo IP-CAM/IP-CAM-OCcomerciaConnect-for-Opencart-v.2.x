@@ -10,6 +10,7 @@ class ModelExtensionComerciaconnectOrder extends Model
     {
         $dbProduct["product_id"] = $product->id;
         $dbProduct["name"] = $product->name;
+  	$dbProduct["model"] = $product->code;
         $dbProduct["quantity"] = $product->quantity;
         $dbProduct["price"] = $product->price;
         $dbProduct["ean"] = $product->ean;
