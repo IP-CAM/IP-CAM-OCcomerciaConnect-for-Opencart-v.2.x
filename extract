@@ -1,0 +1,4 @@
+#!/bin/bash
+mkdir "bin"
+file="$1/comercia_connect_files"
+cp -r --parents $(cat $file) "bin" 
