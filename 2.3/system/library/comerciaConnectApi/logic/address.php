@@ -2,7 +2,6 @@
 namespace comerciaConnect\logic;
 class Address
 {
-
     var $firstName;
     var $lastName;
     var $street;
@@ -15,11 +14,8 @@ class Address
 
     function __construct($data)
     {
-        foreach($data as $key => $value){
+        foreach ($data as $key => $value) {
             $this->{$key} = $value;
         }
     }
-
-
-
 }

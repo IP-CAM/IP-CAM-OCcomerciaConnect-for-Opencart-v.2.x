@@ -13,9 +13,9 @@ class HttpClient
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        $headers = array(
+        $headers = [
             'Content-Type:application/json'
-        );
+        ];
         if ($token) {
             $headers[] = "Authorization:" . $token;
         }
@@ -24,8 +24,8 @@ class HttpClient
         $server_output = curl_exec($ch);
         curl_close($ch);
         Debug::write($server_output);
-        return json_decode($server_output, true);
 
+        return json_decode($server_output, true);
     }
 
     function get($url, $token = false)
@@ -37,18 +37,15 @@ class HttpClient
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-
         if ($token) {
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization:" . $token));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization:" . $token]);
         };
 
         $server_output = curl_exec($ch);
         curl_close($ch);
         Debug::write($server_output);
+
         return json_decode($server_output, true);
     }
-
-
 }
-
 ?>

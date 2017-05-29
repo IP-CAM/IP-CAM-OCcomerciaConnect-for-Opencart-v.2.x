@@ -27,7 +27,6 @@ class Api
             }
             closedir($handle);
         }
-
     }
 
     function loadDomain()
@@ -46,17 +45,19 @@ class Api
     function createSession($key)
     {
         $client = new HttpClient();
-        $data = $client->post($this->auth_url."/request" , array("apiKey" => $key));
+        $data = $client->post($this->auth_url . "/request", ["apiKey" => $key]);
+
         if ($data["success"]) {
             return new Session($this, $data["token"]);
         }
+
         return false;
     }
 
-    function restoreSession($token){
-        return new Session($this,$token);
+    function restoreSession($token)
+    {
+        return new Session($this, $token);
     }
-
 }
 
 ?>

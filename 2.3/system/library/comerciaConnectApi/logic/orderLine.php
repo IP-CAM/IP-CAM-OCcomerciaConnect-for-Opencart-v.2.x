@@ -9,12 +9,13 @@ class OrderLine
     var $priceWithTax;
     var $taxGroup;
 
-    function __construct($session,$data)
+    function __construct($session, $data)
     {
         foreach($data as $key => $value){
             $this->{$key} = $value;
         }
-        $this->product=new Product($session,$data["product"]);
+
+        $this->product = new Product($session, $data["product"]);
     }
 
 }
