@@ -3,28 +3,37 @@ namespace comerciaConnect\logic;
 class PurchaseFilter
 {
     private $session;
-    var $filters=array();
+    var $filters = [];
 
     function __construct($session)
     {
-        $this->session=$session;
+        $this->session = $session;
     }
 
-    function filter($field,$value,$operator="="){
-        $this->filters[]=array("field"=>$field,"operator"=>$operator, "value"=>$value);
+    function filter($field, $value, $operator = "=")
+    {
+        $this->filters[] = ["field" => $field, "operator" => $operator, "value" => $value];
+
         return $this;
     }
 
-    function getData(){
-        if($this->session) {
+    function getData()
+    {
+        if ($this->session) {
             $data = $this->session->post("purchase/getByFilter", $this);
-            $result = array();
-            foreach ($data["data"] as $purchase) {
-                $result[] = new Purchase($this->session, $purchase);
+            $result = [];
+
+            if(isset($data['data'])) {
+                foreach ($data["data"] as $purchase) {
+                    $result[] = new Purchase($this->session, $purchase);
+                }
             }
+
             return $result;
         }
+
         return false;
     }
 }
+
 ?>

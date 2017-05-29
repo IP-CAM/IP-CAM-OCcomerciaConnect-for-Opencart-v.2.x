@@ -1,9 +1,11 @@
 <?php
 include_once(DIR_SYSTEM."/comercia/util.php");
+use comerciaConnect\logic\Product;
 use comerciaConnect\logic\ProductCategory;
 use comerciaConnect\logic\ProductDescription;
 use comerciaConnect\logic\Purchase;
 use comerciaConnect\logic\Website;
+
 class ControllerextensionmodulecomerciaConnect extends Controller
 {
     private $error = array();
@@ -103,7 +105,7 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         $this->load->library("comerciaConnect");
         $api = $this->comerciaConnect->getApi($data['comerciaConnect_auth_url'], $data['comerciaConnect_api_url']);
         $apiSession = $api->createSession($data['comerciaConnect_api_key']);
-        $website=Website::getWebsite($apiSession);
+        $website = Website::getWebsite($apiSession);
 
         //actions
         $data['action'] = $this->url->link('extension/module/comerciaConnect', 'token=' . $this->session->data['token'], true);
@@ -156,19 +158,20 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         //  $is_in_debug=true;
         //load models
         $this->load->model("catalog/product");
+        $this->load->model("catalog/option");
         $this->load->model("catalog/category");
         $this->load->model("sale/order");
         $this->load->model("extension/comerciaconnect/order");
         $this->load->model("extension/comerciaconnect/product");
         $this->load->model("localisation/language");
+        $this->load->model("setting/setting");
 
         //last sync
-        $lastSync= $this->config->get('comerciaConnect_last_sync');
+        $lastSync = $this->config->get('comerciaConnect_last_sync');
         if(!$lastSync){
             //make sure lastSync is an int. and not an empty string.
-            $lastSync=0;
+            $lastSync = 0;
         }
-
 
         //prepare variables
         $authUrl = $this->config->get('comerciaConnect_auth_url');
@@ -184,7 +187,7 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         $categories = $this->model_catalog_category->getCategories();
         $categoriesMap = array();
         foreach ($categories as $category) {
-            $apiCategory= $this->model_extension_comerciaconnect_product->sendCategoryToApi($category,$session);
+            $apiCategory = $this->model_extension_comerciaconnect_product->sendCategoryToApi($category,$session);
             $categoriesMap[$category["category_id"]] = $apiCategory;
         }
 
@@ -192,7 +195,19 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         $products = $this->model_catalog_product->getProducts();
         $productMap=array();
         foreach ($products as $product) {
-            //add descriptions
+            /*$product_options = $this->model_catalog_product->getProductOptions($product['product_id']);
+            $cc_ovs = array();
+            foreach($product_options as $option) {
+                foreach($option['product_option_value'] as $value) {
+                    $ov = $this->model_catalog_option->getOptionValue($value['option_value_id']);
+                    array_push($cc_ovs, $ov['option_value_id']);
+                }
+            }
+
+            $cartesian = $this->cartesian($cc_ovs);
+
+            file_put_contents('cartesian.cc', print_r($cartesian), FILE_APPEND);*/
+
             $productMap[$product["product_id"]]=$this->model_extension_comerciaconnect_product->sendProductToApi($product,$session,$categoriesMap);
         }
 
@@ -201,15 +216,14 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         foreach ($orders as $order) {
             $this->model_extension_comerciaconnect_order->sendOrderToApi($order,$session,$productMap);
         }
-        $this->model_setting_setting->editSetting('comerciaConnect', array("comerciaConnect_last_sync",time()));
-
+        $this->model_setting_setting->editSettingValue('comerciaConnect', 'comerciaConnect_last_sync', time());
 
         //import orders
         $filter = Purchase::createFilter($session);
         $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
-        $filter->filter("lastUpdate",$lastSync,">");
-        $filter->filter("type",PRODUCT_TYPE_PRODUCT);
+        $filter->filter("lastUpdate", $lastSync, ">");
         $orders = $filter->getData();
+
         foreach ($orders as $order) {
             $this->model_extension_comerciaconnect_order->saveOrder($order);
         }
@@ -217,14 +231,49 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         //import products
         $filter = Product::createFilter($session);
         $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
-        $filter->filter("lastUpdate",$lastSync,">");
+        $filter->filter("lastUpdate", $lastSync, ">");
+        $filter->filter("type", PRODUCT_TYPE_PRODUCT);
         $products = $filter->getData();
+
         foreach ($products as $product) {
             $this->model_extension_comerciaconnect_product->saveProduct($product);
         }
 
-
-        $this->model_setting_setting->editSetting('comerciaConnect', array("comerciaConnect_last_sync",time()));
+        $this->model_setting_setting->editSettingValue('comerciaConnect', 'comerciaConnect_last_sync', time());
+        $this->response->redirect('index.php?route=extension/module/comerciaConnect&token=' . $this->request->get['token']);
     }
 
+    private function cartesian($input) {
+        $result = array();
+
+        while (list($key, $values) = each($input)) {
+            if (empty($values)) {
+                continue;
+            }
+
+            if (empty($result)) {
+                foreach($values as $value) {
+                    $result[] = array($key => $value);
+                }
+            } else {
+                $append = array();
+
+                foreach($result as &$product) {
+                    $product[$key] = array_shift($values);
+                    $copy = $product;
+
+                    foreach($values as $item) {
+                        $copy[$key] = $item;
+                        $append[] = $copy;
+                    }
+
+                    array_unshift($values, $product[$key]);
+                }
+
+                $result = array_merge($result, $append);
+            }
+        }
+
+        return $result;
+    }
 }

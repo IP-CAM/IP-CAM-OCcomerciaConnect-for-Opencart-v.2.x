@@ -1,33 +1,40 @@
 <?php
-
 use comerciaConnect\logic\Product;
 use comerciaConnect\logic\ProductCategory;
+use comerciaConnect\logic\ProductDescription;
 
-class ModelExtensionComerciaconnectOrder extends Model
+class ModelExtensionComerciaconnectProduct extends Model
 {
-
     function saveProduct($product)
     {
         $dbProduct["product_id"] = $product->id;
-        $dbProduct["name"] = $product->name;
-  	$dbProduct["model"] = $product->code;
+  	    $dbProduct["model"] = $product->code;
         $dbProduct["quantity"] = $product->quantity;
         $dbProduct["price"] = $product->price;
         $dbProduct["ean"] = $product->ean;
         $dbProduct["isbn"] = $product->isbn;
         $dbProduct["sku"] = $product->sku;
-        $productId=\comercia\Util::db()->saveDataObject("product",$dbProduct);
+        $productId = \comercia\Util::db()->saveDataObject("product",$dbProduct);
+        $product->changeId($product->id, $productId);
 
+        if(empty($product->descriptions)) {
+            $desc = new stdClass();
+            $desc->language = 'en-gb';
+            $desc->name = $product->name;
+            $desc->description = '';
 
-        foreach($product->descriptions as $description){
-            $language=$this->model_localisation_language->getLanguageByCode($description->language);
-            $dbDescription["language_id"]=$language["language_id"];
-            $dbDescription["product_id"]=$productId;
-            $dbDescription["name"]=$description->name;
-            $dbDescription["description"]=$description;
-            \comercia\Util::db()->saveDataObject("product_description",$dbProduct,array("product_id","language_id"));
+            $product->descriptions = array(
+                $desc
+            );
         }
-
+        foreach($product->descriptions as $description) {
+            $language = $this->model_localisation_language->getLanguageByCode($description->language);
+            $dbDescription["language_id"] = $language["language_id"];
+            $dbDescription["product_id"] = $productId;
+            $dbDescription["name"] = $description->name;
+            $dbDescription["description"] = $description->description;
+            \comercia\Util::db()->saveDataObject("product_description", $dbDescription, array("product_id", "language_id"));
+        }
     }
 
     function sendCategoryToApi($category, $session)
@@ -36,6 +43,7 @@ class ModelExtensionComerciaconnectOrder extends Model
         $apiCategory->name = $category["name"];
         $apiCategory->id = $category["category_id"];
         $apiCategory->save();
+
         return $apiCategory;
     }
 
@@ -44,6 +52,7 @@ class ModelExtensionComerciaconnectOrder extends Model
         $languages = $this->model_localisation_language->getLanguages();
         $productDescriptions = $this->model_catalog_product->getProductDescriptions($product["product_id"]);
         $descriptions = array();
+
         foreach ($languages as $language) {
             $descriptions[] = new ProductDescription($language["code"], $productDescriptions[$language["language_id"]]["name"], $productDescriptions[$language["language_id"]]["description"]);
         }
@@ -51,8 +60,9 @@ class ModelExtensionComerciaconnectOrder extends Model
         //decide categories
         $productCategories = $this->model_catalog_product->getProductCategories($product["product_id"]);
         $categories = array();
+
         foreach ($productCategories as $category) {
-            $categories[] = $categoriesMap[$category["category_id"]];
+            $categories[] = $categoriesMap[$category];
         }
 
         //create new api product
@@ -68,15 +78,14 @@ class ModelExtensionComerciaconnectOrder extends Model
         $apiProduct->isbn = $product["isbn"];
         $apiProduct->sku = $product["sku"];
 
-
         //add arrays
         $apiProduct->categories = $categories;
         $apiProduct->descriptions = $descriptions;
 
         //save product to comercia connect
         $apiProduct->save();
-        return $apiProduct;
 
+        return $apiProduct;
     }
 }
 

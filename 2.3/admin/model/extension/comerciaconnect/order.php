@@ -1,82 +1,152 @@
 <?php
+use comerciaConnect\logic\OrderLine;
+use comerciaConnect\logic\Purchase;
+use comerciaConnect\logic\Product;
 
 class ModelExtensionComerciaconnectOrder extends Model
 {
+    public function sendOrderToApi($order, $session, $productMap)
+    {
+        $this->load->model('sale/order');
+        $this->load->model('localisation/order_status');
+        $this->load->model('localisation/tax_class');
+        $this->load->model('localisation/tax_rate');
+        $this->load->model('localisation/geo_zone');
 
+        $orderLines = [];
+        $order = $this->model_sale_order->getOrder($order['order_id']);
+        $lines = $this->model_sale_order->getOrderProducts($order["order_id"]);
 
-    public function sendOrderToApi($order,$session,$productMap){
-        $this->load->model("sale/order");
-        $orderlines=array();
-        $lines=$this->model_sale_order->getOrderProducts($order["order_id"]);
-
-        foreach($lines as $line){
-           $orderLines[] = new OrderLine(array(
+        foreach ($lines as $line) {
+            $orderLines[] = new OrderLine($session, [
                 "product" => $productMap[$line["product_id"]],
                 "price" => $line["price"],
                 "quantity" => $line["quantity"],
                 "tax" => $line["tax"],
-                "priceWithTax"=>$line["tax"]+$line["price"],
+                "priceWithTax" => $line["tax"] + $line["price"],
                 //todo: fix tax group
-                "taxGroup"=>""
-            ));
+                "taxGroup" => ""
+            ]);
         }
 
-        //todo:export payment methods and delivery methods works same as products.. check samples in api
+        $paymentMethod = new Product($session);
+        $paymentMethod->id = $order['payment_code'] ?: 'connect_payment';
+        $paymentMethod->name = $order['payment_method'];
+        $paymentMethod->type = PRODUCT_TYPE_PAYMENT;
+        $paymentMethod->code = $order['payment_code'];
+        $paymentMethod->save();
 
-        $purchase = new Purchase(
-            $session,
-            array(
-                "id" => 1,
-                "date" => time(),
-                "status" => "processing",
-                "email"=>"info@comercia.nl",
-                "phonenumber"=>"0123456789",
-                "deliveryAddress" => array(
-                    "firstName" => $order["shipping_firstname"],
-                    "lastName" => $order["shipping_lastname"],
-                    "street" => $order["shipping_address_1"],
-                    //todo: split street and number
-                    "number" => "",
-                    "postalCode" => $order["shipping_postcode"],
-                    "city" =>$order["shipping_city"] ,
-                    "province" => $order["shipping_zone"],
-                    "country" => $order["shipping_country"]
-                ),
-                "invoiceAddress" => array(
-                    "firstName" => $order["payment_firstname"],
-                    "lastName" => $order["payment_lastname"],
-                    "street" => $order["payment_address_1"],
-                    //todo: split street and number
-                    "number" => "",
-                    "postalCode" => $order["payment_postcode"],
-                    "city" =>$order["payment_city"] ,
-                    "province" => $order["payment_zone"],
-                    "country" => $order["payment_country"]
-                ),
-                "orderLines"=>$orderlines
+        $orderTotals = $this->model_sale_order->getOrderTotals($order['order_id']);
 
-            )
-        );
+        if (strpos($order['shipping_code'], '.') !== false) {
+            $order['shipping_code'] = explode('.', $order['shipping_code'])[0];
+        }
+
+        $shippingTaxClassId = $this->config->get($order['shipping_code'] . '_tax_class_id');
+
+        $shippingMethod = new Product($session);
+        $shippingMethod->id = $order['shipping_code'] ?: 'connect_shipping';
+        $shippingMethod->name = $order['shipping_method'];
+        $shippingMethod->type = PRODUCT_TYPE_SHIPPING;
+        $shippingMethod->taxGroup = $shippingTaxClassId;
+        $shippingMethod->code = $order['shipping_code'];
+        foreach ($orderTotals as $orderTotal) {
+            if ($orderTotal['code'] == 'shipping') {
+                $shippingMethod->price = $orderTotal['value'];
+            }
+        }
+        $shippingMethod->save();
+
+        $taxRules = $this->model_localisation_tax_class->getTaxRules($shippingTaxClassId);
+        $taxRates = 0.00;
+
+        foreach ($taxRules as $rule) {
+            $rate = $this->model_localisation_tax_rate->getTaxRate($rule['tax_rate_id']);
+            $geoZones = $this->model_localisation_geo_zone->getZoneToGeoZones($rate['geo_zone_id']);
+            $found = false;
+            foreach ($geoZones as $zone) {
+                if ($order[$rule['based'] . '_zone_id'] == $zone['zone_id']) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if ($found) {
+                if ($rate['type'] == 'F') {
+                    $taxRates += $rate['rate'];
+                } else if ($rate['type'] == 'P') {
+                    $taxRates += ($rate['rate'] / 100) * $shippingMethod->price;
+                }
+            }
+        }
+
+        $orderLines[] = new OrderLine($session, [
+            'product' => $paymentMethod,
+            'quantity' => 1,
+        ]);
+        $orderLines[] = new OrderLine($session, [
+            'product' => $shippingMethod,
+            'price' => $shippingMethod->price,
+            'quantity' => 1,
+            'tax' => $taxRates,
+            'priceWithTax' => $shippingMethod->price + $taxRates,
+            'taxGroup' => $shippingMethod->taxGroup
+        ]);
+
+        $purchase = new Purchase($session, [
+            "id" => $order['order_id'],
+            "date" => strtotime($order['date_modified']),
+            "status" => $this->model_localisation_order_status->getOrderStatus($order['order_status_id'])['name'],
+            "email" => $order['email'],
+            "phonenumber" => $order['telephone'],
+            "deliveryAddress" => [
+                "firstName" => $order["shipping_firstname"],
+                "lastName" => $order["shipping_lastname"],
+                "street" => $order["shipping_address_1"],
+                //todo: split street and number
+                "number" => "",
+                "postalCode" => $order["shipping_postcode"],
+                "city" => $order["shipping_city"],
+                "province" => $order["shipping_zone"],
+                "country" => $order["shipping_country"]
+            ],
+            "invoiceAddress" => [
+                "firstName" => $order["payment_firstname"],
+                "lastName" => $order["payment_lastname"],
+                "street" => $order["payment_address_1"],
+                //todo: split street and number
+                "number" => "",
+                "postalCode" => $order["payment_postcode"],
+                "city" => $order["payment_city"],
+                "province" => $order["payment_zone"],
+                "country" => $order["payment_country"]
+            ],
+            "orderLines" => $orderLines
+        ]);
+
+        $purchase->save();
+
+        return $purchase;
     }
-
 
     function saveOrder($order)
     {
         $this->load->language("extension/module/comerciaConnect");
+        $this->load->model("localisation/currency");
 
         //initialize some basic variables
-        $dbOrderInfo = array();
-        $dbOrderproducts = array();
-        $totals = array();
-        $dbOrderHistory = array();
+        $dbOrderInfo = [];
+        $dbOrderproducts = [];
+        $totals = [];
+        $dbOrderHistory = [];
 
         //basic info
-        $dbOrderInfo["order_id"]=$order->id;
+        $dbOrderInfo["order_id"] = $order->id;
         $dbOrderInfo["invoice_no"] = 0;
         //todo: lets see in the future how we can get this multi store for now take the default.
         $dbOrderInfo["store_id"] = 0;
         $dbOrderInfo["store_name"] = $this->config->get('config_name');
-        $dbOrderInfo["store_url"] = $this->getCatlogUrl();
+        $dbOrderInfo["store_url"] = $this->getCatalogUrl();
         //todo: lets implement customers later.. for now leave it as a guest..
         $dbOrderInfo["customer_id"] = 0;
         $dbOrderInfo["customer_group_id"] = $dbOrderInfo["store_name"] = $this->config->get('config_customer_group_id');
@@ -89,8 +159,12 @@ class ModelExtensionComerciaconnectOrder extends Model
         $dbOrderInfo["marketing_id"] = 0;
         $dbOrderInfo["tracking"] = "";
         $dbOrderInfo["language_id"] = $this->config->get('config_language_id');
-        $dbOrderInfo["currency_id"] = $this->config->get('config_currency_id');
-        $dbOrderInfo["currency_value"] = 1;
+
+        $currency = $this->model_localisation_currency->getCurrencyByCode($this->config->get('config_currency'));
+        $dbOrderInfo["currency_id"] = $currency['currency_id'];
+        $dbOrderInfo["currency_value"] = $currency['value'];
+        $dbOrderInfo["currency_code"] = $this->config->get('config_currency');
+
         $dbOrderInfo["ip"] = "";
         $dbOrderInfo["forwarded_ip"] = "";
         $dbOrderInfo["user_agent"] = "";
@@ -139,15 +213,16 @@ class ModelExtensionComerciaconnectOrder extends Model
         $dbOrderInfo["shipping_address_format"] = "";
         $dbOrderInfo["shipping_custom_field"] = "[]";
 
-
+        $dbOrderInfo['shipping_method'] = 'ConnectShipping';
+        $dbOrderInfo['payment_method'] = 'ConnectPayment';
 
         //calculate totals
         foreach ($order->orderLines as $orderLine) {
-            if (@$orderLine->product->type == "shipping") {
+            if (@$orderLine->product->type == 'shipping') {
                 $dbOrderInfo["shipping_method"] = $orderLine->product->name;
                 $dbOrderInfo["shipping_code"] = $orderLine->product->code;
                 $this->addToTotals($totals, "shipping", $orderLine->product->name, $orderLine->price * $orderLine->quantity);
-            } else if (@$order->product->type == "payment") {
+            } elseif (@$orderLine->product->type == 'payment') {
                 $dbOrderInfo["payment_method"] = $orderLine->product->name;
                 $dbOrderInfo["payment_code"] = $orderLine->product->code;
                 $this->addToTotals($totals, "payment", $orderLine->product->name, $orderLine->price * $orderLine->quantity);
@@ -156,10 +231,12 @@ class ModelExtensionComerciaconnectOrder extends Model
             }
             $this->addToTotals($totals, "tax", $orderLine->taxGroup, $orderLine->tax);
         }
+
         $dbOrderInfo["total"] = $this->calculateTotalValue($totals);
 
         //complete and save the order
         $order_id = \comercia\Util::db()->saveDataObject("order", $dbOrderInfo);
+        $order->changeId($order->id, $order_id);
 
         //order history
         $dbOrderHistory["order_id"] = $order_id;
@@ -171,56 +248,59 @@ class ModelExtensionComerciaconnectOrder extends Model
 
         //add products
         foreach ($order->orderLines as $orderLine) {
-            $product = array();
+            $product = [];
             $product["order_id"] = $order_id;
             $product["product_id"] = $orderLine->product->id;
             $product["name"] = $orderLine->product->name;
             $product["model"] = $orderLine->product->code;
-            $product["quantity"]=$orderLine->quantity;
-            $product["price"]=$orderLine->price;
-            $product["total"]=$orderLine->price*$orderLine->quantity;
-            $product["tax"]=$orderLine->tax;
-            $product["reward"]=0;
-            \comercia\Util::db()->saveDataObject("order_product",$product,array("order_id","product_id"));
+            $product["quantity"] = $orderLine->quantity;
+            $product["price"] = $orderLine->price;
+            $product["total"] = $orderLine->price * $orderLine->quantity;
+            $product["tax"] = $orderLine->tax;
+            $product["reward"] = 0;
+            \comercia\Util::db()->saveDataObject("order_product", $product, ["order_id", "product_id"]);
         }
 
-        $dbTotals=$this->totalsToDbTotals($totals);
-        \comercia\Util::db()->saveDataObjectArray("order_total",$dbTotals);
-
+        $dbTotals = $this->totalsToDbTotals($totals);
+        \comercia\Util::db()->saveDataObjectArray("order_total", $dbTotals);
     }
 
     private function totalsToDbTotals($totals)
     {
-        $newTotals=array();
+        $newTotals = [];
+
         foreach ($totals as $inCode) {
             foreach ($inCode as $total) {
-                $newTotals[]=$total;
+                $newTotals[] = $total;
             }
         }
+
         return $newTotals;
     }
 
     private function calculateTotalValue(&$totals)
     {
         $totalValue = 0;
+
         foreach ($totals as $inCode) {
             foreach ($inCode as $total) {
                 $totalValue += $total["value"];
             }
         }
+
         $this->addToTotals($totals, "total", $this->language->get("total"), $totalValue);
+
         return $totalValue;
     }
 
     private function addToTotals(&$totals, $code, $title, $value)
     {
         if (!isset($totals[$code][$title])) {
-            $totals[$code][$title] =
-                array(
-                    "code" => $code,
-                    "title" => $title,
-                    "value" => $value,
-                );
+            $totals[$code][$title] = array(
+                "code" => $code,
+                "title" => $title,
+                "value" => $value
+            );
         } else {
             $totals[$code][$title]["value"] += $value;
         }
@@ -228,39 +308,44 @@ class ModelExtensionComerciaconnectOrder extends Model
 
     private function getOrderStatusId($name)
     {
-        $countryQ = $this->db->query("select order_status_id from " . DB_PREFIX . "order_status where `name` like '" . $name . "'");
+        $countryQ = $this->db->query("SELECT `order_status_id` FROM `" . DB_PREFIX . "order_status` WHERE `name` LIKE '" . $name . "'");
+
         if ($countryQ->num_rows) {
             return $countryQ->row["order_status_id"];
         }
+
         return $this->config->get("config_order_status_id");
     }
 
     private function getZoneId($countryId, $name)
     {
-        $countryQ = $this->db->query("select zone_id from " . DB_PREFIX . "zone where `name` like '" . $name . "' and country_id='" . $countryId . "'");
+        $countryQ = $this->db->query("SELECT `zone_id` FROM `" . DB_PREFIX . "zone` WHERE `name` LIKE '" . $name . "' AND `country_id` = '" . $countryId . "'");
+
         if ($countryQ->num_rows) {
             return $countryQ->row["zone_id"];
         }
+
         return 0;
     }
 
     private function getCountryId($name)
     {
-        $countryQ = $this->db->query("select country_id from " . DB_PREFIX . "country where `name` like '" . $name . "'");
+        $countryQ = $this->db->query("SELECT `country_id` FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "'");
+
         if ($countryQ->num_rows) {
             return $countryQ->row["country_id"];
         }
+
         return 0;
     }
 
-    private function getCatlogUrl()
+    private function getCatalogUrl()
     {
         if (defined("HTTPS_CATALOG")) {
             return HTTPS_CATALOG;
         }
+
         return HTTP_CATALOG;
     }
-
 }
-
 ?>
