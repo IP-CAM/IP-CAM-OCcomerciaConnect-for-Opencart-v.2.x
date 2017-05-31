@@ -97,8 +97,8 @@ class ModelExtensionComerciaconnectOrder extends Model
             'taxGroup' => $shippingMethod->taxGroup
         ]);
 
-        $shippingAddress = $this->splitAddress($order['shipping_address_1']);
-        $paymentAddress = $this->splitAddress($order['payment_address_1']);
+        $shippingAddress = $this->splitAddress($order['shipping_address_1'] . ' ' . $order['shipping_address_2']);
+        $paymentAddress = $this->splitAddress($order['payment_address_1'] . ' ' . $order['shipping_address_2']);
 
         $purchase = new Purchase($session, [
             "id" => $order['order_id'],
