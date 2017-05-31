@@ -98,7 +98,7 @@ class ModelExtensionComerciaconnectOrder extends Model
         ]);
 
         $shippingAddress = $this->splitAddress($order['shipping_address_1'] . ' ' . $order['shipping_address_2']);
-        $paymentAddress = $this->splitAddress($order['payment_address_1'] . ' ' . $order['shipping_address_2']);
+        $paymentAddress = $this->splitAddress($order['payment_address_1'] . ' ' . $order['payment_address_2']);
 
         $purchase = new Purchase($session, [
             "id" => $order['order_id'],
