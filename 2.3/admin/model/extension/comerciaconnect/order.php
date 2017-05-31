@@ -320,10 +320,10 @@ class ModelExtensionComerciaconnectOrder extends Model
 
     private function getOrderStatusId($name)
     {
-        $countryQ = $this->db->query("SELECT `order_status_id` FROM `" . DB_PREFIX . "order_status` WHERE `name` LIKE '" . $name . "'");
+        $orderStatusQuery = $this->db->query("SELECT `order_status_id` FROM `" . DB_PREFIX . "order_status` WHERE `name` LIKE '" . $name . "'");
 
-        if ($countryQ->num_rows) {
-            return $countryQ->row["order_status_id"];
+        if ($orderStatusQuery->num_rows) {
+            return $orderStatusQuery->row["order_status_id"];
         }
 
         return $this->config->get("config_order_status_id");
@@ -331,10 +331,10 @@ class ModelExtensionComerciaconnectOrder extends Model
 
     private function getZoneId($countryId, $name)
     {
-        $countryQ = $this->db->query("SELECT `zone_id` FROM `" . DB_PREFIX . "zone` WHERE `name` LIKE '" . $name . "' AND `country_id` = '" . $countryId . "'");
+        $zoneQuery = $this->db->query("SELECT `zone_id` FROM `" . DB_PREFIX . "zone` WHERE `name` LIKE '" . $name . "' AND `country_id` = '" . $countryId . "'");
 
-        if ($countryQ->num_rows) {
-            return $countryQ->row["zone_id"];
+        if ($zoneQuery->num_rows) {
+            return $zoneQuery->row["zone_id"];
         }
 
         return 0;
@@ -342,10 +342,10 @@ class ModelExtensionComerciaconnectOrder extends Model
 
     private function getCountryId($name)
     {
-        $countryQ = $this->db->query("SELECT `country_id` FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "'");
+        $countryQuery = $this->db->query("SELECT `country_id` FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "'");
 
-        if ($countryQ->num_rows) {
-            return $countryQ->row["country_id"];
+        if ($countryQuery->num_rows) {
+            return $countryQuery->row["country_id"];
         }
 
         return 0;
