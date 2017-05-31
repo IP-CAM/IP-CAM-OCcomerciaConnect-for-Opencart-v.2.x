@@ -187,7 +187,8 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         $categories = $this->model_catalog_category->getCategories();
         $categoriesMap = array();
         foreach ($categories as $category) {
-            $apiCategory = $this->model_extension_comerciaconnect_product->sendCategoryToApi($category,$session);
+            $category = $this->model_catalog_category->getCategory($category['category_id']);
+            $apiCategory = $this->model_extension_comerciaconnect_product->sendCategoryToApi($category, $session);
             $categoriesMap[$category["category_id"]] = $apiCategory;
         }
 
@@ -195,28 +196,43 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         $products = $this->model_catalog_product->getProducts();
         $productMap=array();
         foreach ($products as $product) {
-            /*$product_options = $this->model_catalog_product->getProductOptions($product['product_id']);
-            $cc_ovs = array();
-            foreach($product_options as $option) {
-                foreach($option['product_option_value'] as $value) {
-                    $ov = $this->model_catalog_option->getOptionValue($value['option_value_id']);
-                    array_push($cc_ovs, $ov['option_value_id']);
-                }
+            $productMap[$product["product_id"]] = $this->model_extension_comerciaconnect_product->sendProductToApi($product, $session, $categoriesMap);
+
+            $productOptionMap=array();
+            $productOptions = $this->model_catalog_product->getProductOptions($product['product_id']);
+
+            foreach($productOptions as $productOption) {
+                    $productOptionMap[$productOption['option_id']] = array_map(function ($productOptionValue) {
+                        $productOptionValue['full_value'] = $this->model_catalog_option->getOptionValue($productOptionValue['option_value_id']);
+                        return $productOptionValue;
+                    }, $productOption['product_option_value']);
             }
 
-            $cartesian = $this->cartesian($cc_ovs);
+            $children = $this->cartesian($productOptionMap);
 
-            file_put_contents('cartesian.cc', print_r($cartesian), FILE_APPEND);*/
-
-            $productMap[$product["product_id"]]=$this->model_extension_comerciaconnect_product->sendProductToApi($product,$session,$categoriesMap);
+            foreach($children as $child) {
+                $this->createChildProduct($session, $child, $productMap[$product["product_id"]]);
+            }
         }
 
         //export orders
         $orders = $this->model_sale_order->getOrders();
         foreach ($orders as $order) {
-            $this->model_extension_comerciaconnect_order->sendOrderToApi($order,$session,$productMap);
+            $this->model_extension_comerciaconnect_order->sendOrderToApi($order, $session, $productMap);
         }
         $this->model_setting_setting->editSettingValue('comerciaConnect', 'comerciaConnect_last_sync', time());
+
+        //import products
+        $filter = Product::createFilter($session);
+        $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
+        $filter->filter("lastUpdate", $lastSync, ">");
+        $filter->filter("type", PRODUCT_TYPE_PRODUCT);
+        $filter->filter("parent_product_id", "null", "IS");
+        $products = $filter->getData();
+
+        foreach ($products as $product) {
+            $this->model_extension_comerciaconnect_product->saveProduct($product);
+        }
 
         //import orders
         $filter = Purchase::createFilter($session);
@@ -226,17 +242,6 @@ class ControllerextensionmodulecomerciaConnect extends Controller
 
         foreach ($orders as $order) {
             $this->model_extension_comerciaconnect_order->saveOrder($order);
-        }
-
-        //import products
-        $filter = Product::createFilter($session);
-        $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
-        $filter->filter("lastUpdate", $lastSync, ">");
-        $filter->filter("type", PRODUCT_TYPE_PRODUCT);
-        $products = $filter->getData();
-
-        foreach ($products as $product) {
-            $this->model_extension_comerciaconnect_product->saveProduct($product);
         }
 
         $this->model_setting_setting->editSettingValue('comerciaConnect', 'comerciaConnect_last_sync', time());
@@ -275,5 +280,37 @@ class ControllerextensionmodulecomerciaConnect extends Controller
         }
 
         return $result;
+    }
+
+    function createChildProduct($session, $child, $parent)
+    {
+        $id = $parent->id . '_';
+        $name = $parent->name . ' - ';
+        $price = $parent->price;
+        $quantity = $parent->quantity;
+        foreach($child as $key => $value) {
+            if($value['quantity'] < $quantity) {
+                $quantity = $value['quantity'];
+            }
+            $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
+            $name .= $value['full_value']['name'] . ' ';
+            $id .= $value['option_value_id'] . '_';
+        }
+        $product = new Product($session, [
+            'id' => rtrim($id, '_'),
+            'name' => rtrim($name),
+            'quantity' => $quantity,
+            'price' => $price,
+            'descriptions' => $parent->descriptions,
+            'categories' => $parent->categories,
+            'taxGroup' => $parent->taxGroup,
+            'type' => PRODUCT_TYPE_PRODUCT,
+            'code' => $parent->code . '_' . $id,
+            'image' => $parent->image,
+            'brand' => $parent->brand,
+            'parent' => $parent
+        ]);
+
+        $product->save();
     }
 }

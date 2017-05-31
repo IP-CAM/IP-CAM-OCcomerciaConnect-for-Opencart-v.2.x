@@ -14,6 +14,7 @@ class ModelExtensionComerciaconnectProduct extends Model
         $dbProduct["ean"] = $product->ean;
         $dbProduct["isbn"] = $product->isbn;
         $dbProduct["sku"] = $product->sku;
+        $dbProduct["tax_class_id"] = $product->taxGroup;
         $productId = \comercia\Util::db()->saveDataObject("product",$dbProduct);
         $product->changeId($product->id, $productId);
 
@@ -49,12 +50,18 @@ class ModelExtensionComerciaconnectProduct extends Model
 
     function sendProductToApi($product, $session, $categoriesMap)
     {
+        $this->load->model('localisation/tax_class');
+        $this->load->model('localisation/tax_rate');
+        $this->load->model('localisation/geo_zone');
+
         $languages = $this->model_localisation_language->getLanguages();
         $productDescriptions = $this->model_catalog_product->getProductDescriptions($product["product_id"]);
         $descriptions = array();
 
         foreach ($languages as $language) {
-            $descriptions[] = new ProductDescription($language["code"], $productDescriptions[$language["language_id"]]["name"], $productDescriptions[$language["language_id"]]["description"]);
+            if(isset($productDescriptions[$language['language_id']])) {
+                $descriptions[] = new ProductDescription($language["code"], $productDescriptions[$language["language_id"]]["name"], $productDescriptions[$language["language_id"]]["description"]);
+            }
         }
 
         //decide categories
@@ -77,13 +84,16 @@ class ModelExtensionComerciaconnectProduct extends Model
         $apiProduct->ean = $product["ean"];
         $apiProduct->isbn = $product["isbn"];
         $apiProduct->sku = $product["sku"];
+        $apiProduct->taxGroup = $product['tax_class_id'];
 
         //add arrays
         $apiProduct->categories = $categories;
         $apiProduct->descriptions = $descriptions;
 
         //save product to comercia connect
-        $apiProduct->save();
+        if($product['date_modified'] > $this->config->get('comerciaConnect_last_sync')) {
+            $apiProduct->save();
+        }
 
         return $apiProduct;
     }

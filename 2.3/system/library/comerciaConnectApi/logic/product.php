@@ -17,6 +17,7 @@ class Product
     var $code = "";
     var $image = "";
     var $brand = "";
+    var $parent = null;
     var $lastUpdate = 0;
 
     private $session;
@@ -26,6 +27,10 @@ class Product
         $this->session = $session;
         foreach ($data as $key => $value) {
             $this->{$key} = $value;
+        }
+
+        if($this->parent) {
+            $this->parent = new Product($session, $this->parent);
         }
 
         $this->descriptions = [];
@@ -99,7 +104,6 @@ class Product
     function changeId($old, $new)
     {
         if($this->session) {
-            file_put_contents('kys', 'lol');
             $data = $this->session->get('product/changeId/' . $old . '/' . $new);
             return true;
         }

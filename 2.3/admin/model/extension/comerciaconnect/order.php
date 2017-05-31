@@ -18,14 +18,14 @@ class ModelExtensionComerciaconnectOrder extends Model
         $lines = $this->model_sale_order->getOrderProducts($order["order_id"]);
 
         foreach ($lines as $line) {
+            $product = $this->model_catalog_product->getProduct($line['product_id']);
             $orderLines[] = new OrderLine($session, [
                 "product" => $productMap[$line["product_id"]],
                 "price" => $line["price"],
                 "quantity" => $line["quantity"],
                 "tax" => $line["tax"],
                 "priceWithTax" => $line["tax"] + $line["price"],
-                //todo: fix tax group
-                "taxGroup" => ""
+                "taxGroup" => $product['tax_class_id']
             ]);
         }
 
@@ -34,7 +34,9 @@ class ModelExtensionComerciaconnectOrder extends Model
         $paymentMethod->name = $order['payment_method'];
         $paymentMethod->type = PRODUCT_TYPE_PAYMENT;
         $paymentMethod->code = $order['payment_code'];
-        $paymentMethod->save();
+        if ($order['date_modified'] > $this->config->get('comerciaConnect_last_sync')) {
+            $paymentMethod->save();
+        }
 
         $orderTotals = $this->model_sale_order->getOrderTotals($order['order_id']);
 
@@ -55,7 +57,9 @@ class ModelExtensionComerciaconnectOrder extends Model
                 $shippingMethod->price = $orderTotal['value'];
             }
         }
-        $shippingMethod->save();
+        if ($order['date_modified'] > $this->config->get('comerciaConnect_last_sync')) {
+            $shippingMethod->save();
+        }
 
         $taxRules = $this->model_localisation_tax_class->getTaxRules($shippingTaxClassId);
         $taxRates = 0.00;
@@ -93,6 +97,9 @@ class ModelExtensionComerciaconnectOrder extends Model
             'taxGroup' => $shippingMethod->taxGroup
         ]);
 
+        $shippingAddress = $this->splitAddress($order['shipping_address_1']);
+        $paymentAddress = $this->splitAddress($order['payment_address_1']);
+
         $purchase = new Purchase($session, [
             "id" => $order['order_id'],
             "date" => strtotime($order['date_modified']),
@@ -102,9 +109,9 @@ class ModelExtensionComerciaconnectOrder extends Model
             "deliveryAddress" => [
                 "firstName" => $order["shipping_firstname"],
                 "lastName" => $order["shipping_lastname"],
-                "street" => $order["shipping_address_1"],
-                //todo: split street and number
-                "number" => "",
+                "street" => $shippingAddress->street,
+                "number" => $shippingAddress->number,
+                "suffix" => $shippingAddress->suffix,
                 "postalCode" => $order["shipping_postcode"],
                 "city" => $order["shipping_city"],
                 "province" => $order["shipping_zone"],
@@ -113,9 +120,9 @@ class ModelExtensionComerciaconnectOrder extends Model
             "invoiceAddress" => [
                 "firstName" => $order["payment_firstname"],
                 "lastName" => $order["payment_lastname"],
-                "street" => $order["payment_address_1"],
-                //todo: split street and number
-                "number" => "",
+                "street" => $paymentAddress->street,
+                "number" => $paymentAddress->number,
+                "suffix" => $paymentAddress->suffix,
                 "postalCode" => $order["payment_postcode"],
                 "city" => $order["payment_city"],
                 "province" => $order["payment_zone"],
@@ -124,7 +131,9 @@ class ModelExtensionComerciaconnectOrder extends Model
             "orderLines" => $orderLines
         ]);
 
-        $purchase->save();
+        if ($order['date_modified'] > $this->config->get('comerciaConnect_last_sync')) {
+            $purchase->save();
+        }
 
         return $purchase;
     }
@@ -260,8 +269,11 @@ class ModelExtensionComerciaconnectOrder extends Model
             $product["reward"] = 0;
             \comercia\Util::db()->saveDataObject("order_product", $product, ["order_id", "product_id"]);
         }
-
         $dbTotals = $this->totalsToDbTotals($totals);
+        $dbTotals = array_map(function ($total) use ($order_id) {
+            $total['order_id'] = $order_id;
+            return $total;
+        }, $dbTotals);
         \comercia\Util::db()->saveDataObjectArray("order_total", $dbTotals);
     }
 
@@ -347,5 +359,62 @@ class ModelExtensionComerciaconnectOrder extends Model
 
         return HTTP_CATALOG;
     }
+
+    function splitAddress($addr)
+    {
+        $exp = explode(" ", $addr);
+        $cnt = count($exp);
+        $pos = $cnt - 1;
+        for ($i = $cnt - 1; $i > 0; $i-- ) {
+            if (is_numeric(substr($exp[$i],0,1))) {
+                $pos = $i;
+                break;
+            }
+
+        }
+        $street = "";
+        for ($i = 0; $i < $pos; $i++){
+            if ($i > 0) {
+                $street .= " ";
+            }
+            $street.=$exp[$i];
+        }
+
+        $tmpnumber=$exp[$pos];
+        $leng=strlen($tmpnumber);
+        $foundLetter=false;
+        $suffix = "";
+        $number="";
+        for($j=0;$j<$leng;$j++){
+            $char= substr($tmpnumber,$j,1);
+            if(!is_numeric($char)){
+                $foundLetter=true;
+            }
+            if($foundLetter){
+                $suffix.=$char;
+            }else{
+                $number.=$char;
+            }
+        }
+        $pos++;
+
+        if($pos<$cnt) {
+
+            for ($i = $pos; $i < $cnt; $i++) {
+                if ($i > $pos || $suffix) {
+                    $suffix .= " ";
+                }
+                $suffix .= $exp[$i];
+            }
+        }
+
+        return (object)array(
+            "suffix"=>$suffix,
+            "number" => $number,
+            "street" => $street
+        );
+    }
+
 }
+
 ?>
