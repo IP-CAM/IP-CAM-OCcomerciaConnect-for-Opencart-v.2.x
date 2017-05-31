@@ -97,8 +97,8 @@ class ModelExtensionComerciaconnectOrder extends Model
             'taxGroup' => $shippingMethod->taxGroup
         ]);
 
-        $shippingAddress = $this->splitAddress($order['shipping_address_1'] . ' ' . $order['shipping_address_2']);
-        $paymentAddress = $this->splitAddress($order['payment_address_1'] . ' ' . $order['payment_address_2']);
+        $shippingAddress = $this->splitAddress($order['shipping_address_1'] . " \n " . $order['shipping_address_2']);
+        $paymentAddress = $this->splitAddress($order['payment_address_1'] . " \n " . $order['payment_address_2']);
 
         $purchase = new Purchase($session, [
             "id" => $order['order_id'],
@@ -190,12 +190,29 @@ class ModelExtensionComerciaconnectOrder extends Model
         $dbOrderInfo["fax"] = "";
         $dbOrderInfo["custom_field"] = "[]";
 
+        $expPayment = explode("\n",$order->invoiceAddress->street);
+        if(count($expPayment) > 1){
+            $dbOrderInfo["payment_address_1"] = $expPayment[0];
+            $dbOrderInfo["payment_address_2"] = $order->invoiceAddress->number . $order->invoiceAddress->suffix;
+        }else{
+            $dbOrderInfo["payment_address_1"] = $order->invoiceAddress->street . " " . $order->invoiceAddress->number . $order->invoiceAddress->suffix;
+            $dbOrderInfo["payment_address_2"] = "";
+        }
+
+        $expShipping = explode("\n",$order->deliveryAddress->street);
+        if(count($expShipping) > 1){
+            $dbOrderInfo["shipping_address_1"] = $expShipping[0];
+            $dbOrderInfo["shipping_address_2"] = $order->invoiceAddress->number . $order->invoiceAddress->suffix;
+        }else{
+            $dbOrderInfo["shipping_address_1"] = $order->invoiceAddress->street . " " . $order->invoiceAddress->number . $order->invoiceAddress->suffix;
+            $dbOrderInfo["shipping_address_2"] = "";
+        }
+
         //invoice info
         $dbOrderInfo["payment_firstname"] = $order->invoiceAddress->firstName;
         $dbOrderInfo["payment_lastname"] = $order->invoiceAddress->lastName;
         //todo: Implement company in comerciaConnect in the future
         $dbOrderInfo["payment_company"] = "";
-        $dbOrderInfo["payment_address_1"] = $order->invoiceAddress->street . " " . $order->invoiceAddress->number . $order->invoiceAddress->suffix;
         $dbOrderInfo["payment_city"] = $order->invoiceAddress->city;
         $dbOrderInfo["payment_postcode"] = $order->invoiceAddress->postalCode;
         $dbOrderInfo["payment_country"] = $order->invoiceAddress->country;
@@ -211,7 +228,6 @@ class ModelExtensionComerciaconnectOrder extends Model
         $dbOrderInfo["shipping_lastname"] = $order->deliveryAddress->lastName;
         //todo: Implement company in comerciaConnect in the future
         $dbOrderInfo["shipping_company"] = "";
-        $dbOrderInfo["shipping_address_1"] = $order->deliveryAddress->street . " " . $order->deliveryAddress->number . $order->deliveryAddress->suffix;
         $dbOrderInfo["shipping_city"] = $order->deliveryAddress->city;
         $dbOrderInfo["shipping_postcode"] = $order->deliveryAddress->postalCode;
         $dbOrderInfo["shipping_country"] = $order->deliveryAddress->country;
