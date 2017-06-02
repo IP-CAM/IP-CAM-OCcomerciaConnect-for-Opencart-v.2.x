@@ -1,6 +1,10 @@
-system/library/comerciaConnectApi
-system/library/comerciaConnect.php
-admin/controller/extension/module/comerciaConnect.php
-admin/view/template/extension/module/comerciaConnect.tpl
-admin/language/en-gb/extension/module/comerciaConnect.php
-admin/model/extension/comerciaconnect
+2.3/system/comercia
+2.3/system/library/comerciaConnectApi
+2.3/system/library/comerciaConnect.php
+2.3/admin/controller/extension/module/comerciaConnect.php
+2.3/admin/view/template/extension/module/comerciaConnect.tpl
+2.3/admin/view/template/extension/module/comerciaConnect_simpleConnect.tpl
+2.3/admin/view/template/extension/module/comerciaConnect_simpleConnect_finish.tpl
+2.3/admin/language/en-gb/extension/module/comerciaConnect.php
+2.3/admin/model/extension/comerciaconnect
+2.3/vqmod/xml/comercia_util.xml
