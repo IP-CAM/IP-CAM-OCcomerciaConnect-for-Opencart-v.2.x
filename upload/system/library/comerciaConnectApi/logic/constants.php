@@ -1,0 +1,12 @@
+<?php
+define("TOUCHED_BY_PORTAL", 0);
+define("TOUCHED_BY_API", 1);
+define("TOUCHED_BY_CONNECTOR", 2);
+
+define("PRODUCT_TYPE_PRODUCT", 0);
+define("PRODUCT_TYPE_SERVICE", 1);
+define("PRODUCT_TYPE_VIRTUAL", 2);
+define("PRODUCT_TYPE_PAYMENT", 3);
+define("PRODUCT_TYPE_SHIPPING", 4);
+
+?>
