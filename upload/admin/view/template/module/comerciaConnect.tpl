@@ -22,11 +22,10 @@
             </div>
             <div class="panel-body">
 
-                <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form-account"
+                <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form"
                       class="form-horizontal">
                     <div class="form-group">
-                        <label class="col-sm-2 control-label"
-                               for="input-status"><?php echo $entry_simple_connect; ?></label>
+                        <label class="col-sm-2 control-label"><?php echo $entry_simple_connect; ?></label>
                         <div class="col-sm-10">
                             <input type="button" id="simple_connect"
                                    value="<?php echo $button_simple_connect; ?>" class="btn btn-success">
@@ -51,7 +50,7 @@
 
                     <div class="form-group">
                         <label class="col-sm-2 control-label"
-                               for="input-status"><?php echo $entry_auth_url; ?></label>
+                               for="auth_url"><?php echo $entry_auth_url; ?></label>
                         <div class="col-sm-10">
                             <input type="text" name="comerciaConnect_auth_url"
                                    value="<?php echo $comerciaConnect_auth_url; ?>" id="auth_url" class="form-control">
@@ -60,7 +59,7 @@
 
                     <div class="form-group">
                         <label class="col-sm-2 control-label"
-                               for="input-status"><?php echo $entry_api_url; ?></label>
+                               for="api_url"><?php echo $entry_api_url; ?></label>
                         <div class="col-sm-10">
                             <input type="text" name="comerciaConnect_api_url"
                                    value="<?php echo $comerciaConnect_api_url; ?>" id="api_url" class="form-control">
@@ -70,7 +69,7 @@
 
                     <div class="form-group">
                         <label class="col-sm-2 control-label"
-                               for="input-status"><?php echo $entry_api_key; ?></label>
+                               for="api_key"><?php echo $entry_api_key; ?></label>
                         <div class="col-sm-10">
                             <input type="text" name="comerciaConnect_api_key"
                                    value="<?php echo $comerciaConnect_api_key; ?>" id="api_key" class="form-control">

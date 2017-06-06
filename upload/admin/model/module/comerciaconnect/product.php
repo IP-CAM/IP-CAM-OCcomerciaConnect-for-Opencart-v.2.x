@@ -1,4 +1,5 @@
 <?php
+use comercia\Util;
 use comerciaConnect\logic\Product;
 use comerciaConnect\logic\ProductCategory;
 use comerciaConnect\logic\ProductDescription;
@@ -15,7 +16,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $dbProduct["isbn"] = $product->isbn;
         $dbProduct["sku"] = $product->sku;
         $dbProduct["tax_class_id"] = $product->taxGroup;
-        $productId = \comercia\Util::db()->saveDataObject("product",$dbProduct);
+        $productId = Util::db()->saveDataObject("product",$dbProduct);
         $product->changeId($product->id, $productId);
 
         if(empty($product->descriptions)) {
@@ -29,12 +30,22 @@ class ModelModuleComerciaconnectProduct extends Model
             );
         }
         foreach($product->descriptions as $description) {
-            $language = $this->model_localisation_language->getLanguageByCode($description->language);
-            $dbDescription["language_id"] = $language["language_id"];
+            $language = $this->getLanguageByCode($description->language);
+            $dbDescription["language_id"] = $language["language_id"]?:1; //if language is not found assum
             $dbDescription["product_id"] = $productId;
             $dbDescription["name"] = $description->name;
             $dbDescription["description"] = $description->description;
-            \comercia\Util::db()->saveDataObject("product_description", $dbDescription, array("product_id", "language_id"));
+            Util::db()->saveDataObject("product_description", $dbDescription, array("product_id", "language_id"));
+        }
+    }
+
+    //fix for 1.5
+    private function getLanguageByCode($code) {
+        if(Util::version()->isMaximal("1.6")){
+            $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language` WHERE code = '" . $this->db->escape($code) . "'");
+            return $query->row;
+        }else{
+          return  $this->model_localisation_language->getLanguageByCode($code);
         }
     }
 
