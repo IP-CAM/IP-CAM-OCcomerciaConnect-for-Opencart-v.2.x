@@ -32,16 +32,16 @@ class Product
         if($this->parent) {
             $this->parent = new Product($session, $this->parent);
         }
-
+        $data=(object)$data;
         $this->descriptions = [];
-        if (@$data->descriptions) {
+        if (!empty($data->descriptions)) {
             foreach ($data->descriptions as $description) {
                 $this->descriptions[] = new ProductDescription($description);
             }
         }
 
         $this->categories = [];
-        if (@$data->categories) {
+        if (!empty($data->categories)) {
             foreach ($data->categories as $category) {
                 $this->categories[] = new ProductCategory($this->session, $category);
             }

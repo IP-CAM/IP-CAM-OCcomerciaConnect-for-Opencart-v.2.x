@@ -114,7 +114,7 @@ class ControllerModulecomerciaConnect extends Controller
 
         //export categories
 
-        $categories = $categoryModel->getCategories();
+        $categories = $categoryModel->getCategories(array());
         $categoriesMap = array();
         foreach ($categories as $category) {
             $category = $categoryModel->getCategory($category['category_id']);

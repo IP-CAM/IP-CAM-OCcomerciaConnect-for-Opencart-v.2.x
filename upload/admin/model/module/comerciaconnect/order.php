@@ -178,7 +178,9 @@ class ModelModuleComerciaconnectOrder extends Model
 
         $dbOrderInfo["affiliate_id"] = 0;
         $dbOrderInfo["commission"] = 0;
-        $dbOrderInfo["marketing_id"] = 0;
+        if(Util::version()->isMinimal("2.0")) {
+            $dbOrderInfo["marketing_id"] = 0;
+        }
         $dbOrderInfo["tracking"] = "";
         $dbOrderInfo["language_id"] = $this->config->get('config_language_id');
 
