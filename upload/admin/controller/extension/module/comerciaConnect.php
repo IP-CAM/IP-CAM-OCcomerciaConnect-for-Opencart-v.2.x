@@ -61,7 +61,7 @@ class ControllerExtensionModuleComerciaConnect extends Controller
         Util::response()->view("extension/module/comerciaConnect", $data);
     }
 
-    public function simpleconnect()
+    public function simpleConnect()
     {
         if (Util::request()->server()->REQUEST_METHOD != 'POST') {
             $data = array();
