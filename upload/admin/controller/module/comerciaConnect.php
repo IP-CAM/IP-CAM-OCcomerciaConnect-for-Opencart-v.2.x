@@ -5,7 +5,7 @@ use comerciaConnect\logic\Product;
 use comerciaConnect\logic\Purchase;
 use comerciaConnect\logic\Website;
 
-class ControllerModulecomerciaConnect extends Controller
+class ControllerModuleComerciaConnect extends Controller
 {
     private $error = array();
 
@@ -61,7 +61,7 @@ class ControllerModulecomerciaConnect extends Controller
         Util::response()->view("module/comerciaConnect", $data);
     }
 
-    public function simpleconnect()
+    public function simpleConnect()
     {
         if (Util::request()->server()->REQUEST_METHOD != 'POST') {
             $data = array();
