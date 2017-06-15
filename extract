@@ -1,4 +1,7 @@
 #!/bin/bash
-mkdir "bin"
-file="$1/comercia_connect_files"
-cp -r --parents $(cat $file) "bin" 
+modulePath="$PWD"
+rm -r upload  > /dev/null 2>&1 
+mkdir upload
+cd "$1"
+file="$modulePath/comercia_connect_files"
+cp -r --parents $(cat $file) "$modulePath/upload" 
