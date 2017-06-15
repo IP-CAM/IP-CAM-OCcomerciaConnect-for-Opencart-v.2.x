@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>Comercia Connect</title>
-    <script type="text/javascript" src="<?php echo \Comercia\Util::filesystem()->getLatestVersion("view/javascript/jquery/jquery-",".js",true); ?>"></script>
+    <script type="text/javascript" src="<?php echo \comercia\Util::filesystem()->getLatestVersion("view/javascript/jquery/jquery-",".js",true); ?>"></script>
 </head>
 <body>
 <p>

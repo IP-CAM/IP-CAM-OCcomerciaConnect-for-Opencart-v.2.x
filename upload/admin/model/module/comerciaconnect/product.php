@@ -31,7 +31,7 @@ class ModelModuleComerciaconnectProduct extends Model
         }
         foreach($product->descriptions as $description) {
             $language = $this->getLanguageByCode($description->language);
-            $dbDescription["language_id"] = $language["language_id"]?:1; //if language is not found assum
+            $dbDescription["language_id"] = $language["language_id"]?:1; //if language is not found assume its english.
             $dbDescription["product_id"] = $productId;
             $dbDescription["name"] = $description->name;
             $dbDescription["description"] = $description->description;
