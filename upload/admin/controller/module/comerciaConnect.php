@@ -139,8 +139,10 @@ class ControllerModuleComerciaConnect extends Controller
                 }, $productOption['product_option_value']);
             }
 
-            foreach ($this->cartesian($productOptionMap) as $child) {
-                $this->createChildProduct($session, $child, $productMap[$product["product_id"]]);
+            if(count($productOptionMap)>0) {
+                foreach ($this->cartesian($productOptionMap) as $child) {
+                    $this->createChildProduct($session, $child, $productMap[$product["product_id"]]);
+                }
             }
         }
 
@@ -156,7 +158,7 @@ class ControllerModuleComerciaConnect extends Controller
         $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
         $filter->filter("lastUpdate", $lastSync, ">");
         $filter->filter("type", PRODUCT_TYPE_PRODUCT);
-        $filter->filter("parent_product_id", "null", "IS");
+        $filter->filter("parent_product_id", "0", "=");
         $products = $filter->getData();
 
         foreach ($products as $product) {
@@ -218,6 +220,8 @@ class ControllerModuleComerciaConnect extends Controller
             'parent' => $parent
         ]);
 
-        $product->save();
+        if($product->id!=$parent->id) {
+            $product->save();
+        }
     }
 }

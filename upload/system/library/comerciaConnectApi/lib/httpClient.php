@@ -17,7 +17,7 @@ class HttpClient
             'Content-Type:application/json'
         ];
         if ($token) {
-            $headers[] = "Authorization:" . $token;
+            $headers[] = "token:" . $token;
         }
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
@@ -38,7 +38,7 @@ class HttpClient
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         if ($token) {
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization:" . $token]);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ["token:" . $token]);
         };
 
         $server_output = curl_exec($ch);
