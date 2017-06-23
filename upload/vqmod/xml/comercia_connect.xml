@@ -7,25 +7,25 @@
     <file name="admin/controller/common/home.php" error="skip">
         <operation>
             <search position="after"><![CDATA[public function login() {]]></search>
-            <add><![CDATA[if($this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]></add>
+            <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]></add>
         </operation>
         <operation>
             <search position="after"><![CDATA[public function permission() {]]></search>
-            <add><![CDATA[if($this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]></add>
+            <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]></add>
         </operation>
     </file>
 
     <file name="admin/controller/startup/login.php">
         <operation>
             <search position="after"><![CDATA[	public function index() {]]></search>
-            <add><![CDATA[if($this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
+            <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
             </add>
         </operation>
     </file>
     <file name="admin/controller/startup/permission.php">
         <operation>
             <search position="after"><![CDATA[	public function index() {]]></search>
-            <add><![CDATA[if($this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
+            <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
             </add>
         </operation>
     </file>
