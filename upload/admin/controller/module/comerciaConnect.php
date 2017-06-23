@@ -176,7 +176,12 @@ class ControllerModuleComerciaConnect extends Controller
         }
 
         Util::config()->set("comerciaConnect", 'comerciaConnect_last_sync', time());
-        Util::response()->redirect("module/comerciaConnect");
+        if(@$this->request->get['mode']=="api"){
+            header("content-type:application/json");
+            echo "true";
+        }else {
+            Util::response()->redirect("module/comerciaConnect");
+        }
     }
 
     private function cartesian($input)

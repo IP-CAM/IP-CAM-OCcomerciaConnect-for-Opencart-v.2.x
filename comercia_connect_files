@@ -12,3 +12,4 @@ admin/language/en-gb/module/comerciaConnect.php
 admin/language/en-gb/extension/module/comerciaConnect.php
 admin/model/module/comerciaconnect
 vqmod/xml/comercia_util.xml
+vqmod/xml/comercia_connect.xml
