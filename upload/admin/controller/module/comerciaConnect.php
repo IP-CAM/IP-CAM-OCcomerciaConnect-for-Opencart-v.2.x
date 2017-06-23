@@ -1,5 +1,11 @@
 <?php
 include_once(DIR_SYSTEM . "/comercia/util.php");
+if (version_compare(phpversion(), '5.5.0', '<') == true) {
+    include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian_5_4.php");
+}else{
+    include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian.php");
+}
+
 use comercia\Util;
 use comerciaConnect\logic\Product;
 use comerciaConnect\logic\Purchase;
@@ -140,7 +146,7 @@ class ControllerModuleComerciaConnect extends Controller
             }
 
             if(count($productOptionMap)>0) {
-                foreach ($this->cartesian($productOptionMap) as $child) {
+                foreach (cc_cartesian($productOptionMap) as $child) {
                     $this->createChildProduct($session, $child, $productMap[$product["product_id"]]);
                 }
             }
@@ -182,18 +188,6 @@ class ControllerModuleComerciaConnect extends Controller
         }else {
             Util::response()->redirect("module/comerciaConnect");
         }
-    }
-
-    private function cartesian($input)
-    {
-        if ($input) {
-            if ($layer = array_pop($input)) //If there is data in the array
-                foreach ($this->cartesian($input) as $cartesian) //Recursively loop through the array
-                    foreach ($layer as $value) { //Loop through the cartesian result
-                        yield $cartesian + [count($cartesian) => $value]; //Return single item
-                    }
-        } else
-            yield array(); //No input means empty array to avoid complicated if statements later
     }
 
     function createChildProduct($session, $child, $parent)
