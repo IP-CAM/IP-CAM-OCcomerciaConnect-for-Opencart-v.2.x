@@ -81,10 +81,6 @@ class ControllerModuleComerciaConnect extends Controller
         return true;
     }
 
-    function test(){
-        echo "hoi";
-    }
-
     function sync()
     {
         global $is_in_debug;
