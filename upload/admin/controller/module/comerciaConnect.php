@@ -81,6 +81,10 @@ class ControllerModuleComerciaConnect extends Controller
         return true;
     }
 
+    function test(){
+        echo "hoi";
+    }
+
     function sync()
     {
         global $is_in_debug;
@@ -176,7 +180,12 @@ class ControllerModuleComerciaConnect extends Controller
         }
 
         Util::config()->set("comerciaConnect", 'comerciaConnect_last_sync', time());
-        Util::response()->redirect("module/comerciaConnect");
+        if(@$this->request->get['mode']=="api"){
+            header("content-type:application/json");
+            echo "true";
+        }else {
+            Util::response()->redirect("module/comerciaConnect");
+        }
     }
 
     private function cartesian($input)
