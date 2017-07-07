@@ -117,7 +117,7 @@ class ModelModuleComerciaconnectProduct extends Model
         FROM 
           " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)
           WHERE
-            UNIX_TIMESTAMP(o.date_modified)> ".$lastSync."
+            UNIX_TIMESTAMP(p.date_modified)> ".$lastSync."
         ";
         $query = $this->db->query($sql);
         return $query->rows;
