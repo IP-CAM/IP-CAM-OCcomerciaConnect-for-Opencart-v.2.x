@@ -390,7 +390,6 @@ class ModelModuleComerciaconnectOrder extends Model
         return 0;
     }
 
-
     private function getCountryName($name)
     {
         $countryQuery = $this->db->query("SELECT `country_id` FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "' OR iso_code_2='".$name."' OR iso_code_3='".$name."'");
@@ -401,7 +400,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
         return $name;
     }
-    
+
     private function getCatalogUrl()
     {
         if (defined("HTTPS_CATALOG")) {
