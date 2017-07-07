@@ -109,6 +109,19 @@ class ModelModuleComerciaconnectProduct extends Model
 
         return $apiProduct;
     }
+
+    function getProducts(){
+        $lastSync = Util::config()->comerciaConnect_last_sync;
+        $sql = "SELECT 
+          * 
+        FROM 
+          " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)
+          WHERE
+            UNIX_TIMESTAMP(o.date_modified)> ".$lastSync."
+        ";
+        $query = $this->db->query($sql);
+        return $query->rows;
+    }
 }
 
 ?>
