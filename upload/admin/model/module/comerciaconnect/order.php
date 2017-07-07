@@ -447,7 +447,7 @@ class ModelModuleComerciaconnectOrder extends Model
     }
 
     function getOrders(){
-        $lastSync = Util::config()->comerciaConnect_last_sync;
+        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
         $sql = "SELECT 
                  o.order_id, 
                  CONCAT(o.firstname, ' ', o.lastname) AS customer, 

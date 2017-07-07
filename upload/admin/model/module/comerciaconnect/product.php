@@ -111,7 +111,7 @@ class ModelModuleComerciaconnectProduct extends Model
     }
 
     function getProducts(){
-        $lastSync = Util::config()->comerciaConnect_last_sync;
+        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
         $sql = "SELECT 
           * 
         FROM 
