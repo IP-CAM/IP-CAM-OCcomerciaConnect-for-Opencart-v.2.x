@@ -8,7 +8,11 @@ class ModelModuleComerciaconnectProduct extends Model
 {
     function saveProduct($product)
     {
-        $dbProduct["product_id"] = $product->id;
+
+        if(is_numeric($product->id)) {
+            $dbProduct["product_id"] = $product->id;
+        }
+
   	    $dbProduct["model"] = $product->code;
         $dbProduct["quantity"] = $product->quantity;
         $dbProduct["price"] = $product->price;
@@ -49,12 +53,15 @@ class ModelModuleComerciaconnectProduct extends Model
         }
     }
 
-    function sendCategoryToApi($category, $session)
+    function sendCategoryToApi($category, $session,$force=false)
     {
+        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
         $apiCategory = new ProductCategory($session);
         $apiCategory->name = $category["name"];
         $apiCategory->id = $category["category_id"];
-        $apiCategory->save();
+        if(strtotime($category["date_modified"])>$lastSync||$force) {
+            $apiCategory->save();
+        }
 
         return $apiCategory;
     }
@@ -109,6 +116,20 @@ class ModelModuleComerciaconnectProduct extends Model
 
         return $apiProduct;
     }
+
+    function getProducts(){
+        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
+        $sql = "SELECT 
+          * 
+        FROM 
+          " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)
+          WHERE
+            UNIX_TIMESTAMP(p.date_modified)> ".$lastSync."
+        ";
+        $query = $this->db->query($sql);
+        return $query->rows;
+    }
+
 }
 
 ?>

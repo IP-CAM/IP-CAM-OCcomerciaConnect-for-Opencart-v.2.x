@@ -129,7 +129,7 @@ class ControllerModuleComerciaConnect extends Controller
         }
 
         //export products
-        $products = $productModel->getProducts();
+        $products = $ccProductModel->getProducts();
         $productMap = array();
 
         foreach ($products as $product) {
@@ -153,7 +153,7 @@ class ControllerModuleComerciaConnect extends Controller
         }
 
         //export orders
-        $orders = $orderModel->getOrders();
+        $orders = $ccOrderModel->getOrders();
         foreach ($orders as $order) {
             $ccOrderModel->sendOrderToApi($order, $session, $productMap);
         }

@@ -163,7 +163,10 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderHistory = [];
 
         //basic info
-        $dbOrderInfo["order_id"] = $order->id;
+        if(is_numeric($order->id)) {
+            $dbOrderInfo["order_id"] = $order->id;
+        }
+
         $dbOrderInfo["invoice_no"] = 0;
         //todo: lets see in the future how we can get this multi store for now take the default.
         $dbOrderInfo["store_id"] = 0;
@@ -181,7 +184,7 @@ class ModelModuleComerciaconnectOrder extends Model
         if(Util::version()->isMinimal("2.0")) {
             $dbOrderInfo["marketing_id"] = 0;
         }
-        $dbOrderInfo["tracking"] = "";
+        //$dbOrderInfo["tracking"] = "";
         $dbOrderInfo["language_id"] = $this->config->get('config_language_id');
 
         $currency = $this->model_localisation_currency->getCurrencyByCode($this->config->get('config_currency'));
@@ -203,7 +206,12 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["telephone"] = $order->phoneNumber;
         //todo: Implement fax later into Comercia Connect.
         $dbOrderInfo["fax"] = "";
-        $dbOrderInfo["custom_field"] = "[]";
+
+        if(Util::version()->isMinimal("2.2")) {
+            $dbOrderInfo["custom_field"] = "[]";
+            $dbOrderInfo["payment_custom_field"] = "[]";
+            $dbOrderInfo["shipping_custom_field"] = "[]";
+        }
 
         $expPayment = explode("\n", $order->invoiceAddress->street);
         if (count($expPayment) > 1) {
@@ -236,7 +244,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["payment_zone_id"] = $this->getZoneId($dbOrderInfo["payment_country_id"], $order->invoiceAddress->province);
         //todo: maybe make this configurable in the future?
         $dbOrderInfo["payment_address_format"] = "";
-        $dbOrderInfo["payment_custom_field"] = "[]";
+
 
         //shippinginfo
         $dbOrderInfo["shipping_firstname"] = $order->deliveryAddress->firstName;
@@ -251,7 +259,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["shipping_zone_id"] = $this->getZoneId($dbOrderInfo["shipping_country_id"], $order->deliveryAddress->province);
         //todo: maybe make this configurable in the future?
         $dbOrderInfo["shipping_address_format"] = "";
-        $dbOrderInfo["shipping_custom_field"] = "[]";
+
 
         $dbOrderInfo['shipping_method'] = 'ConnectShipping';
         $dbOrderInfo['payment_method'] = 'ConnectPayment';
@@ -444,6 +452,27 @@ class ModelModuleComerciaconnectOrder extends Model
             "number" => $number,
             "street" => $street
         );
+    }
+
+    function getOrders(){
+        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
+        $sql = "SELECT 
+                 o.order_id, 
+                 CONCAT(o.firstname, ' ', o.lastname) AS customer, 
+                 (SELECT os.name FROM " . DB_PREFIX . "order_status os WHERE os.order_status_id = o.order_status_id AND os.language_id = '" . (int)$this->config->get('config_language_id') . "') AS order_status,
+                 o.shipping_code, 
+                 o.total, 
+                 o.currency_code, 
+                 o.currency_value, 
+                 o.date_added,
+                 o.date_modified 
+             FROM
+                `" . DB_PREFIX . "order` o
+            WHERE
+                UNIX_TIMESTAMP(o.date_modified)> ".$lastSync."
+        ";
+        $query = $this->db->query($sql);
+        return $query->rows;
     }
 
 }
