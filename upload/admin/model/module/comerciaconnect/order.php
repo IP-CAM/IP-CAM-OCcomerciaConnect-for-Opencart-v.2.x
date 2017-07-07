@@ -163,7 +163,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderHistory = [];
 
         //basic info
-        if(is_numeric($dbOrderInfo["order_id"])) {
+        if(is_numeric($order->id)) {
             $dbOrderInfo["order_id"] = $order->id;
         }
 
