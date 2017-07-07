@@ -238,7 +238,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["payment_company"] = "";
         $dbOrderInfo["payment_city"] = $order->invoiceAddress->city;
         $dbOrderInfo["payment_postcode"] = $order->invoiceAddress->postalCode;
-        $dbOrderInfo["payment_country"] = $order->invoiceAddress->country;
+        $dbOrderInfo["payment_country"] = $this->getCountryName($order->invoiceAddress->country);
         $dbOrderInfo["payment_country_id"] = $this->getCountryId($order->invoiceAddress->country);
         $dbOrderInfo["payment_zone"] = $order->invoiceAddress->province;
         $dbOrderInfo["payment_zone_id"] = $this->getZoneId($dbOrderInfo["payment_country_id"], $order->invoiceAddress->province);
@@ -253,7 +253,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["shipping_company"] = "";
         $dbOrderInfo["shipping_city"] = $order->deliveryAddress->city;
         $dbOrderInfo["shipping_postcode"] = $order->deliveryAddress->postalCode;
-        $dbOrderInfo["shipping_country"] = $order->deliveryAddress->country;
+        $dbOrderInfo["shipping_country"] = $this->getCountryName($order->deliveryAddress->country);
         $dbOrderInfo["shipping_country_id"] = $this->getCountryId($order->deliveryAddress->country);
         $dbOrderInfo["shipping_zone"] = $order->deliveryAddress->province;
         $dbOrderInfo["shipping_zone_id"] = $this->getZoneId($dbOrderInfo["shipping_country_id"], $order->deliveryAddress->province);
@@ -381,7 +381,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
     private function getCountryId($name)
     {
-        $countryQuery = $this->db->query("SELECT `country_id` FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "'");
+        $countryQuery = $this->db->query("SELECT `country_id` FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "' OR iso_code_2='".$name."' OR iso_code_3='".$name."'");
 
         if ($countryQuery->num_rows) {
             return $countryQuery->row["country_id"];
@@ -389,6 +389,19 @@ class ModelModuleComerciaconnectOrder extends Model
 
         return 0;
     }
+
+
+    private function getCountryName($name)
+    {
+        $countryQuery = $this->db->query("SELECT `country_id` FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "' OR iso_code_2='".$name."' OR iso_code_3='".$name."'");
+
+        if ($countryQuery->num_rows) {
+            return $countryQuery->row["name"];
+        }
+
+        return $name;
+    }
+
 
     private function getCatalogUrl()
     {
