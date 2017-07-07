@@ -401,8 +401,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
         return $name;
     }
-
-
+    
     private function getCatalogUrl()
     {
         if (defined("HTTPS_CATALOG")) {
