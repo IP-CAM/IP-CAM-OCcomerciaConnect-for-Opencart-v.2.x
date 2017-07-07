@@ -8,7 +8,11 @@ class ModelModuleComerciaconnectProduct extends Model
 {
     function saveProduct($product)
     {
-        $dbProduct["product_id"] = $product->id;
+
+        if(is_numeric($product->id)) {
+            $dbProduct["product_id"] = $product->id;
+        }
+
   	    $dbProduct["model"] = $product->code;
         $dbProduct["quantity"] = $product->quantity;
         $dbProduct["price"] = $product->price;

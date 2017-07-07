@@ -163,7 +163,10 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderHistory = [];
 
         //basic info
-        $dbOrderInfo["order_id"] = $order->id;
+        if(is_numeric($dbOrderInfo["order_id"])) {
+            $dbOrderInfo["order_id"] = $order->id;
+        }
+
         $dbOrderInfo["invoice_no"] = 0;
         //todo: lets see in the future how we can get this multi store for now take the default.
         $dbOrderInfo["store_id"] = 0;
@@ -206,6 +209,8 @@ class ModelModuleComerciaconnectOrder extends Model
 
         if(Util::version()->isMinimal("2.2")) {
             $dbOrderInfo["custom_field"] = "[]";
+            $dbOrderInfo["payment_custom_field"] = "[]";
+            $dbOrderInfo["shipping_custom_field"] = "[]";
         }
 
         $expPayment = explode("\n", $order->invoiceAddress->street);
@@ -239,7 +244,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["payment_zone_id"] = $this->getZoneId($dbOrderInfo["payment_country_id"], $order->invoiceAddress->province);
         //todo: maybe make this configurable in the future?
         $dbOrderInfo["payment_address_format"] = "";
-        $dbOrderInfo["payment_custom_field"] = "[]";
+
 
         //shippinginfo
         $dbOrderInfo["shipping_firstname"] = $order->deliveryAddress->firstName;
@@ -254,7 +259,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["shipping_zone_id"] = $this->getZoneId($dbOrderInfo["shipping_country_id"], $order->deliveryAddress->province);
         //todo: maybe make this configurable in the future?
         $dbOrderInfo["shipping_address_format"] = "";
-        $dbOrderInfo["shipping_custom_field"] = "[]";
+
 
         $dbOrderInfo['shipping_method'] = 'ConnectShipping';
         $dbOrderInfo['payment_method'] = 'ConnectPayment';
