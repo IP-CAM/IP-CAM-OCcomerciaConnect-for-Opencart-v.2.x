@@ -126,18 +126,6 @@ class ModelModuleComerciaconnectProduct extends Model
         return $query->rows;
     }
 
-    function getCategories(){
-        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
-        $sql = "SELECT 
-          * 
-        FROM 
-          " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)
-          WHERE
-            UNIX_TIMESTAMP(p.date_modified)> ".$lastSync."
-        ";
-        $query = $this->db->query($sql);
-        return $query->rows;
-    }
 }
 
 ?>
