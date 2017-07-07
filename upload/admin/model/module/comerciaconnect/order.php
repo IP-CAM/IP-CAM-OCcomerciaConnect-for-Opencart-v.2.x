@@ -203,7 +203,10 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["telephone"] = $order->phoneNumber;
         //todo: Implement fax later into Comercia Connect.
         $dbOrderInfo["fax"] = "";
-        $dbOrderInfo["custom_field"] = "[]";
+
+        if(Util::version()->isMinimal("2.2")) {
+            $dbOrderInfo["custom_field"] = "[]";
+        }
 
         $expPayment = explode("\n", $order->invoiceAddress->street);
         if (count($expPayment) > 1) {
