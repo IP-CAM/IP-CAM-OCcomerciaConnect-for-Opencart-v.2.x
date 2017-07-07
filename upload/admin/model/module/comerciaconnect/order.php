@@ -181,7 +181,7 @@ class ModelModuleComerciaconnectOrder extends Model
         if(Util::version()->isMinimal("2.0")) {
             $dbOrderInfo["marketing_id"] = 0;
         }
-        $dbOrderInfo["tracking"] = "";
+        //$dbOrderInfo["tracking"] = "";
         $dbOrderInfo["language_id"] = $this->config->get('config_language_id');
 
         $currency = $this->model_localisation_currency->getCurrencyByCode($this->config->get('config_currency'));
