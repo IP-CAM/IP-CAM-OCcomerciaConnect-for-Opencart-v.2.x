@@ -94,13 +94,22 @@ class Purchase
         return false;
     }
 
-    function changeId($old, $new)
+    function changeId($new)
     {
         if($this->session) {
-            $data = $this->session->get('purchase/changeId/' . $old . '/' . $new);
+            $data = $this->session->get('purchase/changeId/' . $this->id . '/' . $new);
+            $this->id=$new;
             return true;
         }
 
+        return false;
+    }
+
+    function touch(){
+        if($this->session) {
+            $this->session->get('purchase/touch/'.$this->id);
+            return true;
+        }
         return false;
     }
 }

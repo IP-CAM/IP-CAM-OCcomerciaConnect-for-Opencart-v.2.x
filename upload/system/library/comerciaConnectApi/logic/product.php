@@ -101,13 +101,22 @@ class Product
         return new ProductFilter($session);
     }
 
-    function changeId($old, $new)
+    function changeId($new)
     {
         if($this->session) {
-            $data = $this->session->get('product/changeId/' . $old . '/' . $new);
+            $data = $this->session->get('product/changeId/' . $this->id . '/' . $new);
+            $this->id=$new;
             return true;
         }
 
+        return false;
+    }
+
+    function touch(){
+        if($this->session) {
+            $this->session->get('product/touch/'.$this->id);
+            return true;
+        }
         return false;
     }
 }
