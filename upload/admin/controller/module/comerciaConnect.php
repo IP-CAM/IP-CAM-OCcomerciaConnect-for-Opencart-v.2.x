@@ -32,14 +32,13 @@ class ControllerModuleComerciaConnect extends Controller
         Util::document()->setTitle(Util::language()->heading_title);
 
 
-        $formFields = array("comerciaConnect_status", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url");
+        $formFields = array("comerciaConnect_status", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url","comerciaConnect_last_sync");
         //place the prepared data into the form
 
         $form
             ->fillFromSessionClear("error_warning", "success")
             ->fillFromPost($formFields)
             ->fillFromConfig($formFields);
-
 
         Util::breadcrumb($data)
             ->add("text_home", "common/home")
@@ -129,7 +128,7 @@ class ControllerModuleComerciaConnect extends Controller
         }
 
         //export products
-        $products = $ccProductModel->getProducts();
+        $products = $productModel->getProducts();
         $productMap = array();
 
         foreach ($products as $product) {
@@ -169,6 +168,7 @@ class ControllerModuleComerciaConnect extends Controller
 
         foreach ($products as $product) {
             $ccProductModel->saveProduct($product);
+            $product->touch();
         }
 
         //import orders
@@ -179,6 +179,7 @@ class ControllerModuleComerciaConnect extends Controller
 
         foreach ($orders as $order) {
             $ccOrderModel->saveOrder($order);
+            $order->touch();
         }
 
         Util::config()->set("comerciaConnect", 'comerciaConnect_last_sync', time());

@@ -14,6 +14,7 @@
 
     <div class="content">
         <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form">
+            <input type="hidden" name="comerciaConnect_last_sync" value="<?php echo $comerciaConnect_last_sync?>">
             <h3 class="panel-title"><i class="fa fa-pencil"></i> <?php echo $text_edit; ?></h3>
             <table class="form">
                 <tr>

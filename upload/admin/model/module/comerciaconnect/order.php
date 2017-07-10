@@ -238,7 +238,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["payment_company"] = "";
         $dbOrderInfo["payment_city"] = $order->invoiceAddress->city;
         $dbOrderInfo["payment_postcode"] = $order->invoiceAddress->postalCode;
-        $dbOrderInfo["payment_country"] = $order->invoiceAddress->country;
+        $dbOrderInfo["payment_country"] = $this->getCountryName($order->invoiceAddress->country);
         $dbOrderInfo["payment_country_id"] = $this->getCountryId($order->invoiceAddress->country);
         $dbOrderInfo["payment_zone"] = $order->invoiceAddress->province;
         $dbOrderInfo["payment_zone_id"] = $this->getZoneId($dbOrderInfo["payment_country_id"], $order->invoiceAddress->province);
@@ -253,7 +253,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["shipping_company"] = "";
         $dbOrderInfo["shipping_city"] = $order->deliveryAddress->city;
         $dbOrderInfo["shipping_postcode"] = $order->deliveryAddress->postalCode;
-        $dbOrderInfo["shipping_country"] = $order->deliveryAddress->country;
+        $dbOrderInfo["shipping_country"] = $this->getCountryName($order->deliveryAddress->country);
         $dbOrderInfo["shipping_country_id"] = $this->getCountryId($order->deliveryAddress->country);
         $dbOrderInfo["shipping_zone"] = $order->deliveryAddress->province;
         $dbOrderInfo["shipping_zone_id"] = $this->getZoneId($dbOrderInfo["shipping_country_id"], $order->deliveryAddress->province);
@@ -277,14 +277,16 @@ class ModelModuleComerciaconnectOrder extends Model
             } else {
                 $this->addToTotals($totals, "sub_total", $this->language->get("sub_total"), $orderLine->price * $orderLine->quantity);
             }
-            $this->addToTotals($totals, "tax", $orderLine->taxGroup, $orderLine->tax);
+            if($orderLine->taxGroup) {
+                $this->addToTotals($totals, "tax", $orderLine->taxGroup, $orderLine->tax);
+            }
         }
 
         $dbOrderInfo["total"] = $this->calculateTotalValue($totals);
 
         //complete and save the order
         $order_id = Util::db()->saveDataObject("order", $dbOrderInfo);
-        $order->changeId($order->id, $order_id);
+        $order->changeId($order_id);
 
         //order history
         $dbOrderHistory["order_id"] = $order_id;
@@ -310,10 +312,19 @@ class ModelModuleComerciaconnectOrder extends Model
         }
         $dbTotals = $this->totalsToDbTotals($totals);
         $dbTotals = array_map(function ($total) use ($order_id) {
-            $total['order_id'] = $order_id;
+            $total=$this->finishTotal($total,$order_id);
             return $total;
         }, $dbTotals);
         Util::db()->saveDataObjectArray("order_total", $dbTotals);
+    }
+
+    private function finishTotal($total,$order_id){
+        $total['order_id'] = $order_id;
+        $query=$this->db->query("select * from ".DB_PREFIX."order_total where order_id='".$order_id."' and title='".$total["title"]."' and code='".$total['code']."'");
+        if($query->num_rows){
+            $total["order_total_id"]=$query->row["order_total_id"];
+        }
+        return $total;
     }
 
     private function totalsToDbTotals($totals)
@@ -355,6 +366,12 @@ class ModelModuleComerciaconnectOrder extends Model
         } else {
             $totals[$code][$title]["value"] += $value;
         }
+
+        if(!Util::version()->isMinimal("2")){
+            $totals[$code][$title]["text"]=$this->currency->format($totals[$code][$title]["value"]);
+        }
+
+
     }
 
     private function getOrderStatusId($name)
@@ -381,12 +398,25 @@ class ModelModuleComerciaconnectOrder extends Model
 
     private function getCountryId($name)
     {
-        $countryQuery = $this->db->query("SELECT `country_id` FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "'");
+        return $this->getCountryField($name,"country_id");
+    }
+
+    private function getCountryName($name)
+    {
+        return $this->getCountryField($name,"name");
+    }
+
+
+    function getCountryField($name,$field){
+        $countryQuery = $this->db->query("SELECT ".$field." FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "' OR iso_code_2='".$name."' OR iso_code_3='".$name."'");
 
         if ($countryQuery->num_rows) {
-            return $countryQuery->row["country_id"];
+            return $countryQuery->row[$field];
         }
 
+        if($field==$name){
+            return $name;
+        }
         return 0;
     }
 
