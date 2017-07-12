@@ -53,17 +53,34 @@ class ModelModuleComerciaconnectProduct extends Model
         }
     }
 
-    function sendCategoryToApi($category, $session,$force=false)
-    {
-        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
+
+    function createApiCategory($category, $session){
+
         $apiCategory = new ProductCategory($session);
         $apiCategory->name = $category["name"];
         $apiCategory->id = $category["category_id"];
-        if(strtotime($category["date_modified"])>$lastSync||$force) {
+        return $apiCategory;
+    }
+    function sendCategoryToApi($apiCategory,$session=false)
+    {
+        if(is_object($apiCategory)) {
             $apiCategory->save();
+        }elseif(is_array($apiCategory) && $session){
+            ProductCategory::saveBatch($session,$apiCategory);
+        }
+        return $apiCategory;
+    }
+
+
+
+    function updateCategoryStructure($session, $categories)
+    {
+        $maps = [];
+        foreach ($categories as $category) {
+            $maps[$category["category_id"]] = $category["parent_id"];
         }
 
-        return $apiCategory;
+        ProductCategory::updateStructure($session, $maps);
     }
 
 
@@ -118,11 +135,52 @@ class ModelModuleComerciaconnectProduct extends Model
         return $apiProduct;
     }
 
-    function sendProductToApi($apiProduct)
+    function createChildProduct($session, $child, $parent)
     {
-        $apiProduct->save();
+        $id = $parent->id . '_';
+        $name = $parent->name . ' - ';
+        $price = $parent->price;
+        $quantity = $parent->quantity;
+        foreach ($child as $key => $value) {
+            if ($value['quantity'] < $quantity) {
+                $quantity = $value['quantity'];
+            }
+            $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
+            $name .= $value['full_value']['name'] . ' ';
+            $id .= $value['option_value_id'] . '_';
+        }
+        $product = new Product($session, [
+            'id' => rtrim($id, '_'),
+            'name' => rtrim($name),
+            'quantity' => $quantity,
+            'price' => $price,
+            'descriptions' => $parent->descriptions,
+            'categories' => $parent->categories,
+            'taxGroup' => $parent->taxGroup,
+            'type' => PRODUCT_TYPE_PRODUCT,
+            'code' => $parent->code . '_' . $id,
+            'image' => $parent->image,
+            'brand' => $parent->brand,
+            'parent' => $parent
+        ]);
+
+        return $product;
+    }
+
+    function sendProductToApi($apiProduct,$session=false)
+    {
+        if(is_object($apiProduct)) {
+            $apiProduct->save();
+        }elseif(is_array($apiProduct) && $session){
+            Product::saveBatch($session,$apiProduct);
+        }
         return $apiProduct;
     }
+
+    function touchBatch($session,$products){
+        Product::touchBatch($session,$products);
+    }
+
 
 
 }

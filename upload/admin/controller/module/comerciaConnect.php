@@ -118,19 +118,27 @@ class ControllerModuleComerciaConnect extends Controller
         $session = $api->createSession($apiKey);
 
         //export categories
-
         $categories = $categoryModel->getCategories(array());
         $categoriesMap = array();
+        $categoriesChanged = array();
         foreach ($categories as $category) {
             $category = $categoryModel->getCategory($category['category_id']);
-            $apiCategory = $ccProductModel->sendCategoryToApi($category, $session);
+            $apiCategory = $ccProductModel->createApiCategory($category, $session);
+            if (strtotime($category["date_modified"]) > $lastSync) {
+                $categoriesChanged[]=$apiCategory;
+            }
             $categoriesMap[$category["category_id"]] = $apiCategory;
+        }
+
+        if (count($categoriesChanged)) {
+            $ccProductModel->sendCategoryToApi($categoriesChanged,$session);
+            $ccProductModel->updateCategoryStructure($session, $categories);
         }
 
         //export products
         $products = $productModel->getProducts();
         $productMap = array();
-
+        $productsChanged=array();
         foreach ($products as $product) {
             $apiProduct = $ccProductModel->createApiProduct($product, $session, $categoriesMap);
             $productMap[$product["product_id"]] = $apiProduct;
@@ -138,7 +146,7 @@ class ControllerModuleComerciaConnect extends Controller
 
             //save product to comercia connect
             if (strtotime($product['date_modified']) > $this->config->get('comerciaConnect_last_sync')) {
-                $ccProductModel->sendProductToApi($apiProduct);
+                $productsChanged[]=$apiProduct;
 
 
                 $productOptionMap = array();
@@ -153,17 +161,29 @@ class ControllerModuleComerciaConnect extends Controller
 
                 if (count($productOptionMap) > 0) {
                     foreach (cc_cartesian($productOptionMap) as $child) {
-                        $this->createChildProduct($session, $child, $productMap[$product["product_id"]]);
+                        $productsChanged[]=$this->createChildProduct($session, $child, $productMap[$product["product_id"]]);
                     }
                 }
             }
         }
 
+        if(count($productsChanged)){
+            $ccProductModel->sendProductToApi($productsChanged,$session);
+        }
+
         //export orders
         $orders = $ccOrderModel->getOrders();
+        $ordersChanged=array();
         foreach ($orders as $order) {
-            $ccOrderModel->sendOrderToApi($order, $session, $productMap);
+            if (strtotime($order['date_modified']) > $this->config->get('comerciaConnect_last_sync')) {
+                $ordersChanged[] = $ccOrderModel->createApiOrder($order, $session, $productMap);
+            }
         }
+        if(count($ordersChanged)){
+            $ccOrderModel->sendOrderToApi($ordersChanged,$session);
+        }
+
+
         Util::config()->set("comerciaConnect", 'comerciaConnect_last_sync', time());
 
         //import products
@@ -176,8 +196,9 @@ class ControllerModuleComerciaConnect extends Controller
 
         foreach ($products as $product) {
             $ccProductModel->saveProduct($product);
-            $product->touch();
         }
+
+        $ccProductModel->touchBatch($session,$products);
 
         //import orders
         $filter = Purchase::createFilter($session);
@@ -187,8 +208,8 @@ class ControllerModuleComerciaConnect extends Controller
 
         foreach ($orders as $order) {
             $ccOrderModel->saveOrder($order);
-            $order->touch();
         }
+        $ccOrderModel->touchBatch($session,$order);
 
         Util::config()->set("comerciaConnect", 'comerciaConnect_last_sync', time());
         if (@$this->request->get['mode'] == "api") {
@@ -199,37 +220,7 @@ class ControllerModuleComerciaConnect extends Controller
         }
     }
 
-    function createChildProduct($session, $child, $parent)
-    {
-        $id = $parent->id . '_';
-        $name = $parent->name . ' - ';
-        $price = $parent->price;
-        $quantity = $parent->quantity;
-        foreach ($child as $key => $value) {
-            if ($value['quantity'] < $quantity) {
-                $quantity = $value['quantity'];
-            }
-            $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
-            $name .= $value['full_value']['name'] . ' ';
-            $id .= $value['option_value_id'] . '_';
-        }
-        $product = new Product($session, [
-            'id' => rtrim($id, '_'),
-            'name' => rtrim($name),
-            'quantity' => $quantity,
-            'price' => $price,
-            'descriptions' => $parent->descriptions,
-            'categories' => $parent->categories,
-            'taxGroup' => $parent->taxGroup,
-            'type' => PRODUCT_TYPE_PRODUCT,
-            'code' => $parent->code . '_' . $id,
-            'image' => $parent->image,
-            'brand' => $parent->brand,
-            'parent' => $parent
-        ]);
 
-        if ($product->id != $parent->id) {
-            $product->save();
-        }
-    }
+
+
 }

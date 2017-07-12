@@ -112,5 +112,16 @@ class Purchase
         }
         return false;
     }
+
+    static function saveBatch($session,$data){
+        $requestData=["data"=>$data];
+        $session->post("purchase/saveBatch",$requestData);
+    }
+
+    static function touchBatch($session,$data){
+        $requestData=["data"=>$data];
+        $session->post("purchase/touchBatch",$requestData);
+    }
+
 }
 ?>
