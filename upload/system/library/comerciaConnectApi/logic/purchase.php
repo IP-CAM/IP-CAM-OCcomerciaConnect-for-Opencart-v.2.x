@@ -16,6 +16,7 @@ class Purchase
     var $phoneNumber;
     var $email;
     var $lastUpdate = 0;
+    var $invoiceNumber;
 
     private $session;
 

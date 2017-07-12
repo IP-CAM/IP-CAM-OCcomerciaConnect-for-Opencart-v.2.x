@@ -69,7 +69,7 @@ class ModelModuleComerciaconnectOrder extends Model
                 $shippingMethod->price = $orderTotal['value'];
             }
         }
-        if ($order['date_modified'] > $this->config->get('comerciaConnect_last_sync')) {
+        if (strtotime($order['date_modified']) > $this->config->get('comerciaConnect_last_sync')) {
             $shippingMethod->save();
         }
 
@@ -115,6 +115,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $purchase = new Purchase($session, [
             "id" => $order['order_id'],
             "date" => strtotime($order['date_modified']),
+            "invoiceNumber"=>$order['invoice_no'],
             "status" => $this->model_localisation_order_status->getOrderStatus($order['order_status_id'])['name'],
             "email" => $order['email'],
             "phonenumber" => $order['telephone'],
@@ -142,6 +143,8 @@ class ModelModuleComerciaconnectOrder extends Model
             ],
             "orderLines" => $orderLines
         ]);
+
+        return $purchase;
 
     }
 
@@ -176,7 +179,7 @@ class ModelModuleComerciaconnectOrder extends Model
             $dbOrderInfo["order_id"] = $order->id;
         }
 
-        $dbOrderInfo["invoice_no"] = 0;
+        $dbOrderInfo["invoice_no"] = $order->invoiceNumber;
         //todo: lets see in the future how we can get this multi store for now take the default.
         $dbOrderInfo["store_id"] = 0;
         $dbOrderInfo["store_name"] = $this->config->get('config_name');
