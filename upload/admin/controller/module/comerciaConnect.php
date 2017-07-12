@@ -2,7 +2,7 @@
 include_once(DIR_SYSTEM . "/comercia/util.php");
 if (version_compare(phpversion(), '5.5.0', '<') == true) {
     include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian_5_4.php");
-}else{
+} else {
     include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian.php");
 }
 
@@ -32,7 +32,7 @@ class ControllerModuleComerciaConnect extends Controller
         Util::document()->setTitle(Util::language()->heading_title);
 
 
-        $formFields = array("comerciaConnect_status", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url","comerciaConnect_last_sync");
+        $formFields = array("comerciaConnect_status", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url", "comerciaConnect_last_sync");
         //place the prepared data into the form
 
         $form
@@ -97,7 +97,7 @@ class ControllerModuleComerciaConnect extends Controller
         $categoryModel = Util::load()->model("catalog/category");
         $ccOrderModel = Util::load()->model("module/comerciaconnect/order");
         $ccProductModel = Util::load()->model("module/comerciaconnect/product");
-        $orderModel=Util::load()->model("sale/order");
+        $orderModel = Util::load()->model("sale/order");
 
         //last sync
         $lastSync = Util::config()->comerciaConnect_last_sync;
@@ -132,21 +132,29 @@ class ControllerModuleComerciaConnect extends Controller
         $productMap = array();
 
         foreach ($products as $product) {
-            $productMap[$product["product_id"]] = $ccProductModel->sendProductToApi($product, $session, $categoriesMap);
+            $apiProduct = $ccProductModel->createApiProduct($product, $session, $categoriesMap);
+            $productMap[$product["product_id"]] = $apiProduct;
 
-            $productOptionMap = array();
-            $productOptions = $productModel->getProductOptions($product['product_id']);
 
-            foreach ($productOptions as $productOption) {
-                $productOptionMap[$productOption['option_id']] = array_map(function ($productOptionValue) use ($optionModel) {
-                    $productOptionValue['full_value'] = $optionModel->getOptionValue($productOptionValue['option_value_id']);
-                    return $productOptionValue;
-                }, $productOption['product_option_value']);
-            }
+            //save product to comercia connect
+            if (strtotime($product['date_modified']) > $this->config->get('comerciaConnect_last_sync')) {
+                $ccProductModel->sendProductToApi($apiProduct);
 
-            if(count($productOptionMap)>0) {
-                foreach (cc_cartesian($productOptionMap) as $child) {
-                    $this->createChildProduct($session, $child, $productMap[$product["product_id"]]);
+
+                $productOptionMap = array();
+                $productOptions = $productModel->getProductOptions($product['product_id']);
+
+                foreach ($productOptions as $productOption) {
+                    $productOptionMap[$productOption['option_id']] = array_map(function ($productOptionValue) use ($optionModel) {
+                        $productOptionValue['full_value'] = $optionModel->getOptionValue($productOptionValue['option_value_id']);
+                        return $productOptionValue;
+                    }, $productOption['product_option_value']);
+                }
+
+                if (count($productOptionMap) > 0) {
+                    foreach (cc_cartesian($productOptionMap) as $child) {
+                        $this->createChildProduct($session, $child, $productMap[$product["product_id"]]);
+                    }
                 }
             }
         }
@@ -183,10 +191,10 @@ class ControllerModuleComerciaConnect extends Controller
         }
 
         Util::config()->set("comerciaConnect", 'comerciaConnect_last_sync', time());
-        if(@$this->request->get['mode']=="api"){
+        if (@$this->request->get['mode'] == "api") {
             header("content-type:application/json");
             echo "true";
-        }else {
+        } else {
             Util::response()->redirect("module/comerciaConnect");
         }
     }
@@ -220,7 +228,7 @@ class ControllerModuleComerciaConnect extends Controller
             'parent' => $parent
         ]);
 
-        if($product->id!=$parent->id) {
+        if ($product->id != $parent->id) {
             $product->save();
         }
     }

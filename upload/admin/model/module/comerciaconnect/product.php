@@ -66,8 +66,8 @@ class ModelModuleComerciaconnectProduct extends Model
         return $apiCategory;
     }
 
-    function sendProductToApi($product, $session, $categoriesMap)
-    {
+
+    function createApiProduct($product, $session, $categoriesMap){
         $this->load->model('localisation/tax_class');
         $this->load->model('localisation/tax_rate');
         $this->load->model('localisation/geo_zone');
@@ -114,21 +114,16 @@ class ModelModuleComerciaconnectProduct extends Model
             $apiProduct->save();
         }
 
+
         return $apiProduct;
     }
 
-    function getProducts(){
-        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
-        $sql = "SELECT 
-          * 
-        FROM 
-          " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)
-          WHERE
-            UNIX_TIMESTAMP(p.date_modified)> ".$lastSync."
-        ";
-        $query = $this->db->query($sql);
-        return $query->rows;
+    function sendProductToApi($apiProduct)
+    {
+        $apiProduct->save();
+        return $apiProduct;
     }
+
 
 }
 
