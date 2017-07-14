@@ -86,10 +86,33 @@ class ControllerModuleComerciaConnect extends Controller
         return true;
     }
 
+    function patch(){
+        Util::patch()->runPatches(
+            array(
+                "ProductCCHash"=>function(){
+                    Util::patch()->table("product")
+                        ->addField("ccHash","varchar(50)")
+                        ->update();
+
+                    Util::patch()->table("order")
+                        ->addField("ccHash","varchar(50)")
+                        ->update();
+
+                    Util::patch()->table("category")
+                        ->addField("ccHash","varchar(50)")
+                        ->update();
+                }
+            )
+            ,__FILE__
+        );
+    }
+
     function sync()
     {
         global $is_in_debug;
         //  $is_in_debug=true;
+
+        $this->patch();
 
         //load models
         $productModel = Util::load()->model("catalog/product");
@@ -124,8 +147,9 @@ class ControllerModuleComerciaConnect extends Controller
         foreach ($categories as $category) {
             $category = $categoryModel->getCategory($category['category_id']);
             $apiCategory = $ccProductModel->createApiCategory($category, $session);
-            if (strtotime($category["date_modified"]) > $lastSync) {
+            if ($category["ccHash"]!=$ccProductModel->getHashForCategory($category)) {
                 $categoriesChanged[]=$apiCategory;
+                $ccProductModel->saveHashForCategory($category);
             }
             $categoriesMap[$category["category_id"]] = $apiCategory;
         }
@@ -145,9 +169,9 @@ class ControllerModuleComerciaConnect extends Controller
 
 
             //save product to comercia connect
-            if (strtotime($product['date_modified']) > $this->config->get('comerciaConnect_last_sync')) {
+            if ($product["ccHash"]!=$ccProductModel->getHashForProduct($product)) {
                 $productsChanged[]=$apiProduct;
-
+                $ccProductModel->saveHashForProduct($product);
 
                 $productOptionMap = array();
                 $productOptions = $productModel->getProductOptions($product['product_id']);
@@ -175,8 +199,9 @@ class ControllerModuleComerciaConnect extends Controller
         $orders = $ccOrderModel->getOrders();
         $ordersChanged=array();
         foreach ($orders as $order) {
-            if (strtotime($order['date_modified']) > $this->config->get('comerciaConnect_last_sync')) {
+            if ($order['ccHash']!=$ccOrderModel->getHashForOrder($order)) {
                 $ordersChanged[] = $ccOrderModel->createApiOrder($order, $session, $productMap);
+                $ccOrderModel->saveHashForOrder($order);
             }
         }
         if(count($ordersChanged)){

@@ -520,6 +520,15 @@ class ModelModuleComerciaconnectOrder extends Model
         return $query->rows;
     }
 
+
+    function getHashForOrder($order){
+        return md5($order['date_modified']);
+    }
+
+    function saveHashForOrder($order){
+        $this->db->query("update ".DB_PREFIX."order set ccHash='".$this->getHashForOrder($order)."' where order_id='".$order['order_id']."'");
+    }
+
 }
 
 ?>

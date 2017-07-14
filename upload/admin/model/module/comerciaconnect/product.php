@@ -181,7 +181,21 @@ class ModelModuleComerciaconnectProduct extends Model
         Product::touchBatch($session,$products);
     }
 
+    function getHashForProduct($product){
+        return md5($product['date_modified']."_".$product["quantity"]);
+    }
 
+    function saveHashForProduct($product){
+        $this->db->query("update ".DB_PREFIX."product set ccHash='".$this->getHashForProduct($product)."' where product_id='".$product['product_id']."'");
+    }
+
+    function getHashForCategory($category){
+        return md5($category['date_modified']);
+    }
+
+    function saveHashForCategory($category){
+        $this->db->query("update ".DB_PREFIX."category set ccHash='".$this->getHashForCategory($category)."' where category_id='".$category['category_id']."'");
+    }
 
 }
 
