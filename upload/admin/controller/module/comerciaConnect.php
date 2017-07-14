@@ -2,7 +2,7 @@
 include_once(DIR_SYSTEM . "/comercia/util.php");
 if (version_compare(phpversion(), '5.5.0', '<') == true) {
     include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian_5_4.php");
-}else{
+} else {
     include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian.php");
 }
 
@@ -32,7 +32,7 @@ class ControllerModuleComerciaConnect extends Controller
         Util::document()->setTitle(Util::language()->heading_title);
 
 
-        $formFields = array("comerciaConnect_status", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url","comerciaConnect_last_sync");
+        $formFields = array("comerciaConnect_status", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url", "comerciaConnect_last_sync");
         //place the prepared data into the form
 
         $form
@@ -86,10 +86,33 @@ class ControllerModuleComerciaConnect extends Controller
         return true;
     }
 
+    function patch(){
+        Util::patch()->runPatches(
+            array(
+                "ProductCCHash"=>function(){
+                    Util::patch()->table("product")
+                        ->addField("ccHash","varchar(50)")
+                        ->update();
+
+                    Util::patch()->table("order")
+                        ->addField("ccHash","varchar(50)")
+                        ->update();
+
+                    Util::patch()->table("category")
+                        ->addField("ccHash","varchar(50)")
+                        ->update();
+                }
+            )
+            ,__FILE__
+        );
+    }
+
     function sync()
     {
         global $is_in_debug;
         //  $is_in_debug=true;
+
+        $this->patch();
 
         //load models
         $productModel = Util::load()->model("catalog/product");
@@ -97,7 +120,7 @@ class ControllerModuleComerciaConnect extends Controller
         $categoryModel = Util::load()->model("catalog/category");
         $ccOrderModel = Util::load()->model("module/comerciaconnect/order");
         $ccProductModel = Util::load()->model("module/comerciaconnect/product");
-        $orderModel=Util::load()->model("sale/order");
+        $orderModel = Util::load()->model("sale/order");
 
         //last sync
         $lastSync = Util::config()->comerciaConnect_last_sync;
@@ -118,44 +141,74 @@ class ControllerModuleComerciaConnect extends Controller
         $session = $api->createSession($apiKey);
 
         //export categories
-
         $categories = $categoryModel->getCategories(array());
         $categoriesMap = array();
+        $categoriesChanged = array();
         foreach ($categories as $category) {
             $category = $categoryModel->getCategory($category['category_id']);
-            $apiCategory = $ccProductModel->sendCategoryToApi($category, $session);
+            $apiCategory = $ccProductModel->createApiCategory($category, $session);
+            if ($category["ccHash"]!=$ccProductModel->getHashForCategory($category)) {
+                $categoriesChanged[]=$apiCategory;
+                $ccProductModel->saveHashForCategory($category);
+            }
             $categoriesMap[$category["category_id"]] = $apiCategory;
+        }
+
+        if (count($categoriesChanged)) {
+            $ccProductModel->sendCategoryToApi($categoriesChanged,$session);
+            $ccProductModel->updateCategoryStructure($session, $categories);
         }
 
         //export products
         $products = $productModel->getProducts();
         $productMap = array();
-
+        $productsChanged=array();
         foreach ($products as $product) {
-            $productMap[$product["product_id"]] = $ccProductModel->sendProductToApi($product, $session, $categoriesMap);
+            $apiProduct = $ccProductModel->createApiProduct($product, $session, $categoriesMap);
+            $productMap[$product["product_id"]] = $apiProduct;
 
-            $productOptionMap = array();
-            $productOptions = $productModel->getProductOptions($product['product_id']);
 
-            foreach ($productOptions as $productOption) {
-                $productOptionMap[$productOption['option_id']] = array_map(function ($productOptionValue) use ($optionModel) {
-                    $productOptionValue['full_value'] = $optionModel->getOptionValue($productOptionValue['option_value_id']);
-                    return $productOptionValue;
-                }, $productOption['product_option_value']);
-            }
+            //save product to comercia connect
+            if ($product["ccHash"]!=$ccProductModel->getHashForProduct($product)) {
+                $productsChanged[]=$apiProduct;
+                $ccProductModel->saveHashForProduct($product);
 
-            if(count($productOptionMap)>0) {
-                foreach (cc_cartesian($productOptionMap) as $child) {
-                    $this->createChildProduct($session, $child, $productMap[$product["product_id"]]);
+                $productOptionMap = array();
+                $productOptions = $productModel->getProductOptions($product['product_id']);
+
+                foreach ($productOptions as $productOption) {
+                    $productOptionMap[$productOption['option_id']] = array_map(function ($productOptionValue) use ($optionModel) {
+                        $productOptionValue['full_value'] = $optionModel->getOptionValue($productOptionValue['option_value_id']);
+                        return $productOptionValue;
+                    }, $productOption['product_option_value']);
+                }
+
+                if (count($productOptionMap) > 0) {
+                    foreach (cc_cartesian($productOptionMap) as $child) {
+                        $productsChanged[]=$this->createChildProduct($session, $child, $productMap[$product["product_id"]]);
+                    }
                 }
             }
         }
 
+        if(count($productsChanged)){
+            $ccProductModel->sendProductToApi($productsChanged,$session);
+        }
+
         //export orders
         $orders = $ccOrderModel->getOrders();
+        $ordersChanged=array();
         foreach ($orders as $order) {
-            $ccOrderModel->sendOrderToApi($order, $session, $productMap);
+            if ($order['ccHash']!=$ccOrderModel->getHashForOrder($order)) {
+                $ordersChanged[] = $ccOrderModel->createApiOrder($order, $session, $productMap);
+                $ccOrderModel->saveHashForOrder($order);
+            }
         }
+        if(count($ordersChanged)){
+            $ccOrderModel->sendOrderToApi($ordersChanged,$session);
+        }
+
+
         Util::config()->set("comerciaConnect", 'comerciaConnect_last_sync', time());
 
         //import products
@@ -168,8 +221,9 @@ class ControllerModuleComerciaConnect extends Controller
 
         foreach ($products as $product) {
             $ccProductModel->saveProduct($product);
-            $product->touch();
         }
+
+        $ccProductModel->touchBatch($session,$products);
 
         //import orders
         $filter = Purchase::createFilter($session);
@@ -179,49 +233,19 @@ class ControllerModuleComerciaConnect extends Controller
 
         foreach ($orders as $order) {
             $ccOrderModel->saveOrder($order);
-            $order->touch();
         }
+        $ccOrderModel->touchBatch($session,$order);
 
         Util::config()->set("comerciaConnect", 'comerciaConnect_last_sync', time());
-        if(@$this->request->get['mode']=="api"){
+        if (@$this->request->get['mode'] == "api") {
             header("content-type:application/json");
             echo "true";
-        }else {
+        } else {
             Util::response()->redirect("module/comerciaConnect");
         }
     }
 
-    function createChildProduct($session, $child, $parent)
-    {
-        $id = $parent->id . '_';
-        $name = $parent->name . ' - ';
-        $price = $parent->price;
-        $quantity = $parent->quantity;
-        foreach ($child as $key => $value) {
-            if ($value['quantity'] < $quantity) {
-                $quantity = $value['quantity'];
-            }
-            $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
-            $name .= $value['full_value']['name'] . ' ';
-            $id .= $value['option_value_id'] . '_';
-        }
-        $product = new Product($session, [
-            'id' => rtrim($id, '_'),
-            'name' => rtrim($name),
-            'quantity' => $quantity,
-            'price' => $price,
-            'descriptions' => $parent->descriptions,
-            'categories' => $parent->categories,
-            'taxGroup' => $parent->taxGroup,
-            'type' => PRODUCT_TYPE_PRODUCT,
-            'code' => $parent->code . '_' . $id,
-            'image' => $parent->image,
-            'brand' => $parent->brand,
-            'parent' => $parent
-        ]);
 
-        if($product->id!=$parent->id) {
-            $product->save();
-        }
-    }
+
+
 }

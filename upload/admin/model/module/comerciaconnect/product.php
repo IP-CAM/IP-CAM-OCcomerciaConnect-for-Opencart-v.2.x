@@ -53,21 +53,38 @@ class ModelModuleComerciaconnectProduct extends Model
         }
     }
 
-    function sendCategoryToApi($category, $session,$force=false)
-    {
-        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
+
+    function createApiCategory($category, $session){
+
         $apiCategory = new ProductCategory($session);
         $apiCategory->name = $category["name"];
         $apiCategory->id = $category["category_id"];
-        if(strtotime($category["date_modified"])>$lastSync||$force) {
+        return $apiCategory;
+    }
+    function sendCategoryToApi($apiCategory,$session=false)
+    {
+        if(is_object($apiCategory)) {
             $apiCategory->save();
+        }elseif(is_array($apiCategory) && $session){
+            ProductCategory::saveBatch($session,$apiCategory);
         }
-
         return $apiCategory;
     }
 
-    function sendProductToApi($product, $session, $categoriesMap)
+
+
+    function updateCategoryStructure($session, $categories)
     {
+        $maps = [];
+        foreach ($categories as $category) {
+            $maps[$category["category_id"]] = $category["parent_id"];
+        }
+
+        ProductCategory::updateStructure($session, $maps);
+    }
+
+
+    function createApiProduct($product, $session, $categoriesMap){
         $this->load->model('localisation/tax_class');
         $this->load->model('localisation/tax_rate');
         $this->load->model('localisation/geo_zone');
@@ -114,20 +131,70 @@ class ModelModuleComerciaconnectProduct extends Model
             $apiProduct->save();
         }
 
+
         return $apiProduct;
     }
 
-    function getProducts(){
-        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
-        $sql = "SELECT 
-          * 
-        FROM 
-          " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)
-          WHERE
-            UNIX_TIMESTAMP(p.date_modified)> ".$lastSync."
-        ";
-        $query = $this->db->query($sql);
-        return $query->rows;
+    function createChildProduct($session, $child, $parent)
+    {
+        $id = $parent->id . '_';
+        $name = $parent->name . ' - ';
+        $price = $parent->price;
+        $quantity = $parent->quantity;
+        foreach ($child as $key => $value) {
+            if ($value['quantity'] < $quantity) {
+                $quantity = $value['quantity'];
+            }
+            $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
+            $name .= $value['full_value']['name'] . ' ';
+            $id .= $value['option_value_id'] . '_';
+        }
+        $product = new Product($session, [
+            'id' => rtrim($id, '_'),
+            'name' => rtrim($name),
+            'quantity' => $quantity,
+            'price' => $price,
+            'descriptions' => $parent->descriptions,
+            'categories' => $parent->categories,
+            'taxGroup' => $parent->taxGroup,
+            'type' => PRODUCT_TYPE_PRODUCT,
+            'code' => $parent->code . '_' . $id,
+            'image' => $parent->image,
+            'brand' => $parent->brand,
+            'parent' => $parent
+        ]);
+
+        return $product;
+    }
+
+    function sendProductToApi($apiProduct,$session=false)
+    {
+        if(is_object($apiProduct)) {
+            $apiProduct->save();
+        }elseif(is_array($apiProduct) && $session){
+            Product::saveBatch($session,$apiProduct);
+        }
+        return $apiProduct;
+    }
+
+    function touchBatch($session,$products){
+        Product::touchBatch($session,$products);
+    }
+
+    function getHashForProduct($product){
+        return md5($product['date_modified']."_".$product["quantity"]);
+    }
+
+    function saveHashForProduct($product){
+        $this->db->query("update ".DB_PREFIX."product set ccHash='".$this->getHashForProduct($product)."' where product_id='".$product['product_id']."'");
+    }
+
+    function getHashForCategory($category){
+        return md5($category['date_modified']);
+    }
+
+    function saveHashForCategory($category){
+        $this->db->query("update ".DB_PREFIX."category set ccHash='".$this->getHashForCategory($category)."' where category_id='".$category['category_id']."'");
     }
 
 }

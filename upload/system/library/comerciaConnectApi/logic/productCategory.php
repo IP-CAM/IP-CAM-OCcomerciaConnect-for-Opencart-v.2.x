@@ -47,4 +47,16 @@ class ProductCategory
 
         return $result;
     }
+
+    static function updateStructure($session,$maps){
+        $requestData=["maps"=>$maps];
+        $session->post("productCategory/updateStructure",$requestData);
+    }
+
+    static function saveBatch($session,$data){
+        $requestData=["data"=>$data];
+        $session->post("productCategory/saveBatch",$requestData);
+    }
+
+
 }

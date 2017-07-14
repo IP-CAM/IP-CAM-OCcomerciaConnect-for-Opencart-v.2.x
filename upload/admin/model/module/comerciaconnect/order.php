@@ -23,9 +23,8 @@ class ModelModuleComerciaconnectOrder extends Model
         Util::load()->model('localisation/geo_zone');
     }
 
-    public function sendOrderToApi($order, $session, $productMap)
+    public function createApiOrder($order, $session, $productMap)
     {
-
         $orderLines = [];
         $order = $this->model_sale_order->getOrder($order['order_id']);
         $lines = $this->model_sale_order->getOrderProducts($order["order_id"]);
@@ -70,7 +69,7 @@ class ModelModuleComerciaconnectOrder extends Model
                 $shippingMethod->price = $orderTotal['value'];
             }
         }
-        if ($order['date_modified'] > $this->config->get('comerciaConnect_last_sync')) {
+        if (strtotime($order['date_modified']) > $this->config->get('comerciaConnect_last_sync')) {
             $shippingMethod->save();
         }
 
@@ -116,6 +115,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $purchase = new Purchase($session, [
             "id" => $order['order_id'],
             "date" => strtotime($order['date_modified']),
+            "invoiceNumber"=>$order['invoice_no'],
             "status" => $this->model_localisation_order_status->getOrderStatus($order['order_status_id'])['name'],
             "email" => $order['email'],
             "phonenumber" => $order['telephone'],
@@ -144,12 +144,24 @@ class ModelModuleComerciaconnectOrder extends Model
             "orderLines" => $orderLines
         ]);
 
-        if ($order['date_modified'] > $this->config->get('comerciaConnect_last_sync')) {
-            $purchase->save();
-        }
-
         return $purchase;
+
     }
+
+    public function sendOrderToApi($apiOrder, $session=false)
+    {
+        if (is_object($apiOrder)) {
+            $apiOrder->save();
+        } elseif (is_array($apiOrder) && $session) {
+            Purchase::saveBatch($session, $apiOrder);
+        }
+        return $apiOrder;
+    }
+
+    function touchBatch($session,$products){
+        Purchase::touchBatch($session,$products);
+    }
+
 
     function saveOrder($order)
     {
@@ -163,11 +175,11 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderHistory = [];
 
         //basic info
-        if(is_numeric($order->id)) {
+        if (is_numeric($order->id)) {
             $dbOrderInfo["order_id"] = $order->id;
         }
 
-        $dbOrderInfo["invoice_no"] = 0;
+        $dbOrderInfo["invoice_no"] = $order->invoiceNumber;
         //todo: lets see in the future how we can get this multi store for now take the default.
         $dbOrderInfo["store_id"] = 0;
         $dbOrderInfo["store_name"] = $this->config->get('config_name');
@@ -181,7 +193,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
         $dbOrderInfo["affiliate_id"] = 0;
         $dbOrderInfo["commission"] = 0;
-        if(Util::version()->isMinimal("2.0")) {
+        if (Util::version()->isMinimal("2.0")) {
             $dbOrderInfo["marketing_id"] = 0;
         }
         //$dbOrderInfo["tracking"] = "";
@@ -207,7 +219,7 @@ class ModelModuleComerciaconnectOrder extends Model
         //todo: Implement fax later into Comercia Connect.
         $dbOrderInfo["fax"] = "";
 
-        if(Util::version()->isMinimal("2.2")) {
+        if (Util::version()->isMinimal("2.2")) {
             $dbOrderInfo["custom_field"] = "[]";
             $dbOrderInfo["payment_custom_field"] = "[]";
             $dbOrderInfo["shipping_custom_field"] = "[]";
@@ -277,7 +289,7 @@ class ModelModuleComerciaconnectOrder extends Model
             } else {
                 $this->addToTotals($totals, "sub_total", $this->language->get("sub_total"), $orderLine->price * $orderLine->quantity);
             }
-            if($orderLine->taxGroup) {
+            if ($orderLine->taxGroup) {
                 $this->addToTotals($totals, "tax", $orderLine->taxGroup, $orderLine->tax);
             }
         }
@@ -312,17 +324,18 @@ class ModelModuleComerciaconnectOrder extends Model
         }
         $dbTotals = $this->totalsToDbTotals($totals);
         $dbTotals = array_map(function ($total) use ($order_id) {
-            $total=$this->finishTotal($total,$order_id);
+            $total = $this->finishTotal($total, $order_id);
             return $total;
         }, $dbTotals);
         Util::db()->saveDataObjectArray("order_total", $dbTotals);
     }
 
-    private function finishTotal($total,$order_id){
+    private function finishTotal($total, $order_id)
+    {
         $total['order_id'] = $order_id;
-        $query=$this->db->query("select * from ".DB_PREFIX."order_total where order_id='".$order_id."' and title='".$total["title"]."' and code='".$total['code']."'");
-        if($query->num_rows){
-            $total["order_total_id"]=$query->row["order_total_id"];
+        $query = $this->db->query("select * from " . DB_PREFIX . "order_total where order_id='" . $order_id . "' and title='" . $total["title"] . "' and code='" . $total['code'] . "'");
+        if ($query->num_rows) {
+            $total["order_total_id"] = $query->row["order_total_id"];
         }
         return $total;
     }
@@ -367,8 +380,8 @@ class ModelModuleComerciaconnectOrder extends Model
             $totals[$code][$title]["value"] += $value;
         }
 
-        if(!Util::version()->isMinimal("2")){
-            $totals[$code][$title]["text"]=$this->currency->format($totals[$code][$title]["value"]);
+        if (!Util::version()->isMinimal("2")) {
+            $totals[$code][$title]["text"] = $this->currency->format($totals[$code][$title]["value"]);
         }
 
 
@@ -398,23 +411,24 @@ class ModelModuleComerciaconnectOrder extends Model
 
     private function getCountryId($name)
     {
-        return $this->getCountryField($name,"country_id");
+        return $this->getCountryField($name, "country_id");
     }
 
     private function getCountryName($name)
     {
-        return $this->getCountryField($name,"name");
+        return $this->getCountryField($name, "name");
     }
 
 
-    function getCountryField($name,$field){
-        $countryQuery = $this->db->query("SELECT ".$field." FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "' OR iso_code_2='".$name."' OR iso_code_3='".$name."'");
+    function getCountryField($name, $field)
+    {
+        $countryQuery = $this->db->query("SELECT " . $field . " FROM `" . DB_PREFIX . "country` WHERE `name` LIKE '" . $name . "' OR iso_code_2='" . $name . "' OR iso_code_3='" . $name . "'");
 
         if ($countryQuery->num_rows) {
             return $countryQuery->row[$field];
         }
 
-        if($field==$name){
+        if ($field == $name) {
             return $name;
         }
         return 0;
@@ -484,8 +498,9 @@ class ModelModuleComerciaconnectOrder extends Model
         );
     }
 
-    function getOrders(){
-        $lastSync = Util::config()->comerciaConnect_last_sync?:"0";
+    function getOrders()
+    {
+        $lastSync = Util::config()->comerciaConnect_last_sync ?: "0";
         $sql = "SELECT 
                  o.order_id, 
                  CONCAT(o.firstname, ' ', o.lastname) AS customer, 
@@ -499,10 +514,19 @@ class ModelModuleComerciaconnectOrder extends Model
              FROM
                 `" . DB_PREFIX . "order` o
             WHERE
-                UNIX_TIMESTAMP(o.date_modified)> ".$lastSync."
+                UNIX_TIMESTAMP(o.date_modified)> " . $lastSync . "
         ";
         $query = $this->db->query($sql);
         return $query->rows;
+    }
+
+
+    function getHashForOrder($order){
+        return md5($order['date_modified']);
+    }
+
+    function saveHashForOrder($order){
+        $this->db->query("update ".DB_PREFIX."order set ccHash='".$this->getHashForOrder($order)."' where order_id='".$order['order_id']."'");
     }
 
 }

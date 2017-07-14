@@ -119,4 +119,17 @@ class Product
         }
         return false;
     }
+
+
+    static function saveBatch($session,$data){
+        $requestData=["data"=>$data];
+        $session->post("product/saveBatch",$requestData);
+    }
+
+    static function touchBatch($session,$data){
+        $requestData=["data"=>$data];
+        $session->post("product/touchBatch",$requestData);
+    }
+
+
 }
