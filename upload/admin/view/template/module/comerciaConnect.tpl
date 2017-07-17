@@ -24,7 +24,6 @@
 
                 <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form"
                       class="form-horizontal">
-                    <input type="hidden" name="comerciaConnect_last_sync" value="<?php echo $comerciaConnect_last_sync?>">
                     <div class="form-group">
                         <label class="col-sm-2 control-label"><?php echo $entry_simple_connect; ?></label>
                         <div class="col-sm-10">

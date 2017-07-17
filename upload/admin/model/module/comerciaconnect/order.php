@@ -46,7 +46,8 @@ class ModelModuleComerciaconnectOrder extends Model
         $paymentMethod->name = $order['payment_method'];
         $paymentMethod->type = PRODUCT_TYPE_PAYMENT;
         $paymentMethod->code = $order['payment_code'];
-        if ($order['date_modified'] > $this->config->get('comerciaConnect_last_sync')) {
+
+        if ($order['ccHash']!=$this->getHashForOrder($order)) {
             $paymentMethod->save();
         }
 
@@ -69,7 +70,7 @@ class ModelModuleComerciaconnectOrder extends Model
                 $shippingMethod->price = $orderTotal['value'];
             }
         }
-        if (strtotime($order['date_modified']) > $this->config->get('comerciaConnect_last_sync')) {
+        if ($order['ccHash']!=$this->getHashForOrder($order)) {
             $shippingMethod->save();
         }
 
@@ -500,7 +501,6 @@ class ModelModuleComerciaconnectOrder extends Model
 
     function getOrders()
     {
-        $lastSync = Util::config()->comerciaConnect_last_sync ?: "0";
         $sql = "SELECT 
                  o.order_id, 
                  CONCAT(o.firstname, ' ', o.lastname) AS customer, 
@@ -510,11 +510,12 @@ class ModelModuleComerciaconnectOrder extends Model
                  o.currency_code, 
                  o.currency_value, 
                  o.date_added,
-                 o.date_modified 
+                 o.date_modified,
+                 o.ccHash
              FROM
                 `" . DB_PREFIX . "order` o
             WHERE
-                UNIX_TIMESTAMP(o.date_modified)> " . $lastSync . "
+                md5(o.date_modified)!=o.ccHash or o.ccHash is NULL
         ";
         $query = $this->db->query($sql);
         return $query->rows;

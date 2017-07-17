@@ -126,12 +126,6 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->categories = $categories;
         $apiProduct->descriptions = $descriptions;
 
-        //save product to comercia connect
-        if($product['date_modified'] > $this->config->get('comerciaConnect_last_sync')) {
-            $apiProduct->save();
-        }
-
-
         return $apiProduct;
     }
 

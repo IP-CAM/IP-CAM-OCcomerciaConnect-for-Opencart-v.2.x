@@ -32,7 +32,7 @@ class ControllerModuleComerciaConnect extends Controller
         Util::document()->setTitle(Util::language()->heading_title);
 
 
-        $formFields = array("comerciaConnect_status", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url", "comerciaConnect_last_sync");
+        $formFields = array("comerciaConnect_status", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url");
         //place the prepared data into the form
 
         $form
@@ -122,13 +122,6 @@ class ControllerModuleComerciaConnect extends Controller
         $ccProductModel = Util::load()->model("module/comerciaconnect/product");
         $orderModel = Util::load()->model("sale/order");
 
-        //last sync
-        $lastSync = Util::config()->comerciaConnect_last_sync;
-        if (!$lastSync) {
-            //make sure lastSync is an int. and not an empty string.
-            $lastSync = 0;
-        }
-
         //prepare variables
         $authUrl = Util::config()->comerciaConnect_auth_url;
         $apiKey = Util::config()->comerciaConnect_api_key;
@@ -209,12 +202,10 @@ class ControllerModuleComerciaConnect extends Controller
         }
 
 
-        Util::config()->set("comerciaConnect", 'comerciaConnect_last_sync', time());
 
         //import products
         $filter = Product::createFilter($session);
         $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
-        $filter->filter("lastUpdate", $lastSync, ">");
         $filter->filter("type", PRODUCT_TYPE_PRODUCT);
         $filter->filter("parent_product_id", "0", "=");
         $products = $filter->getData();
@@ -228,15 +219,13 @@ class ControllerModuleComerciaConnect extends Controller
         //import orders
         $filter = Purchase::createFilter($session);
         $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
-        $filter->filter("lastUpdate", $lastSync, ">");
         $orders = $filter->getData();
 
         foreach ($orders as $order) {
             $ccOrderModel->saveOrder($order);
         }
-        $ccOrderModel->touchBatch($session,$order);
+        $ccOrderModel->touchBatch($session,$orders);
 
-        Util::config()->set("comerciaConnect", 'comerciaConnect_last_sync', time());
         if (@$this->request->get['mode'] == "api") {
             header("content-type:application/json");
             echo "true";
