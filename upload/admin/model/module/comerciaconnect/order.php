@@ -299,7 +299,9 @@ class ModelModuleComerciaconnectOrder extends Model
 
         //complete and save the order
         $order_id = Util::db()->saveDataObject("order", $dbOrderInfo);
+        $dbOrderInfo["order_id"]=$order_id;
         $order->changeId($order_id);
+        $this->saveHashForOrder($dbOrderInfo);
 
         //order history
         $dbOrderHistory["order_id"] = $order_id;
@@ -511,11 +513,12 @@ class ModelModuleComerciaconnectOrder extends Model
                  o.currency_value, 
                  o.date_added,
                  o.date_modified,
+                 o.order_status_id,
                  o.ccHash
              FROM
                 `" . DB_PREFIX . "order` o
             WHERE
-                md5(o.date_modified)!=o.ccHash or o.ccHash is NULL
+                md5(concat(o.date_modified,'_',o.order_status_id))!=o.ccHash or o.ccHash is NULL
         ";
         $query = $this->db->query($sql);
         return $query->rows;
@@ -523,7 +526,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
 
     function getHashForOrder($order){
-        return md5($order['date_modified']);
+        return md5($order['date_modified']."_".$order['order_status_id']);
     }
 
     function saveHashForOrder($order){

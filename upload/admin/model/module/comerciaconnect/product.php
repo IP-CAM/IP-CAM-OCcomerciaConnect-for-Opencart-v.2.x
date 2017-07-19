@@ -21,7 +21,10 @@ class ModelModuleComerciaconnectProduct extends Model
         $dbProduct["sku"] = $product->sku;
         $dbProduct["tax_class_id"] = $product->taxGroup;
         $productId = Util::db()->saveDataObject("product",$dbProduct);
+        $dbProduct["product_id"]=$productId;
         $product->changeId($productId);
+
+        $this->saveHashForProduct($dbProduct);
 
         if(empty($product->descriptions)) {
             $desc = new stdClass();
