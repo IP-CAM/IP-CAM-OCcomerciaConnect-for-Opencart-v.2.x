@@ -168,6 +168,7 @@ class ModelModuleComerciaconnectOrder extends Model
     {
         Util::load()->language("module/comerciaConnect");
         Util::load()->model("localisation/currency");
+        $orderModel=Util::load()->model("sale/order");
 
         //initialize some basic variables
         $dbOrderInfo = [];
@@ -178,6 +179,7 @@ class ModelModuleComerciaconnectOrder extends Model
         //basic info
         if (is_numeric($order->id)) {
             $dbOrderInfo["order_id"] = $order->id;
+            $original=$orderModel->getOrder($order->id) ;
         }
 
         $dbOrderInfo["invoice_no"] = $order->invoiceNumber;
@@ -303,13 +305,17 @@ class ModelModuleComerciaconnectOrder extends Model
         $order->changeId($order_id);
         $this->saveHashForOrder($dbOrderInfo);
 
+
+
         //order history
-        $dbOrderHistory["order_id"] = $order_id;
-        $dbOrderHistory["order_status_id"] = $dbOrderInfo["order_status_id"];
-        $dbOrderHistory["notify"] = 0;
-        $dbOrderHistory["comment"] = "";
-        $dbOrderHistory["date_added"] = date('Y-m-d H:i:s');
-        Util::db()->saveDataObject("order_history", $dbOrderHistory);
+        if($original&&$original["order_status_id"]!=$dbOrderInfo["order_status_id"]) {
+            $dbOrderHistory["order_id"] = $order_id;
+            $dbOrderHistory["order_status_id"] = $dbOrderInfo["order_status_id"];
+            $dbOrderHistory["notify"] = 0;
+            $dbOrderHistory["comment"] = "";
+            $dbOrderHistory["date_added"] = date('Y-m-d H:i:s');
+            Util::db()->saveDataObject("order_history", $dbOrderHistory);
+        }
 
         //add products
         foreach ($order->orderLines as $orderLine) {
