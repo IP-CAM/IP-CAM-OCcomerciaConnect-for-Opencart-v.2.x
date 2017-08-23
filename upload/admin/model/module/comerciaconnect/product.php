@@ -117,6 +117,7 @@ class ModelModuleComerciaconnectProduct extends Model
         //product basic information
         $apiProduct->id = $product["product_id"];
         $apiProduct->name = $product["name"];
+        $apiProduct->code = $product["model"];
         $apiProduct->quantity = $product["quantity"];
         $apiProduct->price = $product["price"];
         $apiProduct->url = HTTP_CATALOG;
@@ -136,6 +137,7 @@ class ModelModuleComerciaconnectProduct extends Model
     {
         $id = $parent->id . '_';
         $name = $parent->name . ' - ';
+        $code = $parent->code;
         $price = $parent->price;
         $quantity = $parent->quantity;
         foreach ($child as $key => $value) {
@@ -149,6 +151,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $product = new Product($session, [
             'id' => rtrim($id, '_'),
             'name' => rtrim($name),
+            'code' => rtrim($code),
             'quantity' => $quantity,
             'price' => $price,
             'descriptions' => $parent->descriptions,
