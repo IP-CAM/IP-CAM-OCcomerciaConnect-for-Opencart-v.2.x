@@ -17,6 +17,7 @@ class Purchase
     var $email;
     var $lastUpdate = 0;
     var $invoiceNumber;
+    var $trackingCode;
 
     private $session;
 
