@@ -45,6 +45,16 @@ class Util
         return $image;
     }
 
+    public static function db()
+    {
+        static $db = false;
+        if(!$db) {
+            require_once __DIR__ . "/db.php";
+            $db = new db();
+        }
+        return $db;
+    }
+
     static function filesystem(){
         static $fs = false;
         if (!$fs) {
