@@ -6,7 +6,28 @@ class Website
     var $name;
     var $url;
 
+    //todo:implement logic to enforce datastructure of tax rates for when the api goes public.
+    var $taxRates;
+    var $languages;
+    var $currencies;
+    var $weightUnits;
+    var $lengthUnits;
+    var $orderStatus;
+
+    var $address;
+    var $storeName;
+    var $email;
+    var $phone;
+
+    var $homepageUrl;
+    var $userConditionsUrl;
+    var $checkoutConditionsUrl;
+    var $returnConditionsUrl;
+
+    var $defaultOrderStatus;
+
     private $session;
+
 
     function __construct($session, $data = [])
     {
@@ -23,6 +44,17 @@ class Website
         $url = $loginUrl . "&redirect=" . $redirect;
 
         return $url;
+    }
+
+    function save()
+    {
+        if ($this->session) {
+            $this->session->post("website/save", $this);
+
+            return true;
+        }
+
+        return false;
     }
 
     static function getWebsite($session)
