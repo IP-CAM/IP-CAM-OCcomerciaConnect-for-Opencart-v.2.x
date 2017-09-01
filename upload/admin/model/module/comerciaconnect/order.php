@@ -536,7 +536,7 @@ class ModelModuleComerciaconnectOrder extends Model
     }
 
     function saveHashForOrder($order){
-        $this->db->query("update ".DB_PREFIX."order set ccHash='".$this->getHashForOrder($order)."' where order_id='".$order['order_id']."'");
+        $this->db->query("update `".DB_PREFIX."order` set ccHash='".$this->getHashForOrder($order)."' where order_id='".$order['order_id']."'");
     }
 
 }

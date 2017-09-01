@@ -10,10 +10,6 @@ class StringHelper
     function ccToUnderline($subject){
         return strtolower(preg_replace('/\B([A-Z])/', '_$1', lcfirst($subject)));
     }
-
-    function ccToUnderline($subject){
-        return strtolower(preg_replace('/\B([A-Z])/', '_$1', lcfirst($subject)));
-    }
 }
 
 ?>

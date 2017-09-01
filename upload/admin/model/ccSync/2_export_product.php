@@ -32,6 +32,10 @@ class ModelCcSync2ExportProduct extends Model
                     }
                 }
             }
+            if (count($productsChanged)>100) {
+                $data->ccProductModel->sendProductToApi($productsChanged, $data->session);
+                $productsChanged=[];
+            }
         }
 
         if (count($productsChanged)) {
