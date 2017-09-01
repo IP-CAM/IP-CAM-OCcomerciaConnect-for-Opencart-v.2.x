@@ -26,7 +26,18 @@ class ModelCcSync6ExportSettings extends Model
         $website->weightUnits = $this->getWeightUnits();
         $website->lengthUnits = $this->getLengthUnits();
         $website->taxRates = $this->getTaxRates();
+        $website->orderStatus=$this->getOrderStatus();
         $website->save();
+    }
+
+    function getOrderStatus(){
+        $statusModel = Util::load()->model("localisation/order_status");
+        $statuses = $statusModel->getOrderStatuses();
+        $result = [];
+        foreach ($statuses as $status) {
+            $result[] = $status["name"];
+        }
+        return $result;
     }
 
     function getTaxRates()
