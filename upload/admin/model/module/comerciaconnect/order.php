@@ -214,6 +214,8 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["date_added"] = date('Y-m-d H:i:s');
         $dbOrderInfo["date_modified"] = date('Y-m-d H:i:s');
 
+        $dbOrderInfo["ccCreatedBy"] = $order->createdBy;
+
         //customer info
         $dbOrderInfo["firstname"] = $order->invoiceAddress->firstName;
         $dbOrderInfo["lastname"] = $order->invoiceAddress->lastName;

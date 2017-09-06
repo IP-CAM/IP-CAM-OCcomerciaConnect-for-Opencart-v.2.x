@@ -19,6 +19,8 @@ class Product
     var $brand = "";
     var $parent = null;
     var $lastUpdate = 0;
+    var $createdBy;
+    var $lastTouchedBy;
 
     private $session;
 

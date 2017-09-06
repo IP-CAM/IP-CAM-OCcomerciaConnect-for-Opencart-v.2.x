@@ -18,6 +18,8 @@ class Purchase
     var $lastUpdate = 0;
     var $invoiceNumber;
     var $trackingCode;
+    var $createdBy;
+    var $lastTouchedBy;
 
     private $session;
 
