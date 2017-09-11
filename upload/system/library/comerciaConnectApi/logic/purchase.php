@@ -21,6 +21,8 @@ class Purchase
     var $createdBy;
     var $lastTouchedBy;
 
+    var $originalData;
+
     private $session;
 
     function __construct($session, $data = [])
