@@ -120,6 +120,7 @@ class ModelModuleComerciaconnectOrder extends Model
             "status" => $this->model_localisation_order_status->getOrderStatus($order['order_status_id'])['name'],
             "email" => $order['email'],
             "phonenumber" => $order['telephone'],
+            "originalData"=>$order,
             "deliveryAddress" => [
                 "firstName" => $order["shipping_firstname"],
                 "lastName" => $order["shipping_lastname"],

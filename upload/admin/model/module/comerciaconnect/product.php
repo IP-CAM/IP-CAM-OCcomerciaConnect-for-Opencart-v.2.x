@@ -126,6 +126,8 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->isbn = $product["isbn"];
         $apiProduct->sku = $product["sku"];
         $apiProduct->taxGroup = $product['tax_class_id'];
+        $apiProduct->originalData=$product;
+
 
         //add arrays
         $apiProduct->categories = $categories;
