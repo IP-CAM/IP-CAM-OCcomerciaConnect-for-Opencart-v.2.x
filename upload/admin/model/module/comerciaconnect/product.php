@@ -93,6 +93,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $this->load->model('localisation/tax_rate');
         $this->load->model('localisation/geo_zone');
         $this->load->model('localisation/language');
+        $this->load->model("tool/image");
 
         $languages = $this->model_localisation_language->getLanguages();
         $productDescriptions = $this->model_catalog_product->getProductDescriptions($product["product_id"]);
@@ -121,12 +122,14 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->code = $product["model"];
         $apiProduct->quantity = $product["quantity"];
         $apiProduct->price = $product["price"];
-        $apiProduct->url = HTTP_CATALOG;
+        $apiProduct->url = HTTP_CATALOG."?route=product/product&product_id=".$product["product_id"];
         $apiProduct->ean = $product["ean"];
         $apiProduct->isbn = $product["isbn"];
         $apiProduct->sku = $product["sku"];
         $apiProduct->taxGroup = $product['tax_class_id'];
         $apiProduct->originalData=$product;
+        //todo: in future make this configurable
+        $apiProduct->image = $this->model_tool_image->resize($product['image'], 800,600);
 
 
         //add arrays
