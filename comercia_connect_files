@@ -6,7 +6,6 @@ admin/controller/extension/module/comerciaConnect.php
 admin/model/ccSync
 admin/view/template/module/comerciaConnect.tpl
 admin/view/template/module/comerciaConnect(max_1.6).tpl
-admin/view/template/module/comerciaConnect_simpleConnect.tpl
 admin/view/template/module/comerciaConnect_simpleConnect_finish.tpl
 admin/language/english/module/comerciaConnect.php
 admin/language/en-gb/module/comerciaConnect.php
