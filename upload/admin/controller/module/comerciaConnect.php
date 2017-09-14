@@ -69,7 +69,13 @@ class ControllerModuleComerciaConnect extends Controller
         if (Util::request()->server()->REQUEST_METHOD != 'POST') {
             $data = array();
             Util::load()->language("module/comerciaConnect", $data);
-            Util::response()->view("module/comerciaConnect_simpleConnect", $data);
+            if(defined("CC_URL")){
+                $url=CC_URL;
+            }else{
+                $url="https://app.comerciaconnect.nl";
+            }
+            $url.="/index.php?route=simpleConnect";
+            Util::response()->redirectToUrl($url);
         } else {
             $data = array();
             $data["auth_url"] = Util::request()->post()->authUrl;
