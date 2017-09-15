@@ -31,7 +31,6 @@ class ModelCcSync6ExportSettings extends Model
 
     function getTaxRates()
     {
-
         $countryModel = Util::load()->model("localisation/country");
         $defaultCountry=$countryModel->getCountry(Util::config()->get("config_country_id"));
 
@@ -44,9 +43,10 @@ class ModelCcSync6ExportSettings extends Model
 
         $result = [];
         foreach ($query->rows as $row) {
-            $result[$row["country"]][$row["class"]]=$row["rate"];
-            if($defaultCountry["iso_code_2"]==$row["iso_code_2"]) {
-             $result["default"][$row["class"]]=$row["rate"];
+            $result[$row["country"]][$row["class"]] = $row["rate"];
+
+            if ($defaultCountry["iso_code_2"] == $row["country"]) {
+                $result["default"][$row["class"]] = $row["rate"];
             }
         }
         return $result;
