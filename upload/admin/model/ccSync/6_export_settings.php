@@ -35,12 +35,13 @@ class ModelCcSync6ExportSettings extends Model
         $countryModel = Util::load()->model("localisation/country");
         $defaultCountry=$countryModel->getCountry(Util::config()->get("config_country_id"));
 
-        $query=$this->db->query("select r.tax_class_id as class, tr.rate as rate, c.iso_code_2 as country from " . DB_PREFIX . "tax_rule as r
-        left join " . DB_PREFIX . "tax_rate as tr on tr.tax_rate_id=r.tax_rate_id
-        left join " . DB_PREFIX . "geo_zone as gz on gz.geo_zone_id=tr.geo_zone_id
-        left join `" . DB_PREFIX . "zone` as z on gz.geo_zone_id=z.zone_id
-        left join " . DB_PREFIX . "country as c on z.country_id=c.country_id
+        $query = $this->db->query("SELECT r.tax_class_id AS class, tr.rate AS rate, c.iso_code_2 AS country FROM " . DB_PREFIX . "tax_rule AS r 
+        LEFT JOIN " . DB_PREFIX . "tax_rate AS tr ON tr.tax_rate_id=r.tax_rate_id 
+        LEFT JOIN " . DB_PREFIX . "geo_zone AS gz ON gz.geo_zone_id=tr.geo_zone_id 
+        LEFT JOIN `" . DB_PREFIX . "zone_to_geo_zone` AS ztgz ON gz.geo_zone_id=ztgz.geo_zone_id 
+        LEFT JOIN `" . DB_PREFIX . "country` c ON c.country_id = ztgz.country_id
         ");
+
         $result = [];
         foreach ($query->rows as $row) {
             $result[$row["country"]][$row["class"]]=$row["rate"];
