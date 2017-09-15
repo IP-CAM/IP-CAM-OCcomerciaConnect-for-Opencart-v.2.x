@@ -3,8 +3,6 @@ namespace comerciaConnect\logic;
 class Website
 {
     var $id;
-    var $name;
-    var $url;
 
     //todo:implement logic to enforce datastructure of tax rates for when the api goes public.
     var $taxRates;
