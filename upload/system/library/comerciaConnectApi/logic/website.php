@@ -46,6 +46,12 @@ class Website
 
     function save()
     {
+        if(isset($this->name)) {
+            unset($this->name);
+        }
+        if(isset($this->url)) {
+            unset($this->url);
+        }
         if ($this->session) {
             $this->session->post("website/save", $this);
 
