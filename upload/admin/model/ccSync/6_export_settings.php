@@ -26,6 +26,8 @@ class ModelCcSync6ExportSettings extends Model
         $website->weightUnits = $this->getWeightUnits();
         $website->lengthUnits = $this->getLengthUnits();
         $website->taxRates = $this->getTaxRates();
+        $website->orderStatus=$this->getOrderStatus();
+        $website->stockStatus=$this->getStockStatus();
         $website->save();
     }
 
@@ -96,5 +98,26 @@ class ModelCcSync6ExportSettings extends Model
         return $result;
     }
 
+    function getOrderStatus()
+    {
+        $stockStatusModel = Util::load()->model("localisation/order_status");
+        $statuses = $stockStatusModel->getOrderStatuses();
+        $result = [];
+        foreach ($statuses as $status) {
+            $result[] = $status["name"];
+        }
+        return $result;
+    }
+
+    function getStockStatus()
+    {
+        $stockStatusModel = Util::load()->model("localisation/stock_status");
+        $statuses = $stockStatusModel->getStockStatuses();
+        $result = [];
+        foreach ($statuses as $status) {
+            $result[] = $status["name"];
+        }
+        return $result;
+    }
 
 }

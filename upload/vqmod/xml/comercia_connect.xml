@@ -29,10 +29,4 @@
             </add>
         </operation>
     </file>
-    <file name="admin/model/sale/order.php">
-        <operation>
-            <search position="before"><![CDATA[=> $order_query->row['date_modified']]]></search>
-            <add><![CDATA['ccHash' => $order_query->row['ccHash'],]]></add>
-        </operation>
-    </file>
 </modification>

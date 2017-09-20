@@ -16,12 +16,10 @@ class Website
     var $storeName;
     var $email;
     var $phone;
-
     var $homepageUrl;
     var $userConditionsUrl;
     var $checkoutConditionsUrl;
     var $returnConditionsUrl;
-
     var $defaultOrderStatus;
 
     private $session;

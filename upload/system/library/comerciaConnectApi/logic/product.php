@@ -21,6 +21,8 @@ class Product
     var $lastUpdate = 0;
     var $createdBy;
     var $lastTouchedBy;
+    var $inStockStatus;
+    var $noStockStatus;
 
     var $originalData;
 
