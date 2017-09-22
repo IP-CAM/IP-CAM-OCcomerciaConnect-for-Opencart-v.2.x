@@ -15,15 +15,18 @@ class ControllerModuleComerciaConnect extends Controller
 
     public function index()
     {
+        if(isset($_POST["SimpleConnect"])) {
+            return $this->simpleConnect();
+        }
         //initial load
         $data = array();
         Util::load()->language('module/comerciaConnect', $data);
         $form = Util::form($data);
 
         $form->finish(function ($data) {
-            Util::config()->set("comerciaConnect", Util::request()->post()->all());
-            Util::session()->success = $data['msg_settings_saved'];
-            Util::response()->redirect(Util::route()->extension());
+                Util::config()->set("comerciaConnect", Util::request()->post()->all());
+                Util::session()->success = $data['msg_settings_saved'];
+                Util::response()->redirect(Util::route()->extension());
         });
 
         //title
