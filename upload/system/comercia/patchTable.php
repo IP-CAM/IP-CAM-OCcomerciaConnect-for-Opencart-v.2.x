@@ -35,6 +35,13 @@ class PatchTable
         return $query->num_rows;
     }
 
+    function columnExists($columnName = '')
+    {
+        $prefix = DB_PREFIX;
+        $query = $this->db->query("SHOW COLUMNS FROM `" . $prefix . $this->name . "` LIKE '" . $columnName . "';");
+        return $query->num_rows;
+    }
+
     function update()
     {
         $prefix = DB_PREFIX;
