@@ -117,6 +117,13 @@ class ModelModuleComerciaconnectProduct extends Model
             $categories[] = $categoriesMap[$category];
         }
 
+        $productImages = $this->model_catalog_product->getProductImages($product["product_id"]);
+        $extraImages = array();
+
+        foreach ($productImages as $image) {
+            $extraImages[] = ['image' => $this->model_tool_image->resize($image['image'], 800, 600)];
+        }
+
         //create new api product
         $apiProduct = new Product($session);
 
@@ -144,6 +151,7 @@ class ModelModuleComerciaconnectProduct extends Model
         //add arrays
         $apiProduct->categories = $categories;
         $apiProduct->descriptions = $descriptions;
+        $apiProduct->extraImages = $extraImages;
 
         return $apiProduct;
     }

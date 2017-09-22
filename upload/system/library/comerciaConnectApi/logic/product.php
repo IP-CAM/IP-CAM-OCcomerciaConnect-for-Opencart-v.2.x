@@ -16,6 +16,7 @@ class Product
     var $type = PRODUCT_TYPE_PRODUCT;
     var $code = "";
     var $image = "";
+    var $extraImages = [];
     var $brand = "";
     var $parent = null;
     var $lastUpdate = 0;
