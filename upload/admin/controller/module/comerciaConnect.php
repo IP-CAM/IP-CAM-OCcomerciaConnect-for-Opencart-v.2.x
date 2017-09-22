@@ -103,6 +103,11 @@ class ControllerModuleComerciaConnect extends Controller
         //  $is_in_debug=true;
 
         $this->patch();
+        
+        if(util::request()->get()->reset){
+            $this->db->query("update `".DB_PREFIX."product` set ccHash=''");
+            $this->db->query("update `".DB_PREFIX."order` set ccHash=''");
+        }
 
         //prepare variables
         $authUrl = Util::config()->comerciaConnect_auth_url;
