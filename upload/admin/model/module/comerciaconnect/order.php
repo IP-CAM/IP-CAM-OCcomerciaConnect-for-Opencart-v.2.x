@@ -121,6 +121,7 @@ class ModelModuleComerciaconnectOrder extends Model
             "email" => $order['email'],
             "phonenumber" => $order['telephone'],
             "originalData"=>$order,
+            "trackingCode" => $this->getTrackingForOrder($order['order_id']),
             "deliveryAddress" => [
                 "firstName" => $order["shipping_firstname"],
                 "lastName" => $order["shipping_lastname"],
@@ -200,7 +201,7 @@ class ModelModuleComerciaconnectOrder extends Model
         if (Util::version()->isMinimal("2.0")) {
             $dbOrderInfo["marketing_id"] = 0;
         }
-        //$dbOrderInfo["tracking"] = "";
+        $dbOrderInfo["tracking"] = $order->trackingCode;
         $dbOrderInfo["language_id"] = $this->config->get('config_language_id');
 
         $currency = $this->model_localisation_currency->getCurrencyByCode($this->config->get('config_currency'));
@@ -350,6 +351,14 @@ class ModelModuleComerciaconnectOrder extends Model
             $total["order_total_id"] = $query->row["order_total_id"];
         }
         return $total;
+    }
+
+    private function getTrackingForOrder($orderId) {
+        $query = $this->db->query("select tracking from " . DB_PREFIX . "order where order_id='" . $orderId . "'");
+        if ($query->num_rows) {
+            return $query->row['tracking'];
+        }
+        return '';
     }
 
     private function totalsToDbTotals($totals)
