@@ -1,4 +1,5 @@
 <?php
+
 use comercia\Util;
 use comerciaConnect\logic\OrderLine;
 use comerciaConnect\logic\Product;
@@ -47,7 +48,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $paymentMethod->type = PRODUCT_TYPE_PAYMENT;
         $paymentMethod->code = $order['payment_code'];
 
-        if ($order['ccHash']!=$this->getHashForOrder($order)) {
+        if ($order['ccHash'] != $this->getHashForOrder($order)) {
             $paymentMethod->save();
         }
 
@@ -70,7 +71,7 @@ class ModelModuleComerciaconnectOrder extends Model
                 $shippingMethod->price = $orderTotal['value'];
             }
         }
-        if ($order['ccHash']!=$this->getHashForOrder($order)) {
+        if ($order['ccHash'] != $this->getHashForOrder($order)) {
             $shippingMethod->save();
         }
 
@@ -116,11 +117,12 @@ class ModelModuleComerciaconnectOrder extends Model
         $purchase = new Purchase($session, [
             "id" => $order['order_id'],
             "date" => strtotime($order['date_modified']),
-            "invoiceNumber"=>$order['invoice_no'],
+            "invoiceNumber" => $order['invoice_no'],
             "status" => $this->model_localisation_order_status->getOrderStatus($order['order_status_id'])['name'],
             "email" => $order['email'],
             "phonenumber" => $order['telephone'],
-            "originalData"=>$order,
+            "originalData" => $order,
+            "trackingCode" => $this->getTrackingForOrder($order['order_id']),
             "deliveryAddress" => [
                 "firstName" => $order["shipping_firstname"],
                 "lastName" => $order["shipping_lastname"],
@@ -150,7 +152,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
     }
 
-    public function sendOrderToApi($apiOrder, $session=false)
+    public function sendOrderToApi($apiOrder, $session = false)
     {
         if (is_object($apiOrder)) {
             $apiOrder->save();
@@ -160,8 +162,9 @@ class ModelModuleComerciaconnectOrder extends Model
         return $apiOrder;
     }
 
-    function touchBatch($session,$products){
-        Purchase::touchBatch($session,$products);
+    function touchBatch($session, $products)
+    {
+        Purchase::touchBatch($session, $products);
     }
 
 
@@ -169,7 +172,7 @@ class ModelModuleComerciaconnectOrder extends Model
     {
         Util::load()->language("module/comerciaConnect");
         Util::load()->model("localisation/currency");
-        $orderModel=Util::load()->model("sale/order");
+        $orderModel = Util::load()->model("sale/order");
 
         //initialize some basic variables
         $dbOrderInfo = [];
@@ -180,7 +183,7 @@ class ModelModuleComerciaconnectOrder extends Model
         //basic info
         if (is_numeric($order->id)) {
             $dbOrderInfo["order_id"] = $order->id;
-            $original=$orderModel->getOrder($order->id) ;
+            $original = $orderModel->getOrder($order->id);
         }
 
         $dbOrderInfo["invoice_no"] = $order->invoiceNumber;
@@ -200,7 +203,7 @@ class ModelModuleComerciaconnectOrder extends Model
         if (Util::version()->isMinimal("2.0")) {
             $dbOrderInfo["marketing_id"] = 0;
         }
-        //$dbOrderInfo["tracking"] = "";
+        $dbOrderInfo["tracking"] = $order->trackingCode;
         $dbOrderInfo["language_id"] = $this->config->get('config_language_id');
 
         $currency = $this->model_localisation_currency->getCurrencyByCode($this->config->get('config_currency'));
@@ -304,14 +307,13 @@ class ModelModuleComerciaconnectOrder extends Model
 
         //complete and save the order
         $order_id = Util::db()->saveDataObject("order", $dbOrderInfo);
-        $dbOrderInfo["order_id"]=$order_id;
+        $dbOrderInfo["order_id"] = $order_id;
         $order->changeId($order_id);
         $this->saveHashForOrder($dbOrderInfo);
 
 
-
         //order history
-        if($original&&$original["order_status_id"]!=$dbOrderInfo["order_status_id"]) {
+        if ($original && $original["order_status_id"] != $dbOrderInfo["order_status_id"]) {
             $dbOrderHistory["order_id"] = $order_id;
             $dbOrderHistory["order_status_id"] = $dbOrderInfo["order_status_id"];
             $dbOrderHistory["notify"] = 0;
@@ -350,6 +352,15 @@ class ModelModuleComerciaconnectOrder extends Model
             $total["order_total_id"] = $query->row["order_total_id"];
         }
         return $total;
+    }
+
+    private function getTrackingForOrder($orderId)
+    {
+        $query = $this->db->query("select tracking from " . DB_PREFIX . "order where order_id='" . $orderId . "'");
+        if ($query->num_rows) {
+            return $query->row['tracking'];
+        }
+        return '';
     }
 
     private function totalsToDbTotals($totals)
@@ -523,25 +534,26 @@ class ModelModuleComerciaconnectOrder extends Model
                  o.date_added,
                  o.date_modified,
                  o.order_status_id,
+                 o.tracking,
                  o.ccHash
              FROM
                 `" . DB_PREFIX . "order` o
             WHERE
-                md5(concat(o.date_modified,'_',o.order_status_id))!=o.ccHash or o.ccHash is NULL
+                md5(concat(o.date_modified,'_',o.order_status_id,'_',o.tracking))!=o.ccHash or o.ccHash is NULL
         ";
         $query = $this->db->query($sql);
         return $query->rows;
     }
 
-
-    function getHashForOrder($order){
-        return md5($order['date_modified']."_".$order['order_status_id']);
+    function getHashForOrder($order)
+    {
+        return md5($order['date_modified'] . "_" . $order['order_status_id'] . "_" . $order['tracking']);
     }
 
-    function saveHashForOrder($order){
-        $this->db->query("update `".DB_PREFIX."order` set ccHash='".$this->getHashForOrder($order)."' where order_id='".$order['order_id']."'");
+    function saveHashForOrder($order)
+    {
+        $this->db->query("update `" . DB_PREFIX . "order` set ccHash='" . $this->getHashForOrder($order) . "' where order_id='" . $order['order_id'] . "'");
     }
-
 }
 
 ?>
