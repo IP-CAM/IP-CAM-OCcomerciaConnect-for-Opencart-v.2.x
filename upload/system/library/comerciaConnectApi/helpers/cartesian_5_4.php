@@ -1,4 +1,10 @@
 <?php
+    /**
+     * Converts multi dimensional array to single dimensional arrays
+     * @param multi array[string][string] $input
+     * @return array[string]
+     * @verion php <5.4
+     */
 	function cc_cartesian($input){
         $result = array();
 
@@ -42,7 +48,7 @@
                         $append[] = $copy;
                     }
 
-                    // Undo the side effecst of array_shift
+                    // Undo the side effects of array_shift
                     array_unshift($values, $product[$key]);
                 }
 

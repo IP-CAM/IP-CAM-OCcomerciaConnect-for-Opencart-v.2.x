@@ -1,34 +1,67 @@
 <?php
 namespace comerciaConnect\logic;
+/**
+ * This class represents a product
+ * @author Mark Smit <m.smit@comercia.nl>
+ */
 class Product
 {
+    /** @var string */
     var $id;
+    /** @var string */
     var $name = "";
+    /** @var integer */
     var $quantity = 0;
+    /** @var decimal */
     var $price = 0;
+    /** @var string */
     var $url = "";
+    /** @var Description[] | Descriptions will be saved when the product is saved */
     var $descriptions = [];
+    /** @var Category[] | should contain only saved categories*/
     var $categories = [];
+    /** @var string */
     var $ean = "";
+    /** @var string */
     var $isbn = "";
+    /** @var string */
     var $sku = "";
+    /** @var string */
     var $taxGroup = "";
+
+    /** @var  ProductImage[] */
+    var $extraImages=[];
+
+    /** @var enum(PRODUCT_TYPE_PRODUCT,PRODUCT_TYPE_SERVICE,PRODUCT_TYPE_VIRTUAL,PRODUCT_TYPE_PAYMENT,PRODUCT_TYPE_SHIPPING ) */
     var $type = PRODUCT_TYPE_PRODUCT;
+    /** @var string | should be unique */
     var $code = "";
+    /** @var string | the url of the image*/
     var $image = "";
-    var $extraImages = [];
+    /** @var string */
     var $brand = "";
+    /** @var Product | Used when the product is a subset of another product */
     var $parent = null;
+    /** @var int | timestamp */
     var $lastUpdate = 0;
+    /** @var enum(TOUCHED_BY_PORTAL,TOUCHED_BY_API,TOUCHED_BY_CONNECTOR) */
     var $createdBy;
+    /** @var enum(TOUCHED_BY_PORTAL,TOUCHED_BY_API,TOUCHED_BY_CONNECTOR) */
     var $lastTouchedBy;
+    /** @var string | which status  Comercia Connect should give when the product is in stock */
     var $inStockStatus;
+    /** @var string | which status  Comercia Connect should give when the product is not in stock */
     var $noStockStatus;
 
+    /** @var array | The original data from the client */
     var $originalData;
 
     private $session;
 
+    /**
+     * @param array $data The data to initialize the address with
+     * @param Session $session The session object to connect with Comercia Connect
+     */
     function __construct($session, $data = [])
     {
         $this->session = $session;
@@ -55,6 +88,11 @@ class Product
         }
     }
 
+
+    /**
+     * Saves the product
+     * @return bool Indicates if the product is successfully saved
+     */
     function save()
     {
         if ($this->session) {
@@ -66,6 +104,10 @@ class Product
         return false;
     }
 
+    /**
+     * Deletes the product
+     * @return bool Indicates if the product is successfully deleted
+     */
     function delete()
     {
         if ($this->session) {
@@ -77,6 +119,13 @@ class Product
         return false;
     }
 
+
+    /**
+     * Gets a product from Comercia Connect
+     * @param Session $session
+     * @param string $id
+     * @return Product
+     */
     static function getById($session, $id)
     {
         if ($session) {
@@ -88,6 +137,11 @@ class Product
         return false;
     }
 
+    /**
+     * Gets all products from Comercia Connect
+     * @param Session $session
+     * @return Product[]
+     */
     static function getAll($session)
     {
         if ($session) {
@@ -103,11 +157,22 @@ class Product
         return false;
     }
 
+    /**
+     * Creates a filter
+     * @param Session $session
+     * @return ProductFilter a filter object to create a filtered request
+     */
     static function createFilter($session)
     {
         return new ProductFilter($session);
     }
 
+
+    /**
+     * Changes the id of a product in Comercia Connect
+     * @param string $id
+     * @return bool Indicates if the product is successfully saved
+     */
     function changeId($new)
     {
         if($this->session) {
@@ -119,6 +184,11 @@ class Product
         return false;
     }
 
+
+    /**
+     * Touches a product in Comercia Connect.. Used to tell Comercia Connect that the client touched a product
+     * @return bool Indicates if the product is successfully touched
+     */
     function touch(){
         if($this->session) {
             $this->session->get('product/touch/'.$this->id);
@@ -128,11 +198,24 @@ class Product
     }
 
 
+    /**
+     * Saves products in bulk
+     * @param Session $session
+     * @param Product[] $data
+     * @return bool Indicates if the product is successfully saved
+     */
     static function saveBatch($session,$data){
         $requestData=["data"=>$data];
         $session->post("product/saveBatch",$requestData);
     }
 
+
+    /**
+     * Touches products in bulk
+     * @param Session $session
+     * @param Product[] $data
+     * @return bool Indicates if the product is successfully touched
+     */
     static function touchBatch($session,$data){
         $requestData=["data"=>$data];
         $session->post("product/touchBatch",$requestData);

@@ -1,7 +1,18 @@
 <?php
 namespace comerciaConnect\lib;
+/**
+ * This class is used by to send requests to the api
+ * @author Mark Smit <m.smit@comercia.nl>
+ */
 class HttpClient
 {
+
+    /**
+     * Send a post request
+     * @param string $url The url to send the request to
+     * @param array $data The data to send to the server
+     * @param string $token The session token
+     */
     function post($url, $data, $token = false)
     {
         global $is_in_debug;
@@ -28,6 +39,11 @@ class HttpClient
         return json_decode($server_output, true);
     }
 
+    /**
+     * Send a get request
+     * @param string $url The url to send the request to
+     * @param string $token The session token
+     */
     function get($url, $token = false)
     {
         global $is_in_debug;

@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Converts multi dimensional array to single dimensional arrays
+ * @param multi array[string][string] $input
+ * @return array[string]
+ * @verion php > 5.4
+ */
     function cc_cartesian($input)
     {
         if ($input) {

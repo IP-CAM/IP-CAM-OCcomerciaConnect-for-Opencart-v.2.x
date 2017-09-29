@@ -4,6 +4,14 @@ namespace comerciaConnect;
 use comerciaConnect\lib\HttpClient;
 use comerciaConnect\logic\Session;
 
+
+/**
+ * This is the start point for the api
+ * It is used to create sessions, load the required libraries and domain logic.
+ * @author Mark Smit <m.smit@comercia.nl>
+ * @param string $auth_url The url used for authentication
+ * @param string $api_url The url used for the rest of the api requests
+ */
 class Api
 {
     var $path = __DIR__;
@@ -16,7 +24,7 @@ class Api
         $this->api_url = $api_url;
     }
 
-    function loadLibs()
+    private function loadLibs()
     {
         $dir = $this->path . "/lib/";
         if ($handle = opendir($dir)) {
@@ -29,7 +37,7 @@ class Api
         }
     }
 
-    function loadDomain()
+    private function loadDomain()
     {
         $dir = $this->path . "/logic/";
         if ($handle = opendir($dir)) {
@@ -42,6 +50,11 @@ class Api
         }
     }
 
+    /**
+     * Starts an api session
+     * @param string $key This is the api key from Comercia Connect
+     * @return Session A new session
+     */
     function createSession($key)
     {
         $client = new HttpClient();
@@ -54,6 +67,11 @@ class Api
         return false;
     }
 
+    /**
+     * Restores
+     * @param string $token This is the token from the other session
+     * @returns Session An old session
+     */
     function restoreSession($token)
     {
         return new Session($this, $token);
