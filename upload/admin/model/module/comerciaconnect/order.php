@@ -1,5 +1,4 @@
 <?php
-
 use comercia\Util;
 use comerciaConnect\logic\OrderLine;
 use comerciaConnect\logic\Product;
@@ -117,7 +116,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $purchase = new Purchase($session, [
             "id" => $order['order_id'],
             "date" => strtotime($order['date_modified']),
-            "invoiceNumber" => $order['invoice_no'],
+            "invoiceNumber"=>$order['invoice_no'],
             "status" => $this->model_localisation_order_status->getOrderStatus($order['order_status_id'])['name'],
             "email" => $order['email'],
             "phonenumber" => $order['telephone'],
@@ -310,6 +309,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["order_id"] = $order_id;
         $order->changeId($order_id);
         $this->saveHashForOrder($dbOrderInfo);
+
 
 
         //order history
@@ -554,6 +554,7 @@ class ModelModuleComerciaconnectOrder extends Model
     {
         $this->db->query("update `" . DB_PREFIX . "order` set ccHash='" . $this->getHashForOrder($order) . "' where order_id='" . $order['order_id'] . "'");
     }
+
 }
 
 ?>
