@@ -171,7 +171,10 @@ class ModelModuleComerciaconnectOrder extends Model
     {
         Util::load()->language("module/comerciaConnect");
         Util::load()->model("localisation/currency");
+        Util::load()->model("localisation/tax");
         $orderModel = Util::load()->model("sale/order");
+
+        static $taxGroupNames=[];
 
         //initialize some basic variables
         $dbOrderInfo = [];
@@ -284,6 +287,8 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo['shipping_method'] = 'ConnectShipping';
         $dbOrderInfo['payment_method'] = 'ConnectPayment';
 
+
+
         //calculate totals
         foreach ($order->orderLines as $orderLine) {
             if (@$orderLine->product->type == 'shipping') {
@@ -298,7 +303,26 @@ class ModelModuleComerciaconnectOrder extends Model
                 $this->addToTotals($totals, "sub_total", $this->language->get("sub_total"), $orderLine->price * $orderLine->quantity);
             }
             if ($orderLine->taxGroup) {
-                $this->addToTotals($totals, "tax", $orderLine->taxGroup, $orderLine->tax);
+                if(is_numeric($orderLine->taxGroup)){
+                    if(!isset($taxGroupNames[$orderLine->taxGroup])){
+                        $query = $this->db->query("SELECT tr.name as name FROM " . DB_PREFIX . "tax_rule AS r 
+                            LEFT JOIN " . DB_PREFIX . "tax_rate AS tr ON tr.tax_rate_id=r.tax_rate_id 
+                            LEFT JOIN " . DB_PREFIX . "geo_zone AS gz ON gz.geo_zone_id=tr.geo_zone_id 
+                            LEFT JOIN `" . DB_PREFIX . "zone_to_geo_zone` AS ztgz ON gz.geo_zone_id=ztgz.geo_zone_id             
+                            WHERE  ztgz.country_id='".$this->getCountryId($order->deliveryAddress->country)."' and r.tax_class_id='".$orderLine->taxGroup."'
+        ");
+
+                        if($query->num_rows){
+                            $taxGroupNames[$orderLine->taxGroup]=$query->row["name"];
+                        }else{
+                            $taxGroupNames[$orderLine->taxGroup]=$orderLine->taxGroup;
+                        }
+                    }
+                    $taxGroup=$taxGroupNames[$orderLine->taxGroup];
+                }else{
+                    $taxGroup=$orderLine->taxGroup;
+                }
+                $this->addToTotals($totals, "tax", $taxGroup , $orderLine->tax);
             }
         }
 
