@@ -378,7 +378,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
     private function getTrackingForOrder($orderId)
     {
-        $query = $this->db->query("select tracking from " . DB_PREFIX . "order where order_id='" . $orderId . "'");
+        $query = $this->db->query("select tracking from `" . DB_PREFIX . "order` where order_id='" . $orderId . "'");
         if ($query->num_rows) {
             return $query->row['tracking'];
         }
