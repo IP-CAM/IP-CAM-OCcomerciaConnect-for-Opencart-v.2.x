@@ -6,16 +6,22 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
     include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian.php");
 }
 
+if (!defined("CC_VERSION")) {
+    define("CC_VERSION", "1.0.0");
+}
+
 use comercia\Util;
 use comerciaConnect\logic\Website;
 
 class ControllerModuleComerciaConnect extends Controller
 {
+
+    static $subHash = "";
     private $error = array();
 
     public function index()
     {
-        if(isset($_POST["SimpleConnect"])) {
+        if (isset($_POST["SimpleConnect"])) {
             return $this->simpleConnect();
         }
         //initial load
@@ -24,9 +30,9 @@ class ControllerModuleComerciaConnect extends Controller
         $form = Util::form($data);
 
         $form->finish(function ($data) {
-                Util::config()->set("comerciaConnect", Util::request()->post()->all());
-                Util::session()->success = $data['msg_settings_saved'];
-                Util::response()->redirect(Util::route()->extension());
+            Util::config()->set("comerciaConnect", Util::request()->post()->all());
+            Util::session()->success = $data['msg_settings_saved'];
+            Util::response()->redirect(Util::route()->extension());
         });
 
         //title
@@ -64,6 +70,27 @@ class ControllerModuleComerciaConnect extends Controller
         $data['sync_url'] = Util::url()->link('module/comerciaConnect/sync');
         $data['simple_connect_url'] = Util::url()->link('module/comerciaConnect/simpleConnect');
 
+
+        //This god mode is for development troubleshooting purposes
+        if (Util::request()->get()->mode == "CCG0D") {
+            $data["godMode"] = true;
+            $data["syncModels"] = [];
+
+            $dir = DIR_APPLICATION . 'model/ccSync';
+            if ($handle = opendir($dir)) {
+                while (false !== ($entry = readdir($handle))) {
+                    if ($entry != '.' && $entry != '..' && !is_dir($dir . '/' . $entry) && substr($entry, -3) === 'php') {
+                        $data["syncModels"][] = substr($entry, 0, -4);
+                    }
+                }
+
+                sort($data["syncModels"]);
+                closedir($handle);
+            }
+        } else {
+            $data["godMode"] = false;
+        }
+
         Util::response()->view("module/comerciaConnect", $data);
     }
 
@@ -72,12 +99,12 @@ class ControllerModuleComerciaConnect extends Controller
         if (Util::request()->server()->REQUEST_METHOD != 'POST') {
             $data = array();
             Util::load()->language("module/comerciaConnect", $data);
-            if(defined("CC_URL")){
-                $url=CC_URL;
-            }else{
-                $url="https://app.comerciaconnect.nl";
+            if (defined("CC_URL")) {
+                $url = CC_URL;
+            } else {
+                $url = "https://app.comerciaconnect.nl";
             }
-            $url.="/index.php?route=simpleConnect";
+            $url .= "/index.php?route=simpleConnect";
             Util::response()->redirectToUrl($url);
         } else {
             $data = array();
@@ -93,8 +120,9 @@ class ControllerModuleComerciaConnect extends Controller
         return true;
     }
 
-    function patch(){
-        Util::patch()->runPatchesFromFolder('comerciaConnect',__FILE__);
+    function patch()
+    {
+        Util::patch()->runPatchesFromFolder('comerciaConnect', __FILE__);
     }
 
     function sync()
@@ -103,10 +131,11 @@ class ControllerModuleComerciaConnect extends Controller
         //  $is_in_debug=true;
 
         $this->patch();
-        
-        if(util::request()->get()->reset){
-            $this->db->query("update `".DB_PREFIX."product` set ccHash=''");
-            $this->db->query("update `".DB_PREFIX."order` set ccHash=''");
+
+        if (util::request()->get()->reset) {
+            $this->db->query("update `" . DB_PREFIX . "product` set ccHash=''");
+            $this->db->query("update `" . DB_PREFIX . "order` set ccHash=''");
+            $this->db->query("update `" . DB_PREFIX . "category` set ccHash=''");
         }
 
         //prepare variables
@@ -114,31 +143,38 @@ class ControllerModuleComerciaConnect extends Controller
         $apiKey = Util::config()->comerciaConnect_api_key;
         $apiUrl = Util::config()->comerciaConnect_api_url;
 
+        self::$subHash = md5($apiKey . "_" . CC_VERSION);
+
         //create session
         $connect = Util::load()->library("comerciaConnect");
         $api = $connect->getApi($authUrl, $apiUrl);
 
         //load models
         $data = (object)[
-        	'productModel' => Util::load()->model("catalog/product"),
-        	'optionModel' => Util::load()->model("catalog/option"),
-        	'categoryModel' => Util::load()->model("catalog/category"),
-        	'ccOrderModel' => Util::load()->model("module/comerciaconnect/order"),
-        	'ccProductModel' => Util::load()->model("module/comerciaconnect/product"),
-        	'orderModel' => Util::load()->model("sale/order"),
-            'session' => $api->createSession($apiKey)
+            'productModel' => Util::load()->model("catalog/product"),
+            'optionModel' => Util::load()->model("catalog/option"),
+            'categoryModel' => Util::load()->model("catalog/category"),
+            'ccOrderModel' => Util::load()->model("module/comerciaconnect/order"),
+            'ccProductModel' => Util::load()->model("module/comerciaconnect/product"),
+            'orderModel' => Util::load()->model("sale/order"),
+            'session' => $api->createSession($apiKey),
         ];
 
-        $dir = DIR_APPLICATION . 'model/ccSync';
-        if($handle = opendir($dir)) {
-            while (false !== ($entry = readdir($handle))) {
-                if ($entry != '.' && $entry != '..' && !is_dir($dir . '/' . $entry) && substr($entry, -3) === 'php') {
-                    $syncModels[] = substr($entry, 0, -4);
-                }
-            }
 
-            sort($syncModels);
-            closedir($handle);
+        if (Util::request()->get()->syncModel) {
+            $syncModels = [Util::request()->get()->syncModel];
+        } else {
+            $dir = DIR_APPLICATION . 'model/ccSync';
+            if ($handle = opendir($dir)) {
+                while (false !== ($entry = readdir($handle))) {
+                    if ($entry != '.' && $entry != '..' && !is_dir($dir . '/' . $entry) && substr($entry, -3) === 'php') {
+                        $syncModels[] = substr($entry, 0, -4);
+                    }
+                }
+
+                sort($syncModels);
+                closedir($handle);
+            }
         }
 
         foreach ($syncModels as $model) {
@@ -149,7 +185,7 @@ class ControllerModuleComerciaConnect extends Controller
             header("content-type:application/json");
             echo "true";
         } else {
-            Util::response()->redirect("module/comerciaConnect");
+            Util::response()->redirectBack();
         }
     }
 }

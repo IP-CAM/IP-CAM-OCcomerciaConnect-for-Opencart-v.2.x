@@ -8,6 +8,10 @@ class Response
        $this->redirectToUrl($url);
     }
 
+    function redirectBack($url){
+        $this->redirectToUrl(str_replace("&amp;","&",Util::request()->server()->HTTP_REFERER));
+    }
+
     function redirectToUrl($url){
         Util::registry()->get("response")->redirect($url);
     }
@@ -35,6 +39,7 @@ class Response
     {
         Util::registry()->get("response")->setOutput($output);
     }
+
 }
 
 ?>

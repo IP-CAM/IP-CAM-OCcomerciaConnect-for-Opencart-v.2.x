@@ -86,6 +86,13 @@
             </div>
             <div class="panel-body">
                 <a href="<?php echo $sync_url; ?>" class="btn btn-info"><?php echo $button_sync; ?></a>
+                <?php if($godMode){ ?>
+                <a href="<?php echo $sync_url; ?>&reset=true" class="btn btn-danger"><?php echo $button_sync_all; ?></a>
+                <?php
+                   foreach($syncModels as $syncModel){
+                ?>
+                    <a href="<?php echo $sync_url; ?>&syncModel=<?php echo $syncModel ?>" class="btn btn-info"><?php echo $button_sync." - ".$syncModel; ?></a>
+                <?php }} ?>
                 <a href="<?php echo $control_panel_url; ?>" class="btn btn-info"><?php echo $button_control_panel; ?></a>
             </div>
         </div>

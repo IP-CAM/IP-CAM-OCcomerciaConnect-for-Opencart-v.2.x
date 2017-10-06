@@ -35,8 +35,10 @@ class Website
      */
     var $lengthUnits;
 
-    /** @var string */
+    /** @var string[] */
     var $orderStatus;
+    /** @var string[] */
+    var $stockStatus;
     /** @var string */
     var $address;
     /** @var string */
