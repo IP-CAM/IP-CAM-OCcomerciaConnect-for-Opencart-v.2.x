@@ -207,7 +207,7 @@ class ModelModuleComerciaconnectProduct extends Model
 
     function getHashForProduct($product)
     {
-        return md5($product['date_modified'] . "_" . $product["quantity"]);
+        return md5($product['date_modified'] . "_" . $product["quantity"]."_".ControllerModuleComerciaConnect::$subHash);
     }
 
     function saveHashForProduct($product)
@@ -217,7 +217,7 @@ class ModelModuleComerciaconnectProduct extends Model
 
     function getHashForCategory($category)
     {
-        return md5($category['date_modified']);
+        return md5($category['date_modified']."_".ControllerModuleComerciaConnect::$subHash);
     }
 
     function saveHashForCategory($category)

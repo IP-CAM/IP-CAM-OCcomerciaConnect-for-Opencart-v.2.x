@@ -171,7 +171,6 @@ class ModelModuleComerciaconnectOrder extends Model
     {
         Util::load()->language("module/comerciaConnect");
         Util::load()->model("localisation/currency");
-        Util::load()->model("localisation/tax");
         $orderModel = Util::load()->model("sale/order");
 
         static $taxGroupNames=[];
@@ -304,21 +303,22 @@ class ModelModuleComerciaconnectOrder extends Model
             }
             if ($orderLine->taxGroup) {
                 if(is_numeric($orderLine->taxGroup)){
-                    if(!isset($taxGroupNames[$orderLine->taxGroup])){
+                    $countryId=$this->getCountryId($order->deliveryAddress->country)?:$this->getCountryId($order->invoiceAddress->country);
+                    if(!isset($taxGroupNames[$orderLine->taxGroup][$countryId])){
                         $query = $this->db->query("SELECT tr.name as name FROM " . DB_PREFIX . "tax_rule AS r 
                             LEFT JOIN " . DB_PREFIX . "tax_rate AS tr ON tr.tax_rate_id=r.tax_rate_id 
                             LEFT JOIN " . DB_PREFIX . "geo_zone AS gz ON gz.geo_zone_id=tr.geo_zone_id 
                             LEFT JOIN `" . DB_PREFIX . "zone_to_geo_zone` AS ztgz ON gz.geo_zone_id=ztgz.geo_zone_id             
-                            WHERE  ztgz.country_id='".$this->getCountryId($order->deliveryAddress->country)."' and r.tax_class_id='".$orderLine->taxGroup."'
+                            WHERE  ztgz.country_id='".$countryId."' and r.tax_class_id='".$orderLine->taxGroup."'
         ");
 
                         if($query->num_rows){
-                            $taxGroupNames[$orderLine->taxGroup]=$query->row["name"];
+                            $taxGroupNames[$orderLine->taxGroup][$countryId]=$query->row["name"];
                         }else{
-                            $taxGroupNames[$orderLine->taxGroup]=$orderLine->taxGroup;
+                            $taxGroupNames[$orderLine->taxGroup][$countryId]=$orderLine->taxGroup;
                         }
                     }
-                    $taxGroup=$taxGroupNames[$orderLine->taxGroup];
+                    $taxGroup=$taxGroupNames[$orderLine->taxGroup][$countryId];
                 }else{
                     $taxGroup=$orderLine->taxGroup;
                 }
@@ -563,7 +563,8 @@ class ModelModuleComerciaconnectOrder extends Model
              FROM
                 `" . DB_PREFIX . "order` o
             WHERE
-                md5(concat(o.date_modified,'_',o.order_status_id,'_',o.tracking))!=o.ccHash or o.ccHash is NULL
+               o.date_added >= curdate() - INTERVAL DAYOFWEEK(curdate())+30 DAY
+               and md5(concat(o.date_modified,'_',o.order_status_id,'_',o.tracking,'_".ControllerModuleComerciaConnect::$subHash."'))!=o.ccHash or o.ccHash is NULL
         ";
         $query = $this->db->query($sql);
         return $query->rows;
@@ -571,7 +572,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
     function getHashForOrder($order)
     {
-        return md5($order['date_modified'] . "_" . $order['order_status_id'] . "_" . $order['tracking']);
+        return md5($order['date_modified'] . "_" . $order['order_status_id'] . "_" . $order['tracking']."_".ControllerModuleComerciaConnect::$subHash);
     }
 
     function saveHashForOrder($order)
