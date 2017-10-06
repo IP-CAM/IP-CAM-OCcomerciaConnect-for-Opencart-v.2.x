@@ -539,7 +539,7 @@ class ModelModuleComerciaconnectOrder extends Model
              FROM
                 `" . DB_PREFIX . "order` o
             WHERE
-                md5(concat(o.date_modified,'_',o.order_status_id,'_',o.tracking))!=o.ccHash or o.ccHash is NULL
+                md5(concat(o.date_modified,'_',o.order_status_id,'_',o.tracking,'_".ControllerModuleComerciaConnect::$subHash."'))!=o.ccHash or o.ccHash is NULL
         ";
         $query = $this->db->query($sql);
         return $query->rows;
@@ -547,7 +547,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
     function getHashForOrder($order)
     {
-        return md5($order['date_modified'] . "_" . $order['order_status_id'] . "_" . $order['tracking']);
+        return md5($order['date_modified'] . "_" . $order['order_status_id'] . "_" . $order['tracking']."_".ControllerModuleComerciaConnect::$subHash);
     }
 
     function saveHashForOrder($order)

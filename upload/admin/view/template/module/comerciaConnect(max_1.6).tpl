@@ -58,6 +58,13 @@
                     <td><label><?php echo $text_actions; ?></label></td>
                     <td>
                         <a href="<?php echo $sync_url; ?>" class="button"><?php echo $button_sync; ?></a>
+                        <?php if($godMode){ ?>
+                        <a href="<?php echo $sync_url; ?>&reset=true" class="button"><?php echo $button_sync_all; ?></a>
+                        <?php
+                   foreach($syncModels as $syncModel){
+                ?>
+                        <a href="<?php echo $sync_url; ?>&syncModel=<?php echo $syncModel ?>" class="button"><?php echo $button_sync." - ".$syncModel; ?></a>
+                        <?php }} ?>
                         <a href="<?php echo $control_panel_url; ?>" class="button"><?php echo $button_control_panel; ?></a>
                     </td>
                 </tr>
