@@ -286,8 +286,6 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo['shipping_method'] = 'ConnectShipping';
         $dbOrderInfo['payment_method'] = 'ConnectPayment';
 
-
-
         //calculate totals
         foreach ($order->orderLines as $orderLine) {
             if (@$orderLine->product->type == 'shipping') {
