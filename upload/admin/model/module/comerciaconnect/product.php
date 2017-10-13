@@ -58,10 +58,8 @@ class ModelModuleComerciaconnectProduct extends Model
         }
     }
 
-
     function createApiCategory($category, $session)
     {
-
         $apiCategory = new ProductCategory($session);
         $apiCategory->name = $category["name"];
         $apiCategory->id = $category["category_id"];
@@ -77,7 +75,6 @@ class ModelModuleComerciaconnectProduct extends Model
         }
         return $apiCategory;
     }
-
 
     function updateCategoryStructure($session, $categories)
     {
@@ -230,5 +227,4 @@ class ModelModuleComerciaconnectProduct extends Model
     }
 
 }
-
 ?>
