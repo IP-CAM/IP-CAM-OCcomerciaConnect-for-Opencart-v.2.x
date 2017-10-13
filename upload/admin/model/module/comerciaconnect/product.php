@@ -58,10 +58,8 @@ class ModelModuleComerciaconnectProduct extends Model
         }
     }
 
-
     function createApiCategory($category, $session)
     {
-
         $apiCategory = new ProductCategory($session);
         $apiCategory->name = $category["name"];
         $apiCategory->id = $category["category_id"];
@@ -77,7 +75,6 @@ class ModelModuleComerciaconnectProduct extends Model
         }
         return $apiCategory;
     }
-
 
     function updateCategoryStructure($session, $categories)
     {
@@ -97,7 +94,9 @@ class ModelModuleComerciaconnectProduct extends Model
         $this->load->model('localisation/tax_rate');
         $this->load->model('localisation/geo_zone');
         $this->load->model('localisation/language');
+        $this->load->model('catalog/manufacturer');
         $this->load->model("tool/image");
+
 
         $languages = $this->model_localisation_language->getLanguages();
         $productDescriptions = $this->model_catalog_product->getProductDescriptions($product["product_id"]);
@@ -134,6 +133,8 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->quantity = $product["quantity"];
         $apiProduct->price = $product["price"];
         $apiProduct->url = HTTP_CATALOG . "?route=product/product&product_id=" . $product["product_id"];
+        $brand= $this->model_catalog_manufacturer->getManufacturer($product["manufacturer_id"]);
+        $apiProduct->brand=@$brand["name"]?:"";
         $apiProduct->ean = $product["ean"];
         $apiProduct->isbn = $product["isbn"];
         $apiProduct->sku = $product["sku"];
@@ -226,5 +227,4 @@ class ModelModuleComerciaconnectProduct extends Model
     }
 
 }
-
 ?>
