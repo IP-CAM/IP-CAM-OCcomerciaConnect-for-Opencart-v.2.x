@@ -53,7 +53,7 @@ class Product
     /** @var string | which status  Comercia Connect should give when the product is not in stock */
     var $noStockStatus;
     /** @var boolean | Product status */
-    var $status;
+    var $active;
 
     /** @var array | The original data from the client */
     var $originalData;

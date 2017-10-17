@@ -125,15 +125,13 @@ class ModelModuleComerciaconnectProduct extends Model
         //create new api product
         $apiProduct = new Product($session);
 
-        $catalogURL = defined('HTTPS_CATALOG') ? HTTPS_CATALOG : HTTP_CATALOG;
-
         //product basic information
         $apiProduct->id = $product["product_id"];
         $apiProduct->name = $product["name"];
         $apiProduct->code = $product["model"];
         $apiProduct->quantity = $product["quantity"];
         $apiProduct->price = $product["price"];
-        $apiProduct->url = $catalogURL . "?route=product/product&product_id=" . $product["product_id"];
+        $apiProduct->url = Util::url()->getCatalogUrl() . "?route=product/product&product_id=" . $product["product_id"];
         $brand= $this->model_catalog_manufacturer->getManufacturer($product["manufacturer_id"]);
         $apiProduct->brand=@$brand["name"]?:"";
         $apiProduct->ean = $product["ean"];
@@ -141,7 +139,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->sku = $product["sku"];
         $apiProduct->taxGroup = $product['tax_class_id'];
         $apiProduct->originalData = $product;
-        $apiProduct->status = $product['status'];
+        $apiProduct->active = $product['status'];
         //todo: in future make this configurable
         $apiProduct->image = $this->model_tool_image->resize($product['image'], 800, 600);
 
@@ -188,7 +186,7 @@ class ModelModuleComerciaconnectProduct extends Model
             'type' => PRODUCT_TYPE_PRODUCT,
             'image' => $parent->image,
             'brand' => $parent->brand,
-            'status' => $parent->status,
+            'active' => $parent->active,
             'parent' => $parent
         ]);
 
