@@ -54,6 +54,14 @@ class Product
     var $noStockStatus;
     /** @var boolean | Product status */
     var $active;
+    /** @var float | Product height */
+    var $height;
+    /** @var float | Product width */
+    var $width;
+    /** @var float | Product length */
+    var $length;
+    /** @var float | Product weight */
+    var $weight;
 
     /** @var array | The original data from the client */
     var $originalData;
