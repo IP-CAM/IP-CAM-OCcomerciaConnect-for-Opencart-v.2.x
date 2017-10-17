@@ -97,7 +97,6 @@ class ModelModuleComerciaconnectProduct extends Model
         $this->load->model('catalog/manufacturer');
         $this->load->model("tool/image");
 
-
         $languages = $this->model_localisation_language->getLanguages();
         $productDescriptions = $this->model_catalog_product->getProductDescriptions($product["product_id"]);
         $descriptions = array();
@@ -132,7 +131,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->code = $product["model"];
         $apiProduct->quantity = $product["quantity"];
         $apiProduct->price = $product["price"];
-        $apiProduct->url = HTTP_CATALOG . "?route=product/product&product_id=" . $product["product_id"];
+        $apiProduct->url = Util::url()->getCatalogUrl() . "?route=product/product&product_id=" . $product["product_id"];
         $brand= $this->model_catalog_manufacturer->getManufacturer($product["manufacturer_id"]);
         $apiProduct->brand=@$brand["name"]?:"";
         $apiProduct->ean = $product["ean"];
@@ -140,6 +139,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->sku = $product["sku"];
         $apiProduct->taxGroup = $product['tax_class_id'];
         $apiProduct->originalData = $product;
+        $apiProduct->active = $product['status'];
         //todo: in future make this configurable
         $apiProduct->image = $this->model_tool_image->resize($product['image'], 800, 600);
 
@@ -161,7 +161,6 @@ class ModelModuleComerciaconnectProduct extends Model
     {
         $id = $parent->id . '_';
         $name = $parent->name . ' - ';
-        $code = $parent->code;
         $price = $parent->price;
         $quantity = $parent->quantity;
         foreach ($child as $key => $value) {
@@ -172,19 +171,22 @@ class ModelModuleComerciaconnectProduct extends Model
             $name .= $value['full_value']['name'] . ' ';
             $id .= $value['option_value_id'] . '_';
         }
+
+        $id = rtrim($id, '_');
+
         $product = new Product($session, [
-            'id' => rtrim($id, '_'),
+            'id' => $id,
             'name' => rtrim($name),
-            'code' => rtrim($code),
+            'code' => $parent->code . '_' . $id,
             'quantity' => $quantity,
             'price' => $price,
             'descriptions' => $parent->descriptions,
             'categories' => $parent->categories,
             'taxGroup' => $parent->taxGroup,
             'type' => PRODUCT_TYPE_PRODUCT,
-            'code' => $parent->code . '_' . $id,
             'image' => $parent->image,
             'brand' => $parent->brand,
+            'active' => $parent->active,
             'parent' => $parent
         ]);
 
@@ -208,22 +210,22 @@ class ModelModuleComerciaconnectProduct extends Model
 
     function getHashForProduct($product)
     {
-        return md5($product['date_modified'] . "_" . $product["quantity"]."_".ControllerModuleComerciaConnect::$subHash);
+        return md5($product['date_modified'] . '_' . $product["quantity"] . '_' . ControllerModuleComerciaConnect::$subHash);
     }
 
     function saveHashForProduct($product)
     {
-        $this->db->query("update " . DB_PREFIX . "product set ccHash='" . $this->getHashForProduct($product) . "' where product_id='" . $product['product_id'] . "'");
+        $this->db->query("UPDATE `" . DB_PREFIX . "product` SET `ccHash` = '" . $this->getHashForProduct($product) . "' WHERE `product_id` = '" . $product['product_id'] . "'");
     }
 
     function getHashForCategory($category)
     {
-        return md5($category['date_modified']."_".ControllerModuleComerciaConnect::$subHash);
+        return md5($category['date_modified'] . '_' . ControllerModuleComerciaConnect::$subHash);
     }
 
     function saveHashForCategory($category)
     {
-        $this->db->query("update " . DB_PREFIX . "category set ccHash='" . $this->getHashForCategory($category) . "' where category_id='" . $category['category_id'] . "'");
+        $this->db->query("UPDATE `" . DB_PREFIX . "category` SET `ccHash` = '" . $this->getHashForCategory($category) . "' WHERE `category_id` = '" . $category['category_id'] . "'");
     }
 
 }
