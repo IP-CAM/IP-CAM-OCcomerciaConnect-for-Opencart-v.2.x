@@ -67,6 +67,7 @@ class ControllerModuleComerciaConnect extends Controller
 
         //actions
         $data['action'] = Util::url()->link('module/comerciaConnect');
+        $data['cancel'] = Util::url()->link('modules');
         $data['sync_url'] = Util::url()->link('module/comerciaConnect/sync');
         $data['simple_connect_url'] = Util::url()->link('module/comerciaConnect/simpleConnect');
 
