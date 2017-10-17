@@ -18,8 +18,8 @@ $_['entry_api_key'] = 'Api Key';
 $_['entry_auth_url'] = 'Api Auth url';
 
 $_['button_sync'] = 'Synchronize';
-$_['button_sync_all']="Synchronize all";
-$_['button_control_panel']="Go to control panel";
+$_['button_sync_all'] = "Synchronize all";
+$_['button_control_panel'] = "Go to control panel";
 $_['total'] = 'Total';
 $_['sub_total'] = 'Sub total';
 
