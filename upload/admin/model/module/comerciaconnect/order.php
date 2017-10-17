@@ -47,7 +47,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $paymentMethod->type = PRODUCT_TYPE_PAYMENT;
         $paymentMethod->code = $order['payment_code'];
 
-        if ($order['ccHash'] != $this->getHashForOrder($order)) {
+        if (isset($order['ccHash']) && $order['ccHash'] != $this->getHashForOrder($order)) {
             $paymentMethod->save();
         }
 
@@ -70,7 +70,7 @@ class ModelModuleComerciaconnectOrder extends Model
                 $shippingMethod->price = $orderTotal['value'];
             }
         }
-        if ($order['ccHash'] != $this->getHashForOrder($order)) {
+        if (isset($order['ccHash']) && $order['ccHash'] != $this->getHashForOrder($order)) {
             $shippingMethod->save();
         }
 
@@ -570,7 +570,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
     function getHashForOrder($order)
     {
-        return md5($order['date_modified'] . "_" . $order['order_status_id'] . "_" . $order['tracking']."_".ControllerModuleComerciaConnect::$subHash);
+        return md5($order['date_modified'] . "_" . $order['order_status_id'] . "_" . (!empty($order['tracking'])?$order['tracking']:'') ."_".ControllerModuleComerciaConnect::$subHash);
     }
 
     function saveHashForOrder($order)
