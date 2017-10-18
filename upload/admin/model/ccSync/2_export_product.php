@@ -1,4 +1,6 @@
 <?php
+include_once(DIR_SYSTEM . "/comercia/util.php");
+use comercia\Util;
 
 class ModelCcSync2ExportProduct extends Model
 {
@@ -29,7 +31,11 @@ class ModelCcSync2ExportProduct extends Model
 
                 foreach ($productOptions as $productOption) {
                     $productOptionMap[$productOption['option_id']] = array_map(function ($productOptionValue) use ($data) {
-                        $productOptionValue['full_value'] = $data->optionModel->getOptionValue($productOptionValue['option_value_id']);
+                        if (Util::version()->isMaximal("1.5.2.1")) {
+                            $productOptionValue['full_value'] = $data->ccProductModel->getOptionValue($productOptionValue['option_value_id']);
+                        } else {
+                            $productOptionValue['full_value'] = $data->optionModel->getOptionValue($productOptionValue['option_value_id']);
+                        }
                         return $productOptionValue;
                     }, $productOption['product_option_value']);
                 }
