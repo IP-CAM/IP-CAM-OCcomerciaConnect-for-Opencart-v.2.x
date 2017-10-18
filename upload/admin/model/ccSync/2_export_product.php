@@ -8,6 +8,14 @@ class ModelCcSync2ExportProduct extends Model
         $productMap = array();
         $productsChanged = array();
         foreach ($products as $product) {
+            $product['specialPrice'] = 0;
+            $specialPrices = $data->productModel->getProductSpecials($product['product_id']);
+            foreach ($specialPrices as $specialPrice) {
+                if ($specialPrice['customer_group_id'] == \comercia\Util::config()->get('config_customer_group_id')) {
+                    $product['specialPrice'] = $specialPrice['price'];
+                }
+            }
+
             $apiProduct = $data->ccProductModel->createApiProduct($product, $data->session, $data->categoriesMap);
             $productMap[$product["product_id"]] = $apiProduct;
 
