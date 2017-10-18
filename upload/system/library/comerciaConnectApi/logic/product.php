@@ -14,6 +14,8 @@ class Product
     var $quantity = 0;
     /** @var decimal */
     var $price = 0;
+    /** @var decimal */
+    var $specialPrice = 0;
     /** @var string */
     var $url = "";
     /** @var Description[] | Descriptions will be saved when the product is saved */
