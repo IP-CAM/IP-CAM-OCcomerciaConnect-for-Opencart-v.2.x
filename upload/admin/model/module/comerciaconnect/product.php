@@ -133,7 +133,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->price = $product["price"];
         $apiProduct->url = Util::url()->getCatalogUrl() . "?route=product/product&product_id=" . $product["product_id"];
         $brand= $this->model_catalog_manufacturer->getManufacturer($product["manufacturer_id"]);
-        $apiProduct->brand=@$brand["name"]?:"";
+        $apiProduct->brand = (!empty($brand["name"])?$brand["name"]:"");
         $apiProduct->ean = $product["ean"];
         $apiProduct->isbn = $product["isbn"];
         $apiProduct->sku = $product["sku"];
