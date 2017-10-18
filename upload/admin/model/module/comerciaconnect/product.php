@@ -154,6 +154,11 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->descriptions = $descriptions;
         $apiProduct->extraImages = $extraImages;
 
+        $apiProduct->weight = $product['weight'];
+        $apiProduct->height = $product['height'];
+        $apiProduct->length = $product['length'];
+        $apiProduct->width = $product['width'];
+
         return $apiProduct;
     }
 
