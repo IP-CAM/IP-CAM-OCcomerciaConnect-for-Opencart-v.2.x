@@ -156,7 +156,7 @@ class ModelModuleComerciaconnectOrder extends Model
         if (is_object($apiOrder)) {
             $apiOrder->save();
         } elseif (is_array($apiOrder) && $session) {
-            Purchase::saveBatch($session, $apiOrder);
+            return Purchase::saveBatch($session, $apiOrder)["success"];
         }
         return $apiOrder;
     }

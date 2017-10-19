@@ -7,7 +7,7 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
 }
 
 if (!defined("CC_VERSION")) {
-    define("CC_VERSION", "1.1");
+    define("CC_VERSION", "1.2");
 }
 
 if (!defined("CC_RELEASE")) {

@@ -218,7 +218,7 @@ class Product
      */
     static function saveBatch($session,$data){
         $requestData=["data"=>$data];
-        $session->post("product/saveBatch",$requestData);
+        return $session->post("product/saveBatch",$requestData);
     }
 
 

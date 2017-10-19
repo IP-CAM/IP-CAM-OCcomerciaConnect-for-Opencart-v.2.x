@@ -71,7 +71,7 @@ class ModelModuleComerciaconnectProduct extends Model
         if (is_object($apiCategory)) {
             $apiCategory->save();
         } elseif (is_array($apiCategory) && $session) {
-            ProductCategory::saveBatch($session, $apiCategory);
+            return ProductCategory::saveBatch($session, $apiCategory)["success"];
         }
         return $apiCategory;
     }
@@ -135,8 +135,8 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->price = $product["price"];
         $apiProduct->specialPrice = $product["specialPrice"];
         $apiProduct->url = Util::url()->getCatalogUrl() . "?route=product/product&product_id=" . $product["product_id"];
-        $brand= $this->model_catalog_manufacturer->getManufacturer($product["manufacturer_id"]);
-        $apiProduct->brand = (!empty($brand["name"])?$brand["name"]:"");
+        $brand = $this->model_catalog_manufacturer->getManufacturer($product["manufacturer_id"]);
+        $apiProduct->brand = (!empty($brand["name"]) ? $brand["name"] : "");
         $apiProduct->ean = $product["ean"];
         $apiProduct->isbn = $product["isbn"];
         $apiProduct->sku = $product["sku"];
@@ -147,22 +147,21 @@ class ModelModuleComerciaconnectProduct extends Model
 
 
         //build original data
-        $originalData=$product;
-
+        $originalData = $product;
 
 
         static $attrGroupNames;
-        if(!$attrGroupNames) {
-            $attributes=Util::load()->model("catalog/attribute_group")->getAttributeGroups();
+        if (!$attrGroupNames) {
+            $attributes = Util::load()->model("catalog/attribute_group")->getAttributeGroups();
             foreach ($attributes as $attribute) {
                 $attrGroupNames[$attribute["attribute_group_id"]] = "attribute_" . $attribute["name"];
             }
         }
 
-        $attributes=$this->model_catalog_product->getProductAttributes($product["product_id"]);
-        foreach($attributes as $productAttribute){
-            $attributeInfo=$this->model_catalog_attribute->getAttribute($productAttribute['attribute_id']);
-            $originalData[ $attrGroupNames[$attributeInfo["attribute_group_id"]]]=$attributeInfo["name"];
+        $attributes = $this->model_catalog_product->getProductAttributes($product["product_id"]);
+        foreach ($attributes as $productAttribute) {
+            $attributeInfo = $this->model_catalog_attribute->getAttribute($productAttribute['attribute_id']);
+            $originalData[$attrGroupNames[$attributeInfo["attribute_group_id"]]] = $attributeInfo["name"];
         }
 
         $apiProduct->originalData = $originalData;
@@ -192,22 +191,21 @@ class ModelModuleComerciaconnectProduct extends Model
         $name = $parent->name . ' - ';
         $price = $parent->price;
         $quantity = $parent->quantity;
-        $originalData=$parent->originalData;
+        $originalData = $parent->originalData;
 
 
         foreach ($child as $key => $value) {
             if ($value['quantity'] < $quantity) {
                 $quantity = $value['quantity'];
             }
-            $option=Util::load()->model("catalog/option")->getOption($value["full_value"]["option_id"]);
+            $option = Util::load()->model("catalog/option")->getOption($value["full_value"]["option_id"]);
             $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
             $name .= $value['full_value']['name'] . ' ';
             $id .= $value['option_value_id'] . '_';
-            $originalData["option_".$option['name']]= $value['full_value']['name'];
+            $originalData["option_" . $option['name']] = $value['full_value']['name'];
         }
 
         $id = rtrim($id, '_');
-
 
 
         $product = new Product($session, [
@@ -224,7 +222,7 @@ class ModelModuleComerciaconnectProduct extends Model
             'brand' => $parent->brand,
             'active' => $parent->active,
             'parent' => $parent,
-            'originalData'=>$originalData
+            'originalData' => $originalData
         ]);
 
         return $product;
@@ -235,7 +233,7 @@ class ModelModuleComerciaconnectProduct extends Model
         if (is_object($apiProduct)) {
             $apiProduct->save();
         } elseif (is_array($apiProduct) && $session) {
-            Product::saveBatch($session, $apiProduct);
+            return Product::saveBatch($session, $apiProduct)["success"];
         }
         return $apiProduct;
     }
@@ -278,4 +276,5 @@ class ModelModuleComerciaconnectProduct extends Model
     // End OC Version <= 1.5.2.1 specific functions
 
 }
+
 ?>
