@@ -28,8 +28,12 @@ class ModelCcSync6ExportSettings extends Model
         $website->taxRates = $this->getTaxRates();
         $website->orderStatus=$this->getOrderStatus();
         $website->stockStatus=$this->getStockStatus();
+        $website->fieldsOrder=$this->getFieldsOrder();
+        $website->fieldsProduct=$this->getFieldsProduct();
         $website->save();
     }
+
+
 
     function getTaxRates()
     {
@@ -118,6 +122,38 @@ class ModelCcSync6ExportSettings extends Model
             $result[] = $status["name"];
         }
         return $result;
+    }
+
+    private function getFieldsOrder()
+    {
+        $result=[];
+        $query=$this->db->query("SHOW FIELDS FROM `".DB_PREFIX."order`");
+        foreach($query->rows as $row){
+            $result[]=$row["Field"];
+        }
+        return $result;
+    }
+
+    private function getFieldsProduct()
+    {
+        $result=[];
+        $query=$this->db->query("SHOW FIELDS FROM `".DB_PREFIX."product`");
+        foreach($query->rows as $row){
+            $result[]=$row["Field"];
+        }
+
+        $options=Util::load()->model("catalog/option")->getOptions();
+        foreach($options as $option){
+            $result[]="option_".$option['name'];
+        }
+
+        $attributes=Util::load()->model("catalog/attribute_group")->getAttributeGroups();
+        foreach($attributes as $attribute){
+            $result[]="attribute_".$attribute["name"];
+        }
+
+        return $result;
+
     }
 
 }

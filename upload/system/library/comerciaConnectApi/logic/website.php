@@ -37,24 +37,40 @@ class Website
 
     /** @var string[] */
     var $orderStatus;
+
+    /** @var string[] */
+    var $fieldsOrder;
+
+    /** @var string[] */
+    var $fieldsProduct;
+
     /** @var string[] */
     var $stockStatus;
+
     /** @var string */
     var $address;
+
     /** @var string */
     var $storeName;
+
     /** @var string */
     var $email;
+
     /** @var string */
     var $phone;
+
     /** @var string */
     var $homepageUrl;
+
     /** @var string */
     var $userConditionsUrl;
+
     /** @var string */
     var $checkoutConditionsUrl;
+
     /** @var string */
     var $returnConditionsUrl;
+
     /** @var string */
     var $defaultOrderStatus;
 
