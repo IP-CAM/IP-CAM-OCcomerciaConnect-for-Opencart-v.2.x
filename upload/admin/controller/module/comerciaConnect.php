@@ -7,11 +7,11 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
 }
 
 if (!defined("CC_VERSION")) {
-    define("CC_VERSION", "1.0");
+    define("CC_VERSION", "1.1");
 }
 
 if (!defined("CC_RELEASE")) {
-    define("CC_RELEASE",CC_VERSION.".2");
+    define("CC_RELEASE",CC_VERSION.".0");
 }
 
 if(!defined("CC_VERSION_URL")){

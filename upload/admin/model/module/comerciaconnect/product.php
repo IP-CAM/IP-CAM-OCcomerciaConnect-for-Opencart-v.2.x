@@ -95,6 +95,8 @@ class ModelModuleComerciaconnectProduct extends Model
         $this->load->model('localisation/geo_zone');
         $this->load->model('localisation/language');
         $this->load->model('catalog/manufacturer');
+        $this->load->model('catalog/attribute');
+        $this->load->model('catalog/attribute_group');
         $this->load->model("tool/image");
 
         $languages = $this->model_localisation_language->getLanguages();
@@ -139,10 +141,31 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->isbn = $product["isbn"];
         $apiProduct->sku = $product["sku"];
         $apiProduct->taxGroup = $product['tax_class_id'];
-        $apiProduct->originalData = $product;
         $apiProduct->active = $product['status'];
         //todo: in future make this configurable
         $apiProduct->image = $this->model_tool_image->resize($product['image'], 800, 600);
+
+
+        //build original data
+        $originalData=$product;
+
+
+
+        static $attrGroupNames;
+        if(!$attrGroupNames) {
+            $attributes=Util::load()->model("catalog/attribute_group")->getAttributeGroups();
+            foreach ($attributes as $attribute) {
+                $attrGroupNames[$attribute["attribute_group_id"]] = "attribute_" . $attribute["name"];
+            }
+        }
+
+        $attributes=$this->model_catalog_product->getProductAttributes($product["product_id"]);
+        foreach($attributes as $productAttribute){
+            $attributeInfo=$this->model_catalog_attribute->getAttribute($productAttribute['attribute_id']);
+            $originalData[ $attrGroupNames[$attributeInfo["attribute_group_id"]]]=$attributeInfo["name"];
+        }
+
+        $apiProduct->originalData = $originalData;
 
         $apiProduct->inStockStatus = "inStock";
         $stockStatus = $this->model_localisation_stock_status->getStockStatus($product["stock_status_id"]);
@@ -169,16 +192,23 @@ class ModelModuleComerciaconnectProduct extends Model
         $name = $parent->name . ' - ';
         $price = $parent->price;
         $quantity = $parent->quantity;
+        $originalData=$parent->originalData;
+
+
         foreach ($child as $key => $value) {
             if ($value['quantity'] < $quantity) {
                 $quantity = $value['quantity'];
             }
+            $option=Util::load()->model("catalog/option")->getOption($value["full_value"]["option_id"]);
             $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
             $name .= $value['full_value']['name'] . ' ';
             $id .= $value['option_value_id'] . '_';
+            $originalData["option_".$option['name']]= $value['full_value']['name'];
         }
 
         $id = rtrim($id, '_');
+
+
 
         $product = new Product($session, [
             'id' => $id,
@@ -193,7 +223,8 @@ class ModelModuleComerciaconnectProduct extends Model
             'image' => $parent->image,
             'brand' => $parent->brand,
             'active' => $parent->active,
-            'parent' => $parent
+            'parent' => $parent,
+            'originalData'=>$originalData
         ]);
 
         return $product;
