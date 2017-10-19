@@ -10,6 +10,14 @@ if (!defined("CC_VERSION")) {
     define("CC_VERSION", "1.0.2");
 }
 
+if (!defined("CC_RELEASE")) {
+    define("CC_RELEASE",CC_VERSION."-1");
+}
+
+if(!defined("CC_VERSION_URL")){
+    define("CC_VERSION_URL","https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
+}
+
 use comercia\Util;
 use comerciaConnect\logic\Website;
 
@@ -70,6 +78,7 @@ class ControllerModuleComerciaConnect extends Controller
         $data['cancel'] = Util::url()->link('modules');
         $data['sync_url'] = Util::url()->link('module/comerciaConnect/sync');
         $data['simple_connect_url'] = Util::url()->link('module/comerciaConnect/simpleConnect');
+        $data['update_url']=$this->getUpdateUrl();
 
 
         //This god mode is for development troubleshooting purposes
@@ -187,6 +196,101 @@ class ControllerModuleComerciaConnect extends Controller
             echo "true";
         } else {
             Util::response()->redirectBack();
+        }
+    }
+
+    private function getUpdateUrl()
+    {
+        $client=new \comerciaConnect\lib\HttpClient();
+        $info=$client->get(CC_VERSION_URL);
+        if($info["tag_name"] && $info["tag_name"]!=CC_RELEASE){
+            return Util::url()->link('module/comerciaConnect/update');
+        }
+        return false;
+    }
+
+    function update(){
+        //load cc module for libraries
+        $connect = Util::load()->library("comerciaConnect");
+        $connect->getApi("","");
+
+        //get info
+        $client=new \comerciaConnect\lib\HttpClient();
+        $info=$client->get(CC_VERSION_URL);
+
+        //save tmp file
+        $temp_file = sys_get_temp_dir()."/ccUpdate.zip";
+        $handle=fopen($temp_file,"w+");
+        $content=$client->get($info["zipball_url"],false,false);
+        fwrite($handle,$content);
+        fclose($handle);
+
+
+        //extract to temp dir
+        $temp_dir= sys_get_temp_dir()."/ccUpdate";
+        if(class_exists("ZipArchive")){
+            $zip = new ZipArchive;
+            $zip->open(  $temp_file );
+            $zip->extractTo($temp_dir);
+            $zip->close();
+        }else{
+            shell_exec("unzip ".$temp_file." -d ".$temp_dir);
+        }
+
+        //find upload path
+
+        $handle = opendir($temp_dir);
+        $upload_dir=$temp_dir."/upload";
+        while($file= readdir($handle)) {
+            if ($file != "." && $file != ".." && is_dir($temp_dir."/".$file."/upload")) {
+                $upload_dir=$temp_dir."/".$file."/upload";
+                break;
+            }
+        }
+
+        //copy files
+        $handle = opendir($upload_dir);
+        while($file= readdir($handle)) {
+            if ($file != "." && $file != "..") {
+                $from=$upload_dir."/".$file;
+                if($file=="admin"){
+                    $to=DIR_APPLICATION;
+                }elseif($file=="system"){
+                    $to=DIR_SYSTEM;
+                }else{
+                    $to=DIR_CATALOG."../".$file."/";
+                }
+                $this->cpy($from,$to);
+            }
+
+        }
+
+        //cleanup
+        unlink($temp_file);
+        rmdir($temp_dir);
+
+        //go back
+        Util::response()->redirectBack();
+    }
+
+    function cpy($source, $dest){
+        if(is_dir($source)) {
+            $dir_handle=opendir($source);
+            while($file=readdir($dir_handle)){
+                if($file!="." && $file!=".."){
+                    if(is_dir($source."/".$file)){
+                        if(!is_dir($dest."/".$file)){
+                            mkdir($dest."/".$file);
+                        }
+                        $this->cpy($source."/".$file, $dest."/".$file);
+                    } else {
+                        copy($source."/".$file, $dest."/".$file);
+                    }
+                }
+            }
+            closedir($dir_handle);
+        } else {
+            copy($source, $dest);
         }
     }
 }

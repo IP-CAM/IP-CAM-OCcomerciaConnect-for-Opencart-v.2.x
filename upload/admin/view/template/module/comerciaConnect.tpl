@@ -79,11 +79,12 @@
                 </form>
             </div>
         </div>
-<?php if($login_success){ ?>
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title"><i class="fa fa-pencil"></i> <?php echo $text_actions; ?></h3>
             </div>
+            <?php if($login_success){ ?>
+
             <div class="panel-body">
                 <a href="<?php echo $sync_url; ?>" class="btn btn-info"><?php echo $button_sync; ?></a>
                 <?php if($godMode){ ?>
@@ -91,24 +92,31 @@
                 <?php
                    foreach($syncModels as $syncModel){
                 ?>
-                    <a href="<?php echo $sync_url; ?>&syncModel=<?php echo $syncModel ?>" class="btn btn-info"><?php echo $button_sync." - ".$syncModel; ?></a>
+                <a href="<?php echo $sync_url; ?>&syncModel=<?php echo $syncModel ?>"
+                   class="btn btn-info"><?php echo $button_sync." - ".$syncModel; ?></a>
                 <?php }} ?>
-                <a href="<?php echo $control_panel_url; ?>" class="btn btn-info"><?php echo $button_control_panel; ?></a>
+                <a href="<?php echo $control_panel_url; ?>"
+                   class="btn btn-info"><?php echo $button_control_panel; ?></a>
+
+                <?php } ?>
+
+                <?php if($update_url){ ?>
+                <a href="<?php echo $update_url; ?>" class="button"><?php echo $button_update; ?></a>
+                <?php } ?>
             </div>
         </div>
-        <?php } ?>
     </div>
 </div>
 <script>
-    $("#simple_connect").click(function(){
-        var w=800;
-        var h=500;
-        var left =(screen.width - w) / 2;
+    $("#simple_connect").click(function () {
+        var w = 800;
+        var h = 500;
+        var left = (screen.width - w) / 2;
         var top = (screen.width - h) / 2;
 
-          window.open("<?php echo str_replace("&amp;","&",$simple_connect_url);?>", "_blank", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=no, copyhistory=no, width="+w+", height="+h+", top="+top+", left="+left);
+        window.open("<?php echo str_replace(" &amp; "," & ",$simple_connect_url);?>", "_blank", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=no, copyhistory=no, width=" + w + ", height=" + h + ", top=" + top + ", left=" + left);
     });
-    function simple_connect_finish(auth_url,api_url,api_key){
+    function simple_connect_finish(auth_url, api_url, api_key) {
         $("#auth_url").val(auth_url)
         $("#api_url").val(api_url);
         $("#api_key").val(api_key);
