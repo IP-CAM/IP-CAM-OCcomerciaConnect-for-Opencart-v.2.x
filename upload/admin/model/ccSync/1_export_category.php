@@ -9,6 +9,7 @@ class ModelCcSync1ExportCategory extends Model
     {
         $categories = $data->categoryModel->getCategories(array());
         $categoriesMap = array();
+        $toSaveHash=array();
         $categoriesChanged = array();
 
         foreach ($categories as $category) {
@@ -20,13 +21,17 @@ class ModelCcSync1ExportCategory extends Model
             $apiCategory = $data->ccProductModel->createApiCategory($category, $data->session);
             if ($category["ccHash"]!=$data->ccProductModel->getHashForCategory($category)) {
                 $categoriesChanged[]=$apiCategory;
-                $data->ccProductModel->saveHashForCategory($category);
+                $toSaveHash[]=$category;
             }
             $categoriesMap[$category["category_id"]] = $apiCategory;
         }
 
         if (count($categoriesChanged)) {
-            $data->ccProductModel->sendCategoryToApi($categoriesChanged,$data->session);
+           if( $data->ccProductModel->sendCategoryToApi($categoriesChanged,$data->session)){
+               foreach($toSaveHash as $toSaveHashCategory){
+                   $data->ccProductModel->saveHashForCategory($toSaveHashCategory);
+               }
+           }
             $data->ccProductModel->updateCategoryStructure($data->session, $categories);
         }
 

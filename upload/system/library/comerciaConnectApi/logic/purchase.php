@@ -177,7 +177,7 @@ class Purchase
      */
     static function saveBatch($session,$data){
         $requestData=["data"=>$data];
-        $session->post("purchase/saveBatch",$requestData);
+        return $session->post("purchase/saveBatch",$requestData);
     }
 
     /**

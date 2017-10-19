@@ -98,7 +98,7 @@ class ProductCategory
     static function saveBatch($session, $data)
     {
         $requestData = ["data" => $data];
-        $session->post("productCategory/saveBatch", $requestData);
+        return $session->post("productCategory/saveBatch", $requestData);
     }
 
 

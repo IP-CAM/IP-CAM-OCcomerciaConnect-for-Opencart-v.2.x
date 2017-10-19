@@ -9,6 +9,7 @@ class ModelCcSync2ExportProduct extends Model
         $products = $data->productModel->getProducts();
         $productMap = array();
         $productsChanged = array();
+        $toSaveHash=[];
         foreach ($products as $product) {
             $product['specialPrice'] = 0;
             $specialPrices = $data->productModel->getProductSpecials($product['product_id']);
@@ -24,8 +25,7 @@ class ModelCcSync2ExportProduct extends Model
             //save product to comercia connect
             if ($product["ccHash"] != $data->ccProductModel->getHashForProduct($product)) {
                 $productsChanged[] = $apiProduct;
-                $data->ccProductModel->saveHashForProduct($product);
-
+                $toSaveHash[]=$product;
                 $productOptionMap = array();
                 $productOptions = $data->productModel->getProductOptions($product['product_id']);
 
@@ -47,13 +47,22 @@ class ModelCcSync2ExportProduct extends Model
                 }
             }
             if (count($productsChanged)>100) {
-                $data->ccProductModel->sendProductToApi($productsChanged, $data->session);
+                if($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
+                    foreach ($toSaveHash as $toSaveHashProd) {
+                        $data->ccProductModel->saveHashForProduct($toSaveHashProd);
+                    }
+                }
+                $toSaveHash=[];
                 $productsChanged=[];
             }
         }
 
         if (count($productsChanged)) {
-            $data->ccProductModel->sendProductToApi($productsChanged, $data->session);
+            if($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
+                foreach ($toSaveHash as $toSaveHashProd) {
+                    $data->ccProductModel->saveHashForProduct($toSaveHashProd);
+                }
+            }
         }
 
         $data->productMap = $productMap;
