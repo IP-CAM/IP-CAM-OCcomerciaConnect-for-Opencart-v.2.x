@@ -52,11 +52,12 @@
                     <td><input type="text" name="comerciaConnect_api_key"
                                value="<?php echo $comerciaConnect_api_key; ?>" id="api_key"></td>
                 </tr>
-
-                <?php if($login_success){ ?>
                 <tr>
                     <td><label><?php echo $text_actions; ?></label></td>
                     <td>
+                <?php if($login_success){ ?>
+
+
                         <a href="<?php echo $sync_url; ?>" class="button"><?php echo $button_sync; ?></a>
                         <?php if($godMode){ ?>
                         <a href="<?php echo $sync_url; ?>&reset=true" class="button"><?php echo $button_sync_all; ?></a>
@@ -67,8 +68,14 @@
                         <?php }} ?>
                         <a href="<?php echo $control_panel_url; ?>" class="button"><?php echo $button_control_panel; ?></a>
                     </td>
-                </tr>
                 <?php } ?>
+
+
+                    <?php if($update_url){ ?>
+                    <a href="<?php echo $update_url; ?>" class="button"><?php echo $button_update; ?></a>
+                    <?php } ?>
+                    </td>
+                </tr>
             </table>
         </form>
 

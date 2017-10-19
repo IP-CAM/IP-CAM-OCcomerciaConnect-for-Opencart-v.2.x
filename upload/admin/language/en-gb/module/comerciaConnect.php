@@ -29,3 +29,5 @@ $_["text_simple_connect"]="Fill in a url and click the start button to start the
 $_["button_simple_connect_start"]="Start";
 $_["button_simple_connect"]="Start simple connect";
 $_["title_simple_connect"]="Simple connect";
+
+$_["button_update"]="Update";

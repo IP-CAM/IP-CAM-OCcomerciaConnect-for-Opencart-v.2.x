@@ -44,7 +44,7 @@ class HttpClient
      * @param string $url The url to send the request to
      * @param string $token The session token
      */
-    function get($url, $token = false)
+    function get($url, $token = false,$parse=true)
     {
         global $is_in_debug;
         $ch = curl_init();
@@ -52,16 +52,23 @@ class HttpClient
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch,CURLOPT_USERAGENT,"Mozilla/5.0");
 
         if ($token) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, ["token:" . $token]);
         };
+        curl_setopt($ch,CURLOPT_FOLLOWLOCATION,true);
 
         $server_output = curl_exec($ch);
         curl_close($ch);
         Debug::write($server_output);
-
-        return json_decode($server_output, true);
+        if($parse) {
+            return json_decode($server_output, true);
+        }else{
+            return $server_output;
+        }
     }
+
+
 }
 ?>
