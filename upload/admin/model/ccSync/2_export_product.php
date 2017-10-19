@@ -48,8 +48,8 @@ class ModelCcSync2ExportProduct extends Model
             }
             if (count($productsChanged)>100) {
                 if($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
-                    foreach ($toSaveHash as $toSaveHashProd) {
-                        $data->ccProductModel->saveHashForProduct($toSaveHashProd);
+                    foreach ($toSaveHash as $toSaveHashProduct) {
+                        $data->ccProductModel->saveHashForProduct($toSaveHashProduct);
                     }
                 }
                 $toSaveHash=[];
@@ -59,8 +59,8 @@ class ModelCcSync2ExportProduct extends Model
 
         if (count($productsChanged)) {
             if($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
-                foreach ($toSaveHash as $toSaveHashProd) {
-                    $data->ccProductModel->saveHashForProduct($toSaveHashProd);
+                foreach ($toSaveHash as $toSaveHashProduct) {
+                    $data->ccProductModel->saveHashForProduct($toSaveHashProduct);
                 }
             }
         }
