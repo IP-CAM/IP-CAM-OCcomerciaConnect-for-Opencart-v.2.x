@@ -6,10 +6,16 @@ class ModelCcSync2ExportProduct extends Model
 {
     public function sync($data)
     {
-        $products = $data->productModel->getProducts();
+        if (Util::version()->isMaximal("1.5.2.1")) {
+            $products = $data->productModel->getProducts(array(1));
+        } else {
+            $products = $data->productModel->getProducts();
+        }
+
         $productMap = array();
         $productsChanged = array();
         $toSaveHash=[];
+
         foreach ($products as $product) {
             $product['specialPrice'] = 0;
             $specialPrices = $data->productModel->getProductSpecials($product['product_id']);
