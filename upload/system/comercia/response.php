@@ -8,7 +8,7 @@ class Response
        $this->redirectToUrl($url);
     }
 
-    function redirectBack($url){
+    function redirectBack(){
         $this->redirectToUrl(str_replace("&amp;","&",Util::request()->server()->HTTP_REFERER));
     }
 
