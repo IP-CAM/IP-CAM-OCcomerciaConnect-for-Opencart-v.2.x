@@ -562,7 +562,7 @@ class ModelModuleComerciaconnectOrder extends Model
                 `" . DB_PREFIX . "order` o
             WHERE
                o.date_added >= curdate() - INTERVAL DAYOFWEEK(curdate())+30 DAY
-               and md5(concat(o.date_modified,'_',o.order_status_id,'_',o.tracking,'_".ControllerModuleComerciaConnect::$subHash."'))!=o.ccHash or o.ccHash is NULL
+               and md5(concat(COALESCE(o.date_modified,''),'_',COALESCE(o.order_status_id,''),'_',COALESCE(o.tracking,''),'_".ControllerModuleComerciaConnect::$subHash."')) != COALESCE(o.ccHash, '')
         ";
         $query = $this->db->query($sql);
         return $query->rows;
@@ -579,5 +579,4 @@ class ModelModuleComerciaconnectOrder extends Model
     }
 
 }
-
 ?>
