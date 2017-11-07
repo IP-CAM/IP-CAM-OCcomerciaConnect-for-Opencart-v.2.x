@@ -39,7 +39,6 @@ class Response
     {
         Util::registry()->get("response")->setOutput($output);
     }
-
 }
 
 ?>

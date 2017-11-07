@@ -38,13 +38,17 @@ class ModuleSettings
     function postFinish($func){
         $this->postFinish=$func;
     }
-    function run()
+    function run($forceRedirect = false)
     {
         //load the language data
         $data = array();
         $name = $this->name;
         $form = Util::form($data);
         Util::load()->language("module/" . $name, $data);
+
+        if ($forceRedirect) {
+            $data['redirect'] = $forceRedirect;
+        }
 
         $form->finish(function ($data) {
             Util::config()->set($this->name, Util::request()->post()->all());
@@ -53,7 +57,7 @@ class ModuleSettings
             if (is_callable($postFinish)) {
                 $postFinish($data);
             }
-            Util::response()->redirect(Util::route()->extension());
+            Util::response()->redirect(@$data['redirect'] ?: Util::route()->extension());
         });
 
         //handle the form when finished

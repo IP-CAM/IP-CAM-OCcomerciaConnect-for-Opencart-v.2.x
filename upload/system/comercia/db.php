@@ -53,6 +53,14 @@ class db
         return (bool)$query->num_rows;
     }
 
+    public function columnExists($table, $column)
+    {
+        $query = "SHOW COLUMNS FROM `" . DB_PREFIX . $table . "` LIKE '" . $column . "'";
+        $query = $this->_db()->query($query);
+
+        return (bool)$query->num_rows;
+    }
+
     private function whereForKeys($table, $data, $keys = null)
     {
         if (!$keys) {
@@ -64,6 +72,22 @@ class db
                 $result .= " && ";
             }
             $result .= " `" . $key . "` = '" . @$data[$key] . "' ";
+        }
+
+        return $result;
+    }
+
+    private function whereForData($data)
+    {
+        $result = '';
+
+        $i = 0;
+        foreach ($data as $key => $value) {
+            if ($i++) {
+                $result .= ' && ';
+            }
+
+            $result .= "`" . $key . "` = '" . $this->_db()->escape($value) . "'";
         }
 
         return $result;
@@ -84,6 +108,39 @@ class db
         }
 
         return $registry->get("db");
+    }
+
+    public function select($table, $fields = [], $where = [])
+    {
+        if (empty($fields)) {
+            $fields[] = '*';
+        }
+
+        $query = "SELECT ";
+
+        $i = 0;
+        foreach ($fields as $field)
+        {
+            if($i++) {
+                $query .= ',';
+            }
+            $query .= '`' . $field . '`';
+        }
+
+        $query .= " FROM `" . DB_PREFIX . $table . "`";
+
+        if (!empty($where)) {
+            $query .= " WHERE ";
+            $query .= $this->whereForData($where);
+        }
+
+        $result = $this->_db()->query($query);
+
+        if ($result->num_rows > 1) {
+            return $result->rows;
+        }
+
+        return $result->row;
     }
 }
 ?>
