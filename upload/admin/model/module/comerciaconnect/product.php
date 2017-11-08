@@ -20,9 +20,10 @@ class ModelModuleComerciaconnectProduct extends Model
         $dbProduct["isbn"] = $product->isbn;
         $dbProduct["sku"] = $product->sku;
         $dbProduct["tax_class_id"] = $product->taxGroup;
+        $dbProduct["ccCreatedBy"] = $product->createdBy;
+
         $productId = Util::db()->saveDataObject("product", $dbProduct);
         $dbProduct["product_id"] = $productId;
-        $dbProduct["ccCreatedBy"] = $product->createdBy;
         $product->changeId($productId);
 
         $this->saveHashForProduct($dbProduct);

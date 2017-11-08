@@ -17,6 +17,9 @@ class db
 
         $i = 0;
         foreach ($data as $key => $value) {
+            if (!$this->columnExists($table, $key)) {
+                continue;
+            }
             if ($i++) {
                 $query .= ",";
             }
@@ -55,10 +58,14 @@ class db
 
     public function columnExists($table, $column)
     {
-        $query = "SHOW COLUMNS FROM `" . DB_PREFIX . $table . "` LIKE '" . $column . "'";
-        $query = $this->_db()->query($query);
+        static $columns = [];
 
-        return (bool)$query->num_rows;
+        if (!isset($columns[$table][$column])) {
+            $query = "SHOW COLUMNS FROM `" . DB_PREFIX . $table . "` LIKE '" . $column . "'";
+            $columns[$table][$column] = (bool)$this->_db()->query($query)->num_rows;
+        }
+
+        return $columns[$table][$column];
     }
 
     private function whereForKeys($table, $data, $keys = null)
