@@ -24,17 +24,27 @@ class ModelCcSync1ExportCategory extends Model
                 $toSaveHash[]=$category;
             }
             $categoriesMap[$category["category_id"]] = $apiCategory;
+
+            if (count($categoriesChanged) > 100) {
+                if( $data->ccProductModel->sendCategoryToApi($categoriesChanged, $data->session)){
+                    foreach($toSaveHash as $toSaveHashCategory){
+                        $data->ccProductModel->saveHashForCategory($toSaveHashCategory);
+                    }
+                }
+                $toSaveHash = [];
+                $categoriesChanged = [];
+            }
         }
 
         if (count($categoriesChanged)) {
-           if( $data->ccProductModel->sendCategoryToApi($categoriesChanged,$data->session)){
-               foreach($toSaveHash as $toSaveHashCategory){
-                   $data->ccProductModel->saveHashForCategory($toSaveHashCategory);
-               }
-           }
-            $data->ccProductModel->updateCategoryStructure($data->session, $categories);
+            if( $data->ccProductModel->sendCategoryToApi($categoriesChanged,$data->session)){
+                foreach($toSaveHash as $toSaveHashCategory){
+                    $data->ccProductModel->saveHashForCategory($toSaveHashCategory);
+                }
+            }
         }
 
+        $data->ccProductModel->updateCategoryStructure($data->session, $categories);
         $data->categoriesMap = $categoriesMap;
     }
 }
