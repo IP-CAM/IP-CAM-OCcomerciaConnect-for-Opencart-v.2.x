@@ -52,7 +52,7 @@ class ModelCcSync2ExportProduct extends Model
                     }
                 }
             }
-            if (count($productsChanged)>100) {
+            if (count($productsChanged) > 20) {
                 if($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
                     foreach ($toSaveHash as $toSaveHashProduct) {
                         $data->ccProductModel->saveHashForProduct($toSaveHashProduct);

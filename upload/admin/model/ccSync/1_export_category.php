@@ -25,7 +25,7 @@ class ModelCcSync1ExportCategory extends Model
             }
             $categoriesMap[$category["category_id"]] = $apiCategory;
 
-            if (count($categoriesChanged) > 100) {
+            if (count($categoriesChanged) > 20) {
                 if( $data->ccProductModel->sendCategoryToApi($categoriesChanged, $data->session)){
                     foreach($toSaveHash as $toSaveHashCategory){
                         $data->ccProductModel->saveHashForCategory($toSaveHashCategory);
