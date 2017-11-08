@@ -11,6 +11,7 @@ class ModelCcSync1ExportCategory extends Model
         $categoriesMap = array();
         $toSaveHash=array();
         $categoriesChanged = array();
+        $triggerStructure = false;
 
         foreach ($categories as $category) {
             if (Util::version()->isMaximal("1.5.2.1")) {
@@ -30,6 +31,7 @@ class ModelCcSync1ExportCategory extends Model
                     foreach($toSaveHash as $toSaveHashCategory){
                         $data->ccProductModel->saveHashForCategory($toSaveHashCategory);
                     }
+                    $triggerStructure = true;
                 }
                 $toSaveHash = [];
                 $categoriesChanged = [];
@@ -41,10 +43,14 @@ class ModelCcSync1ExportCategory extends Model
                 foreach($toSaveHash as $toSaveHashCategory){
                     $data->ccProductModel->saveHashForCategory($toSaveHashCategory);
                 }
+                $triggerStructure = true;
             }
         }
 
-        $data->ccProductModel->updateCategoryStructure($data->session, $categories);
+        if ($triggerStructure) {
+            $data->ccProductModel->updateCategoryStructure($data->session, $categories);
+        }
+
         $data->categoriesMap = $categoriesMap;
     }
 }
