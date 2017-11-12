@@ -11,11 +11,15 @@ if (!defined("CC_VERSION")) {
 }
 
 if (!defined("CC_RELEASE")) {
-    define("CC_RELEASE",CC_VERSION.".2");
+    define("CC_RELEASE",CC_VERSION.".3");
 }
 
 if(!defined("CC_VERSION_URL")){
     define("CC_VERSION_URL","https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
+}
+
+if(!defined("CC_BATCH_SIZE")){
+    define("CC_BATCH_SIZE",100);
 }
 
 use comercia\Util;

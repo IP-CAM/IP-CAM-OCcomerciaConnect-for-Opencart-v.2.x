@@ -46,8 +46,9 @@ class ModelModuleComerciaconnectOrder extends Model
         $paymentMethod->name = $order['payment_method'];
         $paymentMethod->type = PRODUCT_TYPE_PAYMENT;
         $paymentMethod->code = $order['payment_code'];
-
-        if (isset($order['ccHash']) && $order['ccHash'] != $this->getHashForOrder($order)) {
+        static $savedPayment=[];
+        if (isset($order['ccHash']) && $order['ccHash'] != $this->getHashForOrder($order) && !isset($savedPayment[$paymentMethod->id])) {
+            $savedPayment[$paymentMethod->id]=true;
             $paymentMethod->save();
         }
 
@@ -70,7 +71,10 @@ class ModelModuleComerciaconnectOrder extends Model
                 $shippingMethod->price = $orderTotal['value'];
             }
         }
-        if (isset($order['ccHash']) && $order['ccHash'] != $this->getHashForOrder($order)) {
+
+        static $savedShipping=[];
+        if (isset($order['ccHash']) && $order['ccHash'] != $this->getHashForOrder($order) && !isset($savedShipping[$shippingMethod->id])) {
+            $savedShipping[$shippingMethod->id]=true;
             $shippingMethod->save();
         }
 

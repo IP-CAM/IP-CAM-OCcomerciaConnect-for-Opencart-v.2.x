@@ -13,7 +13,7 @@ class ModelCcSync3ExportOrder extends Model
                 $ordersChanged[] = $data->ccOrderModel->createApiOrder($order, $data->session, $data->productMap);
                 $toSaveHash[] = $order;
             }
-            if (count($ordersChanged) > 20) {
+            if (count($ordersChanged) > CC_BATCH_SIZE) {
                 if ($data->ccOrderModel->sendOrderToApi($ordersChanged, $data->session)) {
                     foreach ($toSaveHash as $toSaveHashOrder) {
                         $data->ccOrderModel->saveHashForOrder($toSaveHashOrder);
