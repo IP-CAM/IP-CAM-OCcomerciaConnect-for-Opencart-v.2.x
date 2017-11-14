@@ -16,11 +16,14 @@ class ModelModuleComerciaconnectProduct extends Model
         $dbProduct["model"] = $product->code;
         $dbProduct["quantity"] = $product->quantity;
         $dbProduct["price"] = $product->price;
+        $dbProduct["jan"] = $product->jan;
+        $dbProduct["upc"] = $product->upc;
         $dbProduct["ean"] = $product->ean;
         $dbProduct["isbn"] = $product->isbn;
         $dbProduct["sku"] = $product->sku;
         $dbProduct["tax_class_id"] = $product->taxGroup;
         $dbProduct["ccCreatedBy"] = $product->createdBy;
+        $dbProduct["subtract"] = $product->usesStock;
 
         $productId = Util::db()->saveDataObject("product", $dbProduct);
         $dbProduct["product_id"] = $productId;
@@ -182,6 +185,10 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->height = $product['height'];
         $apiProduct->length = $product['length'];
         $apiProduct->width = $product['width'];
+
+        $apiProduct->usesStock = $product['subtract'];
+        $apiProduct->jan = @$product['jan'];
+        $apiProduct->upc = @$product['upc'];
 
         return $apiProduct;
     }

@@ -14,7 +14,7 @@ class ModelCcSync2ExportProduct extends Model
 
         $productMap = array();
         $productsChanged = array();
-        $toSaveHash=[];
+        $toSaveHash = [];
 
         foreach ($products as $product) {
             $product['specialPrice'] = 0;
