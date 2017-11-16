@@ -27,6 +27,10 @@ class Product
     /** @var string */
     var $isbn = "";
     /** @var string */
+    var $jan = "";
+    /** @var string */
+    var $upc = "";
+    /** @var string */
     var $sku = "";
     /** @var string */
     var $taxGroup = "";
@@ -64,6 +68,8 @@ class Product
     var $length;
     /** @var float | Product weight */
     var $weight;
+    /** @var boolean | Product uses stock */
+    var $usesStock;
 
     /** @var array | The original data from the client */
     var $originalData;
