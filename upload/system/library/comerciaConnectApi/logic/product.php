@@ -272,4 +272,17 @@ class Product
 
         return $result;
     }
+
+
+    /**
+     * Deactivates products in bulk
+     * @param Session $session
+     * @param int[] $data
+     * @return bool Indicates if the product is successfully deactivated
+     */
+    static function deactivateBatch($session, $data)
+    {
+        $requestData = ["deletedData" => $data];
+        return $session->post("product/deactivateBatch", $requestData);
+    }
 }

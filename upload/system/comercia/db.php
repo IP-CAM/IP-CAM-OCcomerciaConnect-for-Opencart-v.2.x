@@ -148,5 +148,16 @@ class db
 
         return $result->row;
     }
+
+    public function query($query)
+    {
+        $result = $this->_db()->query($query);
+
+        if ($result) {
+            return $result->rows;
+        }
+
+        return [];
+    }
 }
 ?>
