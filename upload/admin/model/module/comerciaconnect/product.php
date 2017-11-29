@@ -8,7 +8,6 @@ class ModelModuleComerciaconnectProduct extends Model
 {
     function saveProduct($product)
     {
-
         if (is_numeric($product->id)) {
             $dbProduct["product_id"] = $product->id;
         }
@@ -25,9 +24,28 @@ class ModelModuleComerciaconnectProduct extends Model
         $dbProduct["ccCreatedBy"] = $product->createdBy;
         $dbProduct["subtract"] = $product->usesStock;
 
+        $image=$this->handleImage($product->image,$product);
+        if($image) {
+            $dbProduct["image"] = $image;
+        }
+
         $productId = Util::db()->saveDataObject("product", $dbProduct);
         $dbProduct["product_id"] = $productId;
         $product->changeId($productId);
+
+        $dbProductImage = [];
+        foreach ($product->extraImages as $image) {
+            $image = $this->handleImage($image->image, $product);
+            if ($image) {
+                $dbProductImage[] = [
+                    'product_id' => $productId,
+                    'image' => $image
+                ];
+            }
+        }
+        if (count($dbProductImage)) {
+            Util::db()->saveDataObjectArray("product_image", $dbProductImage, ["product_id", "image"]);
+        }
 
         $this->saveHashForProduct($dbProduct);
 
@@ -54,11 +72,13 @@ class ModelModuleComerciaconnectProduct extends Model
     //fix for 1.5
     private function getLanguageByCode($code)
     {
+        $code = is_array($code) ? $code['language'] : $code;
         if (Util::version()->isMaximal("1.6")) {
             $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language` WHERE code = '" . $this->db->escape($code) . "'");
             return $query->row;
         } else {
-            return $this->model_localisation_language->getLanguageByCode($code);
+            $model = Util::load()->model('localisation/language');
+            return $model->getLanguageByCode($code);
         }
     }
 
@@ -253,7 +273,7 @@ class ModelModuleComerciaconnectProduct extends Model
 
     function getHashForProduct($product)
     {
-        return md5($product['date_modified'] . '_' . $product["quantity"] . '_' . ControllerModuleComerciaConnect::$subHash);
+        return md5(@$product['date_modified'] . '_' . $product["quantity"] . '_' . ControllerModuleComerciaConnect::$subHash);
     }
 
     function saveHashForProduct($product)
@@ -263,7 +283,7 @@ class ModelModuleComerciaconnectProduct extends Model
 
     function getHashForCategory($category)
     {
-        return md5($category['date_modified'] . '_' . ControllerModuleComerciaConnect::$subHash);
+        return md5(@$category['date_modified'] . '_' . ControllerModuleComerciaConnect::$subHash);
     }
 
     function saveHashForCategory($category)
@@ -280,6 +300,43 @@ class ModelModuleComerciaconnectProduct extends Model
     public function getCategory($category_id)
     {
         return $this->db->query("SELECT DISTINCT *, (SELECT keyword FROM " . DB_PREFIX . "url_alias WHERE query = 'category_id=" . (int)$category_id . "') AS keyword FROM " . DB_PREFIX . "category c JOIN " . DB_PREFIX . "category_description cd ON (cd.category_id = c.category_id) WHERE c.category_id = '" . (int)$category_id . "'")->row;
+    }
+
+    private function handleImage($image,$product)
+    {
+
+        if (strpos($image, $_SERVER['HTTP_HOST']) !== false) {
+            $image = str_replace([@HTTP_CATALOG."image", @HTTPS_CATALOG."image", "/cache"], "", $image);
+            $image = substr($image,1);
+
+            $exp = explode("-", $image);
+            array_pop($exp);
+
+            $image = implode("-",$exp);
+            $image = Util::filesystem()->search(DIR_IMAGE,$image);
+            $image = $image[0];
+
+            return str_replace(DIR_IMAGE, '', $image);
+        }
+
+        $pathConnect = DIR_IMAGE . 'connect/';
+        $dirConnect = 'connect/';
+        if(!is_dir($pathConnect)){
+            mkdir($pathConnect);
+        }
+
+        $exp = explode("/", $image);
+        $filename = $exp[count($exp)-1];
+
+        $content = $product->getImageData($image);
+        if($content) {
+            $handle = fopen($pathConnect . $filename, "w+");
+            fwrite($handle,$content);
+            fclose($handle);
+            return $dirConnect . $filename;
+        }
+
+        return false;
     }
     // End OC Version <= 1.5.2.1 specific functions
 

@@ -28,11 +28,15 @@ class Session
      * Do a get request for this session
      * @param string $endpoint
      */
-    function get($endpoint)
+    function get($endpoint, $parse = true)
     {
         $client = new HttpClient();
 
-        return $client->get($this->api->api_url . "/" . $endpoint, $this->token);
+        if (substr($endpoint, 0, 1) === '?') {
+            return $client->get($this->api->base_url . $endpoint, $this->token, $parse);
+        }
+
+        return $client->get($this->api->api_url . "/" . $endpoint, $this->token, $parse);
     }
 
     /**
@@ -40,11 +44,11 @@ class Session
      * @param string $endpoint
      * @param string $data
      */
-    function post($endpoint, $data)
+    function post($endpoint, $data, $parse = true)
     {
         $client = new HttpClient();
 
-        return $client->post($this->api->api_url . "/" . $endpoint, $data, $this->token);
+        return $client->post($this->api->api_url . "/" . $endpoint, $data, $this->token, $parse);
     }
 }
 ?>

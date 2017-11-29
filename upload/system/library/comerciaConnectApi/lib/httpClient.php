@@ -13,7 +13,7 @@ class HttpClient
      * @param array $data The data to send to the server
      * @param string $token The session token
      */
-    function post($url, $data, $token = false)
+    function post($url, $data, $token = false, $parse = true)
     {
         global $is_in_debug;
         $ch = curl_init();
@@ -36,7 +36,11 @@ class HttpClient
         curl_close($ch);
         Debug::write($server_output);
 
-        return json_decode($server_output, true);
+        if($parse) {
+            return json_decode($server_output, true);
+        }else{
+            return $server_output;
+        }
     }
 
     /**

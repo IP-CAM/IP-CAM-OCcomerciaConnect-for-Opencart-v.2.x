@@ -47,7 +47,6 @@ class db
 
     public function recordExists($table, $data, $keys = null)
     {
-
         $query = "SELECT * FROM `" . DB_PREFIX . $table . "` WHERE ";
         $query .= $this->whereForKeys($table, $data, $keys);
         $query .= " LIMIT 0,1";
@@ -100,10 +99,10 @@ class db
         return $result;
     }
 
-    public function saveDataObjectArray($table, $data)
+    public function saveDataObjectArray($table, $data, $keys = false)
     {
         foreach ($data as $obj) {
-            $this->saveDataObject($table, $obj);
+            $this->saveDataObject($table, $obj, $keys);
         }
     }
 

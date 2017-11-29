@@ -51,7 +51,7 @@ class ControllerModuleComerciaConnect extends Controller
         Util::document()->setTitle(Util::language()->heading_title);
 
 
-        $formFields = array("comerciaConnect_status", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url");
+        $formFields = array("comerciaConnect_status", "comerciaConnect_base_url", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url");
         //place the prepared data into the form
 
         $form
@@ -65,7 +65,7 @@ class ControllerModuleComerciaConnect extends Controller
 
         //set up api session
         $connect = Util::load()->library("comerciaConnect");
-        $api = $connect->getApi($data['comerciaConnect_auth_url'], $data['comerciaConnect_api_url']);
+        $api = $connect->getApi($data['comerciaConnect_base_url'], $data['comerciaConnect_auth_url'], $data['comerciaConnect_api_url']);
         $apiSession = $api->createSession($data['comerciaConnect_api_key']);
         $website = Website::getWebsite($apiSession);
 
@@ -122,6 +122,7 @@ class ControllerModuleComerciaConnect extends Controller
             Util::response()->redirectToUrl($url);
         } else {
             $data = array();
+            $data["base_url"] = Util::request()->post()->baseUrl;
             $data["auth_url"] = Util::request()->post()->authUrl;
             $data["api_url"] = Util::request()->post()->apiUrl;
             $data["key"] = Util::request()->post()->key;
@@ -153,6 +154,7 @@ class ControllerModuleComerciaConnect extends Controller
         }
 
         //prepare variables
+        $baseUrl = Util::config()->comerciaConnect_base_url;
         $authUrl = Util::config()->comerciaConnect_auth_url;
         $apiKey = Util::config()->comerciaConnect_api_key;
         $apiUrl = Util::config()->comerciaConnect_api_url;
@@ -161,7 +163,7 @@ class ControllerModuleComerciaConnect extends Controller
 
         //create session
         $connect = Util::load()->library("comerciaConnect");
-        $api = $connect->getApi($authUrl, $apiUrl);
+        $api = $connect->getApi($baseUrl, $authUrl, $apiUrl);
 
         //load models
         $data = (object)[
@@ -216,7 +218,7 @@ class ControllerModuleComerciaConnect extends Controller
     function update(){
         //load cc module for libraries
         $connect = Util::load()->library("comerciaConnect");
-        $connect->getApi("","");
+        $connect->getApi("");
 
         //get info
         $client=new \comerciaConnect\lib\HttpClient();

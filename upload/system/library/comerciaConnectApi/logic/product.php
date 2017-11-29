@@ -1,5 +1,10 @@
 <?php
 namespace comerciaConnect\logic;
+
+use comercia\Util;
+use comerciaConnect\lib\HttpClient;
+use MongoDB\BSON\Binary;
+
 /**
  * This class represents a product
  * @author Mark Smit <m.smit@comercia.nl>
@@ -91,6 +96,13 @@ class Product
             $this->parent = new Product($session, $this->parent);
         }
         $data=(object)$data;
+        $this->extraImages = [];
+        if (!empty($data->extraImages)) {
+            foreach ($data->extraImages as $image) {
+                $this->extraImages[] = new ProductImage($image);
+            }
+        }
+
         $this->descriptions = [];
         if (!empty($data->descriptions)) {
             foreach ($data->descriptions as $description) {
@@ -239,5 +251,21 @@ class Product
         $session->post("product/touchBatch",$requestData);
     }
 
+    /**
+     * Gets image
+     * @param String $url
+     * @return Binary Image data
+     */
+    function getImageData($url)
+    {
+        if(substr($url, 0, strlen($this->session->api->base_url)) == $this->session->api->base_url) {
+            $url = str_replace($this->session->api->base_url, '', $url);
+            $result = $this->session->get($url, false);
+        } else {
+            $client = new HttpClient();
+            $result = $client->get($url, false, false);
+        }
 
+        return $result;
+    }
 }
