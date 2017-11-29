@@ -205,6 +205,10 @@ class Product
      */
     function changeId($new)
     {
+        if ($new == $this->id) {
+            return true;
+        }
+
         if($this->session) {
             $data = $this->session->get('product/changeId/' . $this->id . '/' . $new);
             $this->id=$new;
