@@ -127,6 +127,10 @@ class db
         $i = 0;
         foreach ($fields as $field)
         {
+            if ($field == '*') {
+                continue;
+            }
+
             if($i++) {
                 $query .= ',';
             }
