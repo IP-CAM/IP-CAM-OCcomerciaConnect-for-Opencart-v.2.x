@@ -15,13 +15,17 @@ use comerciaConnect\logic\Session;
 class Api
 {
     var $path = __DIR__;
+    var $auth_url;
+    var $api_url;
+    var $base_url;
 
-    function __construct($auth_url, $api_url)
+    function __construct($base_url, $auth_url = '', $api_url = '')
     {
         $this->loadLibs();
         $this->loadDomain();
-        $this->auth_url = $auth_url;
-        $this->api_url = $api_url;
+        $this->base_url = $base_url;
+        $this->auth_url = $auth_url ?: $base_url . '?route=user/token';
+        $this->api_url = $api_url ?: $base_url . '?route=api' ;
     }
 
     private function loadLibs()

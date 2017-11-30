@@ -18,15 +18,15 @@ class ProductDescription
     /**  @param array $data The data to initialize the address with */
     function __construct($language = "", $name = "", $description = "")
     {
-        if (is_array($name)) {
-            $data = $name;
+        if (is_array($language)) {
+            $data = $language;
             foreach ($data as $key => $value) {
                 $this->{$key} = $value;
             }
         } else {
             $this->name = $name;
             $this->language = $language;
+            $this->description = $description;
         }
-        $this->description = $description;
     }
 }

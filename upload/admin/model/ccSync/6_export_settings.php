@@ -139,17 +139,33 @@ class ModelCcSync6ExportSettings extends Model
         $result=[];
         $query=$this->db->query("SHOW FIELDS FROM `".DB_PREFIX."product`");
         foreach($query->rows as $row){
-            $result[]=$row["Field"];
+            $result[] = [
+                "name" => $row["Field"],
+            ];
         }
 
-        $options=Util::load()->model("catalog/option")->getOptions();
+        $optionsModel = Util::load()->model("catalog/option");
+        $options = $optionsModel->getOptions();
+
         foreach($options as $option){
-            $result[]="option_".$option['name'];
+            $optionValues = $optionsModel->getOptionValues($option["option_id"]);
+
+            $value = [];
+            foreach ($optionValues as $optionValue) {
+                $value[] = $optionValue["name"];
+            }
+
+            $result[] = [
+                "name" => "option_".$option['name'],
+                "options" => $value,
+            ];
         }
 
         $attributes=Util::load()->model("catalog/attribute_group")->getAttributeGroups();
         foreach($attributes as $attribute){
-            $result[]="attribute_".$attribute["name"];
+            $result[] = [
+                "name" => "attribute_".$attribute["name"],
+            ];
         }
 
         return $result;

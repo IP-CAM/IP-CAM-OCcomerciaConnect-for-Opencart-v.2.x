@@ -50,6 +50,15 @@
 
                     <div class="form-group">
                         <label class="col-sm-2 control-label"
+                               for="base_url"><?php echo $entry_base_url; ?></label>
+                        <div class="col-sm-10">
+                            <input type="text" name="comerciaConnect_base_url"
+                                   value="<?php echo $comerciaConnect_base_url; ?>" id="base_url" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"
                                for="auth_url"><?php echo $entry_auth_url; ?></label>
                         <div class="col-sm-10">
                             <input type="text" name="comerciaConnect_auth_url"
@@ -116,7 +125,8 @@
 
         window.open("<?php echo str_replace(" &amp; "," & ",$simple_connect_url);?>", "_blank", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=no, copyhistory=no, width=" + w + ", height=" + h + ", top=" + top + ", left=" + left);
     });
-    function simple_connect_finish(auth_url, api_url, api_key) {
+    function simple_connect_finish(base_url, auth_url, api_url, api_key) {
+        $("#base_url").val(base_url)
         $("#auth_url").val(auth_url)
         $("#api_url").val(api_url);
         $("#api_key").val(api_key);

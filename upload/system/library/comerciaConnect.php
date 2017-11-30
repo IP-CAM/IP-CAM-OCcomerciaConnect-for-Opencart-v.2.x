@@ -4,8 +4,8 @@
             include_once(DIR_SYSTEM."library/comerciaConnectApi/api.php");
         }
 
-        function getApi($auth_url,$api_url){
-            return new \comerciaConnect\Api($auth_url,$api_url);
+        function getApi($base_url, $auth_url, $api_url){
+            return new \comerciaConnect\Api($base_url, $auth_url, $api_url);
         }
     }
 ?>

@@ -13,6 +13,7 @@ $_['text_actions'] = 'Actions';
 $_['entry_status'] = 'Status';
 
 
+$_['entry_base_url'] = 'Base url';
 $_['entry_api_url'] = 'Api url';
 $_['entry_api_key'] = 'Api Key';
 $_['entry_auth_url'] = 'Api Auth url';
