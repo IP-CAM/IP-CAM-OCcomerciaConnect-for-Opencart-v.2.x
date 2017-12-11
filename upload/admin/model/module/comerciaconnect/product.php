@@ -215,7 +215,7 @@ class ModelModuleComerciaconnectProduct extends Model
 
     function createChildProduct($session, $child, $parent)
     {
-        $id = $parent->id . '0';
+        $id = $parent->id . '_';
         $name = $parent->name . ' - ';
         $price = $parent->price;
         $quantity = $parent->quantity;
@@ -229,7 +229,7 @@ class ModelModuleComerciaconnectProduct extends Model
             $option = Util::load()->model("catalog/option")->getOption($value["full_value"]["option_id"]);
             $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
             $name .= $value['full_value']['name'] . ' ';
-            $id .= $value['option_value_id'] . '0';
+            $id .= $value['option_value_id'] . '_';
             $originalData["option_" . $option['name']] = $value['full_value']['name'];
         }
 
