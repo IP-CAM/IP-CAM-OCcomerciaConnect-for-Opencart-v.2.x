@@ -240,20 +240,22 @@ class ModelModuleComerciaconnectOrder extends Model
         }
 
         $expPayment = explode("\n", $order->invoiceAddress->street);
+        $separator = is_numeric($order->invoiceAddress->suffix) ? '-' : '';
         if (count($expPayment) > 1) {
             $dbOrderInfo["payment_address_1"] = trim($expPayment[0]);
-            $dbOrderInfo["payment_address_2"] = trim($expPayment[1] . " " . $order->invoiceAddress->number . $order->invoiceAddress->suffix);
+            $dbOrderInfo["payment_address_2"] = trim($expPayment[1] . " " . $order->invoiceAddress->number . $separator . $order->invoiceAddress->suffix);
         } else {
-            $dbOrderInfo["payment_address_1"] = trim($order->invoiceAddress->street . " " . $order->invoiceAddress->number . $order->invoiceAddress->suffix);
+            $dbOrderInfo["payment_address_1"] = trim($order->invoiceAddress->street . " " . $order->invoiceAddress->number . $separator . $order->invoiceAddress->suffix);
             $dbOrderInfo["payment_address_2"] = "";
         }
 
         $expShipping = explode("\n", $order->deliveryAddress->street);
+        $separator = is_numeric($order->deliveryAddress->suffix) ? '-' : '';
         if (count($expShipping) > 1) {
             $dbOrderInfo["shipping_address_1"] = trim($expShipping[0]);
-            $dbOrderInfo["shipping_address_2"] = trim($expShipping[1] . " " . $order->deliveryAddress->number . $order->deliveryAddress->suffix);
+            $dbOrderInfo["shipping_address_2"] = trim($expShipping[1] . " " . $order->deliveryAddress->number . $separator . $order->deliveryAddress->suffix);
         } else {
-            $dbOrderInfo["shipping_address_1"] = trim($order->deliveryAddress->street . " " . $order->deliveryAddress->number . $order->deliveryAddress->suffix);
+            $dbOrderInfo["shipping_address_1"] = trim($order->deliveryAddress->street . " " . $order->deliveryAddress->number . $separator . $order->deliveryAddress->suffix);
             $dbOrderInfo["shipping_address_2"] = "";
         }
 
@@ -538,6 +540,10 @@ class ModelModuleComerciaconnectOrder extends Model
                 }
                 $suffix .= $exp[$i];
             }
+        }
+
+        if (strpos($suffix, '-') === 0) {
+            $suffix = substr($suffix, 1);
         }
 
         return (object)array(
