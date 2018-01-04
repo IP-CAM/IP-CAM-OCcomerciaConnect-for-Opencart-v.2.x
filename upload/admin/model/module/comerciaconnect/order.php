@@ -97,7 +97,7 @@ class ModelModuleComerciaconnectOrder extends Model
             if($orderTotal['code']=='coupon'){
                 $orderLines[] = new OrderLine($session, [
                     'product' => $couponProduct,
-                    'price' => $shippingMethod->price,
+                    'price' => $orderTotal["value"],
                     'quantity' => 1,
                     'tax' => 0,
                     'priceWithTax' => $orderTotal["value"],
@@ -108,7 +108,7 @@ class ModelModuleComerciaconnectOrder extends Model
             if($orderTotal['code']=='voucher'){
                 $orderLines[] = new OrderLine($session, [
                     'product' => $voucherProduct,
-                    'price' => $shippingMethod->price,
+                    'price' => $orderTotal["value"],
                     'quantity' => 1,
                     'tax' => 0,
                     'priceWithTax' => $orderTotal["value"],
