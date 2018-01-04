@@ -100,8 +100,7 @@ class ModelModuleComerciaconnectOrder extends Model
                     'price' => $orderTotal["value"],
                     'quantity' => 1,
                     'tax' => 0,
-                    'priceWithTax' => $orderTotal["value"],
-                    'taxGroup' => $shippingMethod->taxGroup
+                    'priceWithTax' => $orderTotal["value"]
                 ]);
             }
 
@@ -111,8 +110,7 @@ class ModelModuleComerciaconnectOrder extends Model
                     'price' => $orderTotal["value"],
                     'quantity' => 1,
                     'tax' => 0,
-                    'priceWithTax' => $orderTotal["value"],
-                    'taxGroup' => $shippingMethod->taxGroup
+                    'priceWithTax' => $orderTotal["value"]
                 ]);
             }
         }
