@@ -25,6 +25,27 @@ class ModelModuleComerciaconnectOrder extends Model
 
     public function createApiOrder($order, $session, $productMap)
     {
+        static $voucherProduct;
+        static $couponProduct;
+
+        if(!$voucherProduct ||  !$couponProduct){
+            $voucherProduct=new Product($session);
+            $voucherProduct->id="voucher";
+            $voucherProduct->name="voucher";
+            $voucherProduct->type=PRODUCT_TYPE_DISCOUNT;
+            $voucherProduct->code="voucher";
+            $voucherProduct->save();
+
+
+            $couponProduct=new Product($session);
+            $couponProduct->id="coupon";
+            $couponProduct->name="coupon";
+            $couponProduct->type=PRODUCT_TYPE_DISCOUNT;
+            $couponProduct->code="voucher";
+            $couponProduct->save();
+        }
+
+
         $orderLines = [];
         $order = $this->model_sale_order->getOrder($order['order_id']);
         $lines = $this->model_sale_order->getOrderProducts($order["order_id"]);
@@ -40,6 +61,9 @@ class ModelModuleComerciaconnectOrder extends Model
                 "taxGroup" => $product['tax_class_id']
             ]);
         }
+
+
+
 
         $paymentMethod = new Product($session);
         $paymentMethod->id = $order['payment_code'] ?: 'connect_payment';
@@ -69,6 +93,25 @@ class ModelModuleComerciaconnectOrder extends Model
         foreach ($orderTotals as $orderTotal) {
             if ($orderTotal['code'] == 'shipping') {
                 $shippingMethod->price = $orderTotal['value'];
+            }
+            if($orderTotal['code']=='coupon'){
+                $orderLines[] = new OrderLine($session, [
+                    'product' => $couponProduct,
+                    'price' => $orderTotal["value"],
+                    'quantity' => 1,
+                    'tax' => 0,
+                    'priceWithTax' => $orderTotal["value"]
+                ]);
+            }
+
+            if($orderTotal['code']=='voucher'){
+                $orderLines[] = new OrderLine($session, [
+                    'product' => $voucherProduct,
+                    'price' => $orderTotal["value"],
+                    'quantity' => 1,
+                    'tax' => 0,
+                    'priceWithTax' => $orderTotal["value"]
+                ]);
             }
         }
 
