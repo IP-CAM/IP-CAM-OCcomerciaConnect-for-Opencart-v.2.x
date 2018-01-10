@@ -1,4 +1,5 @@
 <?php
+
 use comercia\Util;
 use comerciaConnect\logic\OrderLine;
 use comerciaConnect\logic\Product;
@@ -28,20 +29,20 @@ class ModelModuleComerciaconnectOrder extends Model
         static $voucherProduct;
         static $couponProduct;
 
-        if(!$voucherProduct ||  !$couponProduct){
-            $voucherProduct=new Product($session);
-            $voucherProduct->id="voucher";
-            $voucherProduct->name="voucher";
-            $voucherProduct->type=PRODUCT_TYPE_DISCOUNT;
-            $voucherProduct->code="voucher";
+        if (!$voucherProduct || !$couponProduct) {
+            $voucherProduct = new Product($session);
+            $voucherProduct->id = "voucher";
+            $voucherProduct->name = "voucher";
+            $voucherProduct->type = PRODUCT_TYPE_DISCOUNT;
+            $voucherProduct->code = "voucher";
             $voucherProduct->save();
 
 
-            $couponProduct=new Product($session);
-            $couponProduct->id="coupon";
-            $couponProduct->name="coupon";
-            $couponProduct->type=PRODUCT_TYPE_DISCOUNT;
-            $couponProduct->code="voucher";
+            $couponProduct = new Product($session);
+            $couponProduct->id = "coupon";
+            $couponProduct->name = "coupon";
+            $couponProduct->type = PRODUCT_TYPE_DISCOUNT;
+            $couponProduct->code = "voucher";
             $couponProduct->save();
         }
 
@@ -63,16 +64,14 @@ class ModelModuleComerciaconnectOrder extends Model
         }
 
 
-
-
         $paymentMethod = new Product($session);
         $paymentMethod->id = $order['payment_code'] ?: 'connect_payment';
         $paymentMethod->name = $order['payment_method'];
         $paymentMethod->type = PRODUCT_TYPE_PAYMENT;
         $paymentMethod->code = $order['payment_code'];
-        static $savedPayment=[];
+        static $savedPayment = [];
         if (isset($order['ccHash']) && $order['ccHash'] != $this->getHashForOrder($order) && !isset($savedPayment[$paymentMethod->id])) {
-            $savedPayment[$paymentMethod->id]=true;
+            $savedPayment[$paymentMethod->id] = true;
             $paymentMethod->save();
         }
 
@@ -94,7 +93,7 @@ class ModelModuleComerciaconnectOrder extends Model
             if ($orderTotal['code'] == 'shipping') {
                 $shippingMethod->price = $orderTotal['value'];
             }
-            if($orderTotal['code']=='coupon'){
+            if ($orderTotal['code'] == 'coupon') {
                 $orderLines[] = new OrderLine($session, [
                     'product' => $couponProduct,
                     'price' => $orderTotal["value"],
@@ -104,7 +103,7 @@ class ModelModuleComerciaconnectOrder extends Model
                 ]);
             }
 
-            if($orderTotal['code']=='voucher'){
+            if ($orderTotal['code'] == 'voucher') {
                 $orderLines[] = new OrderLine($session, [
                     'product' => $voucherProduct,
                     'price' => $orderTotal["value"],
@@ -115,9 +114,9 @@ class ModelModuleComerciaconnectOrder extends Model
             }
         }
 
-        static $savedShipping=[];
+        static $savedShipping = [];
         if (isset($order['ccHash']) && $order['ccHash'] != $this->getHashForOrder($order) && !isset($savedShipping[$shippingMethod->id])) {
-            $savedShipping[$shippingMethod->id]=true;
+            $savedShipping[$shippingMethod->id] = true;
             $shippingMethod->save();
         }
 
@@ -163,7 +162,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $purchase = new Purchase($session, [
             "id" => $order['order_id'],
             "date" => strtotime($order['date_modified']),
-            "invoiceNumber"=>$order['invoice_no'],
+            "invoiceNumber" => $order['invoice_no'],
             "status" => $this->model_localisation_order_status->getOrderStatus($order['order_status_id'])['name'],
             "email" => $order['email'],
             "phonenumber" => $order['telephone'],
@@ -178,7 +177,8 @@ class ModelModuleComerciaconnectOrder extends Model
                 "postalCode" => $order["shipping_postcode"],
                 "city" => $order["shipping_city"],
                 "province" => $order["shipping_zone"],
-                "country" => $order["shipping_country"]
+                "country" => $order["shipping_country"],
+                "company" => $order["shipping_company"]
             ],
             "invoiceAddress" => [
                 "firstName" => $order["payment_firstname"],
@@ -189,7 +189,8 @@ class ModelModuleComerciaconnectOrder extends Model
                 "postalCode" => $order["payment_postcode"],
                 "city" => $order["payment_city"],
                 "province" => $order["payment_zone"],
-                "country" => $order["payment_country"]
+                "country" => $order["payment_country"],
+                "company" => $order["payment_company"]
             ],
             "orderLines" => $orderLines
         ]);
@@ -220,7 +221,7 @@ class ModelModuleComerciaconnectOrder extends Model
         Util::load()->model("localisation/currency");
         $orderModel = Util::load()->model("sale/order");
 
-        static $taxGroupNames=[];
+        static $taxGroupNames = [];
 
         //initialize some basic variables
         $dbOrderInfo = [];
@@ -310,6 +311,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["payment_city"] = $order->invoiceAddress->city;
         $dbOrderInfo["payment_postcode"] = $order->invoiceAddress->postalCode;
         $dbOrderInfo["payment_country"] = $this->getCountryName($order->invoiceAddress->country);
+        $dbOrderInfo["payment_company"] = $this->getCountryName($order->invoiceAddress->company);
         $dbOrderInfo["payment_country_id"] = $this->getCountryId($order->invoiceAddress->country);
         $dbOrderInfo["payment_zone"] = $order->invoiceAddress->province;
         $dbOrderInfo["payment_zone_id"] = $this->getZoneId($dbOrderInfo["payment_country_id"], $order->invoiceAddress->province);
@@ -325,6 +327,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["shipping_city"] = $order->deliveryAddress->city;
         $dbOrderInfo["shipping_postcode"] = $order->deliveryAddress->postalCode;
         $dbOrderInfo["shipping_country"] = $this->getCountryName($order->deliveryAddress->country);
+        $dbOrderInfo["shipping_company"] = $this->getCountryName($order->deliveryAddress->company);
         $dbOrderInfo["shipping_country_id"] = $this->getCountryId($order->deliveryAddress->country);
         $dbOrderInfo["shipping_zone"] = $order->deliveryAddress->province;
         $dbOrderInfo["shipping_zone_id"] = $this->getZoneId($dbOrderInfo["shipping_country_id"], $order->deliveryAddress->province);
@@ -349,27 +352,27 @@ class ModelModuleComerciaconnectOrder extends Model
                 $this->addToTotals($totals, "sub_total", $this->language->get("sub_total"), $orderLine->price * $orderLine->quantity);
             }
             if ($orderLine->taxGroup) {
-                if(is_numeric($orderLine->taxGroup)){
-                    $countryId=$this->getCountryId($order->deliveryAddress->country)?:$this->getCountryId($order->invoiceAddress->country);
-                    if(!isset($taxGroupNames[$orderLine->taxGroup][$countryId])){
+                if (is_numeric($orderLine->taxGroup)) {
+                    $countryId = $this->getCountryId($order->deliveryAddress->country) ?: $this->getCountryId($order->invoiceAddress->country);
+                    if (!isset($taxGroupNames[$orderLine->taxGroup][$countryId])) {
                         $query = $this->db->query("SELECT tr.name as name FROM " . DB_PREFIX . "tax_rule AS r 
                             LEFT JOIN " . DB_PREFIX . "tax_rate AS tr ON tr.tax_rate_id=r.tax_rate_id 
                             LEFT JOIN " . DB_PREFIX . "geo_zone AS gz ON gz.geo_zone_id=tr.geo_zone_id 
                             LEFT JOIN `" . DB_PREFIX . "zone_to_geo_zone` AS ztgz ON gz.geo_zone_id=ztgz.geo_zone_id             
-                            WHERE  ztgz.country_id='".$countryId."' and r.tax_class_id='".$orderLine->taxGroup."'
+                            WHERE  ztgz.country_id='" . $countryId . "' and r.tax_class_id='" . $orderLine->taxGroup . "'
         ");
 
-                        if($query->num_rows){
-                            $taxGroupNames[$orderLine->taxGroup][$countryId]=$query->row["name"];
-                        }else{
-                            $taxGroupNames[$orderLine->taxGroup][$countryId]=$orderLine->taxGroup;
+                        if ($query->num_rows) {
+                            $taxGroupNames[$orderLine->taxGroup][$countryId] = $query->row["name"];
+                        } else {
+                            $taxGroupNames[$orderLine->taxGroup][$countryId] = $orderLine->taxGroup;
                         }
                     }
-                    $taxGroup=$taxGroupNames[$orderLine->taxGroup][$countryId];
-                }else{
-                    $taxGroup=$orderLine->taxGroup;
+                    $taxGroup = $taxGroupNames[$orderLine->taxGroup][$countryId];
+                } else {
+                    $taxGroup = $orderLine->taxGroup;
                 }
-                $this->addToTotals($totals, "tax", $taxGroup , $orderLine->tax);
+                $this->addToTotals($totals, "tax", $taxGroup, $orderLine->tax);
             }
         }
 
@@ -380,7 +383,6 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["order_id"] = $order_id;
         $order->changeId($order_id);
         $this->saveHashForOrder($dbOrderInfo);
-
 
 
         //order history
@@ -615,7 +617,7 @@ class ModelModuleComerciaconnectOrder extends Model
                 `" . DB_PREFIX . "order` o
             WHERE
                o.date_added >= curdate() - INTERVAL DAYOFWEEK(curdate())+30 DAY
-               and md5(concat(COALESCE(o.date_modified,''),'_',COALESCE(o.order_status_id,''),'_',COALESCE(o.tracking,''),'_".ControllerModuleComerciaConnect::$subHash."')) != COALESCE(o.ccHash, '')
+               and md5(concat(COALESCE(o.date_modified,''),'_',COALESCE(o.order_status_id,''),'_',COALESCE(o.tracking,''),'_" . ControllerModuleComerciaConnect::$subHash . "')) != COALESCE(o.ccHash, '')
         ";
         $query = $this->db->query($sql);
         return $query->rows;
@@ -623,7 +625,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
     function getHashForOrder($order)
     {
-        return md5($order['date_modified'] . "_" . $order['order_status_id'] . "_" . (!empty($order['tracking'])?$order['tracking']:'') ."_".ControllerModuleComerciaConnect::$subHash);
+        return md5($order['date_modified'] . "_" . $order['order_status_id'] . "_" . (!empty($order['tracking']) ? $order['tracking'] : '') . "_" . ControllerModuleComerciaConnect::$subHash);
     }
 
     function saveHashForOrder($order)
@@ -632,4 +634,5 @@ class ModelModuleComerciaconnectOrder extends Model
     }
 
 }
+
 ?>

@@ -26,6 +26,13 @@ class Address
     /** @var string */
     var $country;
 
+    /** @var string */
+    var $company;
+
+    /** @var string */
+    var $salutationCode;
+
+
     /** @param array $data The data to initialize the address with */
     function __construct($data)
     {
