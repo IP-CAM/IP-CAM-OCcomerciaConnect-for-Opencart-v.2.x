@@ -313,7 +313,7 @@ class ModelModuleComerciaconnectProduct extends Model
             array_pop($exp);
 
             $image = implode("-",$exp);
-            $image = Util::filesystem()->search(DIR_IMAGE,$image);
+            $image = Util::filesystem()->search(DIR_IMAGE,$image.".");
             $image = $image[0];
 
             return str_replace(DIR_IMAGE, '', $image);
