@@ -23,6 +23,6 @@ class Filesystem
     }
 
     function search($dir, $pattern){
-        return glob($dir . $pattern . "*");
+        return glob($dir . $pattern . ".*");
     }
 }
