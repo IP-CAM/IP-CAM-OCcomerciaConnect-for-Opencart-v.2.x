@@ -11,7 +11,7 @@ if (!defined("CC_VERSION")) {
 }
 
 if (!defined("CC_RELEASE")) {
-    define("CC_RELEASE",CC_VERSION.".4");
+    define("CC_RELEASE",CC_VERSION.".5");
 }
 
 if(!defined("CC_VERSION_URL")){
