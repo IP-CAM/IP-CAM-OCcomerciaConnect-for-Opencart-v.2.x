@@ -62,6 +62,8 @@ class Product
     /** @var string | which status  Comercia Connect should give when the product is in stock */
     var $inStockStatus;
     /** @var string | which status  Comercia Connect should give when the product is not in stock */
+    var $connector;
+    /** @var string | Which connector is responsible for this product */
     var $noStockStatus;
     /** @var boolean | Product status */
     var $active;

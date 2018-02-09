@@ -22,6 +22,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $dbProduct["sku"] = $product->sku;
         $dbProduct["tax_class_id"] = $product->taxGroup;
         $dbProduct["ccCreatedBy"] = $product->createdBy;
+        $dbOrderInfo["ccConnector"] = $product->connector;
         $dbProduct["subtract"] = $product->usesStock;
 
         $image=$this->handleImage($product->image,$product);
@@ -289,6 +290,12 @@ class ModelModuleComerciaconnectProduct extends Model
     function saveHashForCategory($category)
     {
         $this->db->query("UPDATE `" . DB_PREFIX . "category` SET `ccHash` = '" . $this->getHashForCategory($category) . "' WHERE `category_id` = '" . $category['category_id'] . "'");
+    }
+
+
+    function isHashed($productId){
+        $result = $this->db->query("select ccHash from `" . DB_PREFIX . "product` where product_id='".$productId."'")->row;
+        return $result["ccHash"]?true:false;
     }
 
     // Start OC Version <= 1.5.2.1 specific functions

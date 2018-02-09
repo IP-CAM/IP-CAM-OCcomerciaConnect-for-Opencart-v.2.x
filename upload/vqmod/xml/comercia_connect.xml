@@ -35,4 +35,62 @@
             <add><![CDATA['ccHash' => $order_query->row['ccHash'],]]></add>
         </operation>
     </file>
+
+    <file name="admin/view/template/sale/order_list.tpl">
+        <operation error="skip">
+            <search position="replace">
+                <![CDATA[<td class="right"><?php foreach ($order['action'] as $action) { ?>]]></search>
+            <add><![CDATA[   <td class="right">
+        <?php
+                            <?php
+                	echo \comercia\Util::load()->controller("module/comerciaConnect/renderPurchaseButton/".$order["order_id"]);
+               ?>
+            <?php foreach ($order['action'] as $action) { ?>]]>
+            </add>
+        </operation>
+
+        <operation>
+            <search position="replace"><![CDATA[<a href="<?php echo $order['view']; ?>" ]]></search>
+            <add><![CDATA[
+
+                                    <?php
+                	echo \comercia\Util::load()->controller("module/comerciaConnect/renderPurchaseButton/".$order["order_id"]);
+               ?>
+
+                            <a href="<?php echo $order['view']; ?>" ]]>
+            </add>
+        </operation>
+
+
+    </file>
+
+
+    <file name="admin/view/template/catalog/product_list.tpl">
+        <operation error="skip">>
+            <search position="replace">
+                <![CDATA[   <td class="right"><?php foreach ($product['action'] as $action) { ?>]]></search>
+            <add><![CDATA[     <td class="right">
+        <?php
+                            <?php
+                	echo \comercia\Util::load()->controller("module/comerciaConnect/renderProductButton/".$product["product_id"]);
+               ?>
+            <?php foreach ($product['action'] as $action) { ?>]]>
+            </add>
+
+
+        </operation>
+
+        <operation>
+            <search position="replace">
+                <![CDATA[<a href="<?php echo $product['edit']; ?>" data-toggle="tooltip"]]></search>
+            <add><![CDATA[
+                               <?php
+                                    echo \comercia\Util::load()->controller("module/comerciaConnect/renderProductButton/".$product["product_id"]);
+                               ?>
+                            <a href="<?php echo $product['edit']; ?>" data-toggle="tooltip"]]>
+            </add>
+        </operation>
+
+    </file>
+
 </modification>

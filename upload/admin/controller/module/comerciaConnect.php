@@ -7,11 +7,11 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
 }
 
 if (!defined("CC_VERSION")) {
-    define("CC_VERSION", "1.3");
+    define("CC_VERSION", "1.4");
 }
 
 if (!defined("CC_RELEASE")) {
-    define("CC_RELEASE",CC_VERSION.".5");
+    define("CC_RELEASE",CC_VERSION.".0");
 }
 
 if(!defined("CC_VERSION_URL")){
@@ -105,7 +105,7 @@ class ControllerModuleComerciaConnect extends Controller
             $data["godMode"] = false;
         }
 
-        Util::response()->view("module/comerciaConnect", $data);
+        Util::response()->view("comerciaConnect/form", $data);
     }
 
     public function simpleConnect()
@@ -126,7 +126,7 @@ class ControllerModuleComerciaConnect extends Controller
             $data["auth_url"] = Util::request()->post()->authUrl;
             $data["api_url"] = Util::request()->post()->apiUrl;
             $data["key"] = Util::request()->post()->key;
-            Util::response()->view("module/comerciaConnect_simpleConnect_finish", $data);
+            Util::response()->view("comerciaConnect/simpleConnect_finish", $data);
         }
     }
 
@@ -297,6 +297,51 @@ class ControllerModuleComerciaConnect extends Controller
             closedir($dir_handle);
         } else {
             copy($source, $dest);
+        }
+    }
+
+
+
+    static function getWebsiteUrl(){
+        static $url="unset";
+        if($url=="unset"){
+            $connect = Util::load()->library("comerciaConnect");
+            $baseUrl = Util::config()->comerciaConnect_base_url;
+            $authUrl = Util::config()->comerciaConnect_auth_url;
+            $apiKey = Util::config()->comerciaConnect_api_key;
+            $apiUrl = Util::config()->comerciaConnect_api_url;
+            $api = $connect->getApi($baseUrl, $authUrl, $apiUrl);
+            $session = $api->createSession($apiKey);
+            $website = Website::getWebsite($session);
+            if ($website) {
+                $url=$website->controlPanelUrl();;
+            }else{
+                $url=false;
+            }
+        }
+        return $url;
+    }
+
+    function renderPurchaseButton($purchaseId){
+        $url=self::getWebsiteUrl();
+        if($url && Util::load()->model("module/comerciaconnect/order")->isHashed($purchaseId)){
+            $url.="/content/purchase/infoSite/".$purchaseId;
+            $data["url"]=$url;
+            Util::load()->language('module/comerciaConnect', $data);
+            $content=Util::load()->view("comerciaConnect/ccButton",$data);
+            return $content;
+        }
+    }
+
+    function renderProductButton($productId){
+        $url=self::getWebsiteUrl();
+
+        if($url && Util::load()->model("module/comerciaconnect/product")->isHashed($productId)){
+            $url.="/content/product/infoSite/".$productId;
+            $data["url"]=$url;
+            Util::load()->language('module/comerciaConnect', $data);
+            $content=Util::load()->view("comerciaConnect/ccButton",$data);
+            return $content;
         }
     }
 }

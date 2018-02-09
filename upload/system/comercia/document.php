@@ -44,6 +44,27 @@ class Document
     {
         $this->variables[$name] = $value;
     }
+
+
+    function addDependency($file){
+        if(is_array($file)){
+            $files=$file;
+            foreach($files as $file){
+                $this->addDependency($file);
+            }
+            return true;
+        }
+
+        $exp=explode(".",$file);
+        $ext=$exp[count($exp)-1];
+        if($ext=="css"){
+            $this->addStyle($file);
+        }
+        if($ext=="js"){
+            $this->addScript($file);
+        }
+        return true;
+    }
 }
 
 

@@ -54,7 +54,11 @@ class PatchTable
                     if ($i > 0) {
                         $query .= ",";
                     }
-                    $query .= "ADD `" . $action["name"] . "` " . $action["type"];
+
+                    if($action["default"]!==null && $action["default"]!==false){
+                        $action["default"]="'".$action["default"]."'";
+                    }
+                    $query .= "ADD `" . $action["name"] . "` " . $action["type"]. ($action["default"]!==false?" DEFAULT ".$action["default"]:"");
                     $i++;
                 }
             }
@@ -106,11 +110,12 @@ class PatchTable
         return $this;
     }
 
-    function addField($field, $type)
+    function addField($field, $type,$default=false)
     {
         $this->actions["addField"][] = array(
             "name" => $field,
-            "type" => $type
+            "type" => $type,
+            "default"=>$default
         );
 
         return $this;

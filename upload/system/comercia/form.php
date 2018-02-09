@@ -18,10 +18,14 @@ class Form
             $keys = func_get_args();
         }
         $session = Util::session();
-        foreach ($keys as $key) {
+        foreach ($keys as $key=>$value) {
+            if(is_numeric($key)){
+                $key=$value;
+            }
+
             $this->initializeKey($key);
-            if (!$this->data[$key] && isset($session->$key)) {
-                $this->data[$key] = $session->$key;
+            if (!$this->data[$key] && isset($session->$value)) {
+                $this->data[$key] = $session->$value;
             }
         }
 
@@ -43,10 +47,14 @@ class Form
             $keys = func_get_args();
         }
         $session = Util::session();
-        foreach ($keys as $key) {
+        foreach ($keys as $key=>$value) {
+            if(is_numeric($key)){
+                $key=$value;
+            }
+
             $this->initializeKey($key);
-            if (!$this->data[$key] && isset($session->$key)) {
-                $this->data[$key] = $session->$key;
+            if (!$this->data[$key] && isset($session->$value)) {
+                $this->data[$key] = $session->$value;
                 $session->remove($key);
             }
         }
@@ -61,10 +69,13 @@ class Form
             $keys = func_get_args();
         }
         $post = Util::request()->post();
-        foreach ($keys as $key) {
+        foreach ($keys as $key=>$value) {
+            if(is_numeric($key)){
+                $key=$value;
+            }
             $this->initializeKey($key);
-            if (!$this->data[$key] && isset($post->$key)) {
-                $this->data[$key] = $post->$key;
+            if (!$this->data[$key] && isset($post->$value)) {
+                $this->data[$key] = $post->$value;
             }
         }
         return $this;
@@ -79,10 +90,13 @@ class Form
             $keys = func_get_args();
         }
         $get = Util::request()->get();
-        foreach ($keys as $key) {
+        foreach ($keys as $key=>$value) {
+            if(is_numeric($key)){
+                $key=$value;
+            }
             $this->initializeKey($key);
-            if (!$this->data[$key] && isset($get->$key)) {
-                $this->data[$key] = $get->$key;
+            if (!$this->data[$key] && isset($get->$value)) {
+                $this->data[$key] = $get->$value;
             }
         }
         return $this;
@@ -95,10 +109,13 @@ class Form
         } else {
             $keys = func_get_args();
         }
-        foreach ($keys as $key) {
+        foreach ($keys as $key=>$value) {
+            if(is_numeric($key)){
+                $key=$value;
+            }
             $this->initializeKey($key);
-            if (!$this->data[$key] && Util::config()->$key) {
-                $this->data[$key] = Util::config()->$key;
+            if (!$this->data[$key] && Util::config()->$value) {
+                $this->data[$key] = Util::config()->$value;
             }
         }
         return $this;
