@@ -47,6 +47,7 @@ class db
 
     public function recordExists($table, $data, $keys = null)
     {
+
         $query = "SELECT * FROM `" . DB_PREFIX . $table . "` WHERE ";
         $query .= $this->whereForKeys($table, $data, $keys);
         $query .= " LIMIT 0,1";
@@ -99,10 +100,10 @@ class db
         return $result;
     }
 
-    public function saveDataObjectArray($table, $data, $keys = false)
+    public function saveDataObjectArray($table, $data)
     {
         foreach ($data as $obj) {
-            $this->saveDataObject($table, $obj, $keys);
+            $this->saveDataObject($table, $obj);
         }
     }
 
@@ -130,7 +131,7 @@ class db
             if($i++) {
                 $query .= ',';
             }
-            $query .= $field == '*' ? $field : '`' . $field . '`';
+            $query .= '`' . $field . '`';
         }
 
         $query .= " FROM `" . DB_PREFIX . $table . "`";
@@ -147,17 +148,6 @@ class db
         }
 
         return $result->row;
-    }
-
-    public function query($query)
-    {
-        $result = $this->_db()->query($query);
-
-        if ($result) {
-            return $result->rows;
-        }
-
-        return [];
     }
 }
 ?>

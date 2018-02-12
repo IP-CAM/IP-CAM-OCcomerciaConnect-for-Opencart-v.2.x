@@ -32,6 +32,9 @@ class Purchase
     /** @var enum(TOUCHED_BY_PORTAL,TOUCHED_BY_API,TOUCHED_BY_CONNECTOR) */
     var $lastTouchedBy;
 
+    /** @var string | Which connector is responsible for this purchase */
+    var $noStockStatus;
+
     /** @var array | The original data from the client */
     var $originalData;
 

@@ -32,3 +32,5 @@ $_["button_simple_connect"]="Start simple connect";
 $_["title_simple_connect"]="Simple connect";
 
 $_["button_update"]="Update";
+
+$_["button_cc"]="Comercia Connect";

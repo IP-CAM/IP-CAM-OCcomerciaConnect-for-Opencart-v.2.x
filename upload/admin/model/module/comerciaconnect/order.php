@@ -268,6 +268,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["date_modified"] = date('Y-m-d H:i:s');
 
         $dbOrderInfo["ccCreatedBy"] = $order->createdBy;
+        $dbOrderInfo["ccConnector"] = $order->connector;
 
         //customer info
         $dbOrderInfo["firstname"] = $order->invoiceAddress->firstName;
@@ -632,6 +633,11 @@ class ModelModuleComerciaconnectOrder extends Model
     function saveHashForOrder($order)
     {
         $this->db->query("update `" . DB_PREFIX . "order` set ccHash='" . $this->getHashForOrder($order) . "' where order_id='" . $order['order_id'] . "'");
+    }
+
+    function isHashed($orderId){
+        $result = $this->db->query("select ccHash from `" . DB_PREFIX . "order` where order_id='".$orderId."'")->row;
+        return $result["ccHash"]?true:false;
     }
 
 }
