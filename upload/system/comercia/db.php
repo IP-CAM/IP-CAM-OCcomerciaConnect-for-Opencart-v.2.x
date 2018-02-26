@@ -131,8 +131,9 @@ class db
             if($i++) {
                 $query .= ',';
             }
-            $query .= '`' . $field . '`';
+            $query .= $field == '*' ? $field : '`' . $field . '`';
         }
+
 
         $query .= " FROM `" . DB_PREFIX . $table . "`";
 
