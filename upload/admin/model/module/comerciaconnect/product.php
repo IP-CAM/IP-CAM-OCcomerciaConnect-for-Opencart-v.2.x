@@ -219,6 +219,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $id = $parent->id . '_';
         $name = $parent->name . ' - ';
         $price = $parent->price;
+        $specialPrice = $parent->specialPrice;
         $quantity = $parent->quantity;
         $originalData = $parent->originalData;
 
@@ -229,6 +230,10 @@ class ModelModuleComerciaconnectProduct extends Model
             }
             $option = Util::load()->model("catalog/option")->getOption($value["full_value"]["option_id"]);
             $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
+            if($specialPrice){
+                $specialPrice = ($value['price_prefix'] == '-') ? $specialPrice - (float)$value['price'] : $specialPrice + (float)$value['price'];
+            }
+
             $name .= $value['full_value']['name'] . ' ';
             $id .= $value['option_value_id'] . '_';
             $originalData["option_" . $option['name']] = $value['full_value']['name'];
@@ -246,6 +251,7 @@ class ModelModuleComerciaconnectProduct extends Model
             'descriptions' => $parent->descriptions,
             'categories' => $parent->categories,
             'taxGroup' => $parent->taxGroup,
+            'specialPrice'=>$specialPrice,
             'type' => PRODUCT_TYPE_PRODUCT,
             'image' => $parent->image,
             'brand' => $parent->brand,
