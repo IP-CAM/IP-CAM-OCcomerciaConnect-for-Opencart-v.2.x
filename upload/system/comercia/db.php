@@ -100,10 +100,10 @@ class db
         return $result;
     }
 
-    public function saveDataObjectArray($table, $data)
+    public function saveDataObjectArray($table, $data,$keys=null)
     {
         foreach ($data as $obj) {
-            $this->saveDataObject($table, $obj);
+            $this->saveDataObject($table, $obj,$keys);
         }
     }
 
