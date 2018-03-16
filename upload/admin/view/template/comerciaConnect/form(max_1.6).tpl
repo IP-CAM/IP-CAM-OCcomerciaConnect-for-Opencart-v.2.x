@@ -17,9 +17,13 @@
             <h3 class="panel-title"><i class="fa fa-pencil"></i> <?php echo $text_edit; ?></h3>
             <table class="form">
                 <tr>
+                    <td><label><?php echo $label_version; ?></label></td>
+                    <td> <?php echo $version;?></td>
+                </tr>
+
+                <tr>
                     <td><label><?php echo $entry_simple_connect; ?></label></td>
-                    <td><input type="button" id="simple_connect" class="button"
-                               value="<?php echo $button_simple_connect; ?>"></td>
+                    <td><a type="button" id="simple_connect" class="button"><?php echo $button_simple_connect; ?></td>
                 </tr>
                 <tr>
                     <td><label for="input-status"><?php echo $entry_status; ?></label></td>

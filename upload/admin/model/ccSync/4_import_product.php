@@ -11,10 +11,16 @@ class ModelCcSync4ImportProduct extends Model
         $filter->filter("parent_product_id", "empty", "=");
         $products = $filter->getData();
 
+        \comerciaConnect\lib\Debug::writeMemory("Received product data");
+
         foreach ($products as $product) {
             $data->ccProductModel->saveProduct($product);
+            \comerciaConnect\lib\Debug::writeMemory("Saved product ".$product->id);
         }
 
         $data->ccProductModel->touchBatch($data->session,$products);
+
+        \comerciaConnect\lib\Debug::writeMemory("Sent product touched by batch");
+
     }
 }

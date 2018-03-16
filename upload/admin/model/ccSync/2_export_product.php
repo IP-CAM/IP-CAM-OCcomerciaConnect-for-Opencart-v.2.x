@@ -6,17 +6,16 @@ class ModelCcSync2ExportProduct extends Model
 {
     public function sync($data)
     {
-        if (Util::version()->isMaximal("1.5.2.1")) {
-            $products = $data->productModel->getProducts(array(1));
-        } else {
-            $products = $data->productModel->getProducts();
-        }
+        $products = $this->getProducts($data);
 
         $productMap = array();
         $productsChanged = array();
         $toSaveHash = [];
 
+        \comerciaConnect\lib\Debug::writeMemory("Loaded products");
         foreach ($products as $product) {
+
+            \comerciaConnect\lib\Debug::writeMemory("Start prepare product ". $product["product_id"]);
             $product['specialPrice'] = 0;
             $specialPrices = $data->productModel->getProductSpecials($product['product_id']);
             foreach ($specialPrices as $specialPrice) {
@@ -52,6 +51,10 @@ class ModelCcSync2ExportProduct extends Model
                     }
                 }
             }
+
+            \comerciaConnect\lib\Debug::writeMemory("Prepared product ". $product["product_id"]);
+
+
             if (count($productsChanged) > CC_BATCH_SIZE) {
                 if($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
                     foreach ($toSaveHash as $toSaveHashProduct) {
@@ -60,6 +63,7 @@ class ModelCcSync2ExportProduct extends Model
                 }
                 $toSaveHash=[];
                 $productsChanged=[];
+                \comerciaConnect\lib\Debug::writeMemory("Saved batch of products");
             }
         }
 
@@ -69,8 +73,28 @@ class ModelCcSync2ExportProduct extends Model
                     $data->ccProductModel->saveHashForProduct($toSaveHashProduct);
                 }
             }
+            \comerciaConnect\lib\Debug::writeMemory("Saved batch of products");
         }
 
         $data->productMap = $productMap;
+    }
+
+    function resultOnly($data){
+        $products = $this->getProducts($data);
+        foreach ($products as $product) {
+            $productMap[$product["product_id"]] = $data->ccProductModel->createApiProduct($product, $data->session, $data->categoriesMap);
+        }
+        $data->productMap = $productMap;
+    }
+
+    public function getProducts($data)
+    {
+        if (Util::version()->isMaximal("1.5.2.1")) {
+            $products = $data->productModel->getProducts(array(1));
+            return $products;
+        } else {
+            $products = $data->productModel->getProducts();
+            return $products;
+        }
     }
 }

@@ -6,20 +6,25 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
     include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian.php");
 }
 
-if (!defined("CC_VERSION")) {
-    define("CC_VERSION", "1.5");
+define("CC_VERSION", "1.5");
+define("CC_RELEASE", CC_VERSION . ".2");
+define("CC_VERSION_URL", "https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
+
+
+if (!defined("CC_BATCH_SIZE")) {
+    define("CC_BATCH_SIZE", 100);
 }
 
-if (!defined("CC_RELEASE")) {
-    define("CC_RELEASE",CC_VERSION.".1");
+if (!defined("CC_DEBUG")) {
+    define("CC_DEBUG", false);
 }
 
-if(!defined("CC_VERSION_URL")){
-    define("CC_VERSION_URL","https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
-}
 
-if(!defined("CC_BATCH_SIZE")){
-    define("CC_BATCH_SIZE",100);
+if (!defined("CC_TMP")) {
+    define("CC_TMP", CC_TMP);
+}
+if(!define("CC_PATH_LOG")){
+    define("CC_PATH_LOG",DIR_LOGS."cc.log");
 }
 
 use comercia\Util;
@@ -37,7 +42,7 @@ class ControllerModuleComerciaConnect extends Controller
             return $this->simpleConnect();
         }
         //initial load
-        $data = array();
+        $data = array("version" => CC_RELEASE);
         Util::load()->language('module/comerciaConnect', $data);
         $form = Util::form($data);
 
@@ -82,7 +87,7 @@ class ControllerModuleComerciaConnect extends Controller
         $data['cancel'] = Util::url()->link('modules');
         $data['sync_url'] = Util::url()->link('module/comerciaConnect/sync');
         $data['simple_connect_url'] = Util::url()->link('module/comerciaConnect/simpleConnect');
-        $data['update_url']=$this->getUpdateUrl();
+        $data['update_url'] = $this->getUpdateUrl();
 
 
         //This god mode is for development troubleshooting purposes
@@ -177,24 +182,30 @@ class ControllerModuleComerciaConnect extends Controller
         ];
 
 
-        if (Util::request()->get()->syncModel) {
-            $syncModels = [Util::request()->get()->syncModel];
-        } else {
-            $dir = DIR_APPLICATION . 'model/ccSync';
-            if ($handle = opendir($dir)) {
-                while (false !== ($entry = readdir($handle))) {
-                    if ($entry != '.' && $entry != '..' && !is_dir($dir . '/' . $entry) && substr($entry, -3) === 'php') {
-                        $syncModels[] = substr($entry, 0, -4);
-                    }
+        $dir = DIR_APPLICATION . 'model/ccSync';
+        if ($handle = opendir($dir)) {
+            while (false !== ($entry = readdir($handle))) {
+                if ($entry != '.' && $entry != '..' && !is_dir($dir . '/' . $entry) && substr($entry, -3) === 'php') {
+                    $syncModels[] = substr($entry, 0, -4);
                 }
-
-                sort($syncModels);
-                closedir($handle);
             }
+
+            sort($syncModels);
+            closedir($handle);
         }
 
+
         foreach ($syncModels as $model) {
-            Util::load()->model('ccSync/' . $model)->sync($data);
+            \comerciaConnect\lib\Debug::writeMemory("started sync ".$model );
+            if (!Util::request()->get()->syncModel || $model == Util::request()->get()->syncModel) {
+                Util::load()->model('ccSync/' . $model)->sync($data);
+            } else {
+                $modelObj = Util::load()->model('ccSync/' . $model);
+                if (method_exists($modelObj, "resultOnly")) {
+                    $modelObj->resultOnly($data);
+                }
+            }
+            \comerciaConnect\lib\Debug::writeMemory("finished sync ".$model );
         }
 
         if (@$this->request->get['mode'] == "api") {
@@ -207,90 +218,101 @@ class ControllerModuleComerciaConnect extends Controller
 
     private function getUpdateUrl()
     {
-        $client=new \comerciaConnect\lib\HttpClient();
-        $info=$client->get(CC_VERSION_URL);
-        if($info["tag_name"] && $info["tag_name"]!=CC_RELEASE){
+        $client = new \comerciaConnect\lib\HttpClient();
+        $info = $client->get(CC_VERSION_URL);
+        if ($info["tag_name"] && $info["tag_name"] != CC_RELEASE) {
             return Util::url()->link('module/comerciaConnect/update');
         }
         return false;
     }
 
-    function update(){
+    function update()
+    {
         //load cc module for libraries
         $connect = Util::load()->library("comerciaConnect");
         $connect->getApi("");
 
         //get info
-        $client=new \comerciaConnect\lib\HttpClient();
-        $info=$client->get(CC_VERSION_URL);
+        $client = new \comerciaConnect\lib\HttpClient();
+        $info = $client->get(CC_VERSION_URL);
 
         //save tmp file
-        $temp_file = sys_get_temp_dir()."/ccUpdate.zip";
-        $handle=fopen($temp_file,"w+");
-        $content=$client->get($info["zipball_url"],false,false);
-        fwrite($handle,$content);
+        $temp_file = CC_TMP . "/ccUpdate.zip";
+        $handle = fopen($temp_file, "w+");
+        $content = $client->get($info["zipball_url"], false, false);
+        fwrite($handle, $content);
         fclose($handle);
 
 
         //extract to temp dir
-        $temp_dir= sys_get_temp_dir()."/ccUpdate";
-        if(class_exists("ZipArchive")){
+        $temp_dir = CC_TMP . "/ccUpdate";
+        if (class_exists("ZipArchive")) {
             $zip = new ZipArchive;
-            $zip->open(  $temp_file );
+            $zip->open($temp_file);
             $zip->extractTo($temp_dir);
             $zip->close();
-        }else{
-            shell_exec("unzip ".$temp_file." -d ".$temp_dir);
+        } else {
+            shell_exec("unzip " . $temp_file . " -d " . $temp_dir);
         }
 
         //find upload path
 
         $handle = opendir($temp_dir);
-        $upload_dir=$temp_dir."/upload";
-        while($file= readdir($handle)) {
-            if ($file != "." && $file != ".." && is_dir($temp_dir."/".$file."/upload")) {
-                $upload_dir=$temp_dir."/".$file."/upload";
+        $upload_dir = $temp_dir . "/upload";
+        while ($file = readdir($handle)) {
+            if ($file != "." && $file != ".." && is_dir($temp_dir . "/" . $file . "/upload")) {
+                $upload_dir = $temp_dir . "/" . $file . "/upload";
                 break;
             }
         }
 
         //copy files
         $handle = opendir($upload_dir);
-        while($file= readdir($handle)) {
+        while ($file = readdir($handle)) {
             if ($file != "." && $file != "..") {
-                $from=$upload_dir."/".$file;
-                if($file=="admin"){
-                    $to=DIR_APPLICATION;
-                }elseif($file=="system"){
-                    $to=DIR_SYSTEM;
-                }else{
-                    $to=DIR_CATALOG."../".$file."/";
+                $from = $upload_dir . "/" . $file;
+                if ($file == "admin") {
+                    $to = DIR_APPLICATION;
+                } elseif ($file == "system") {
+                    $to = DIR_SYSTEM;
+                } else {
+                    $to = DIR_CATALOG . "../" . $file . "/";
                 }
-                $this->cpy($from,$to);
+                $this->cpy($from, $to);
             }
 
         }
 
         //cleanup
         unlink($temp_file);
-        rmdir($temp_dir);
+        $this->rmDirRecursive($temp_dir);
 
         //go back
         Util::response()->redirectBack();
     }
 
-    function cpy($source, $dest){
-        if(is_dir($source)) {
-            $dir_handle=opendir($source);
-            while($file=readdir($dir_handle)){
-                if($file!="." && $file!=".."){
-                    if(is_dir($source."/".$file)){
-                        if(!is_dir($dest."/".$file)){
-                            mkdir($dest."/".$file);
+    public function rmDirRecursive($dir)
+    {
+        $files = array_diff(scandir($dir), array('.', '..'));
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? $this->rmDirRecursive("$dir/$file") : unlink("$dir/$file");
+        }
+        return rmdir($dir);
+    }
+
+    function cpy($source, $dest)
+    {
+        if (is_dir($source)) {
+            $dir_handle = opendir($source);
+            while ($file = readdir($dir_handle)) {
+                if ($file != "." && $file != "..") {
+                    if (is_dir($source . "/" . $file)) {
+                        if (!is_dir($dest . "/" . $file)) {
+                            mkdir($dest . "/" . $file);
                         }
-                        $this->cpy($source."/".$file, $dest."/".$file);
+                        $this->cpy($source . "/" . $file, $dest . "/" . $file);
                     } else {
-                        copy($source."/".$file, $dest."/".$file);
+                        copy($source . "/" . $file, $dest . "/" . $file);
                     }
                 }
             }
@@ -301,10 +323,10 @@ class ControllerModuleComerciaConnect extends Controller
     }
 
 
-
-    static function getWebsiteUrl(){
-        static $url="unset";
-        if($url=="unset"){
+    static function getWebsiteUrl()
+    {
+        static $url = "unset";
+        if ($url == "unset") {
             $connect = Util::load()->library("comerciaConnect");
             $baseUrl = Util::config()->comerciaConnect_base_url;
             $authUrl = Util::config()->comerciaConnect_auth_url;
@@ -314,33 +336,35 @@ class ControllerModuleComerciaConnect extends Controller
             $session = $api->createSession($apiKey);
             $website = Website::getWebsite($session);
             if ($website) {
-                $url=$website->controlPanelUrl();;
-            }else{
-                $url=false;
+                $url = $website->controlPanelUrl();;
+            } else {
+                $url = false;
             }
         }
         return $url;
     }
 
-    function renderPurchaseButton($purchaseId){
-        $url=self::getWebsiteUrl();
-        if($url && Util::load()->model("module/comerciaconnect/order")->isHashed($purchaseId)){
-            $url.="/content/purchase/infoSite/".$purchaseId;
-            $data["url"]=$url;
+    function renderPurchaseButton($purchaseId)
+    {
+        $url = self::getWebsiteUrl();
+        if ($url && Util::load()->model("module/comerciaconnect/order")->isHashed($purchaseId)) {
+            $url .= "/content/purchase/infoSite/" . $purchaseId;
+            $data["url"] = $url;
             Util::load()->language('module/comerciaConnect', $data);
-            $content=Util::load()->view("comerciaConnect/ccButton",$data);
+            $content = Util::load()->view("comerciaConnect/ccButton", $data);
             return $content;
         }
     }
 
-    function renderProductButton($productId){
-        $url=self::getWebsiteUrl();
+    function renderProductButton($productId)
+    {
+        $url = self::getWebsiteUrl();
 
-        if($url && Util::load()->model("module/comerciaconnect/product")->isHashed($productId)){
-            $url.="/content/product/infoSite/".$productId;
-            $data["url"]=$url;
+        if ($url && Util::load()->model("module/comerciaconnect/product")->isHashed($productId)) {
+            $url .= "/content/product/infoSite/" . $productId;
+            $data["url"] = $url;
             Util::load()->language('module/comerciaConnect', $data);
-            $content=Util::load()->view("comerciaConnect/ccButton",$data);
+            $content = Util::load()->view("comerciaConnect/ccButton", $data);
             return $content;
         }
     }
