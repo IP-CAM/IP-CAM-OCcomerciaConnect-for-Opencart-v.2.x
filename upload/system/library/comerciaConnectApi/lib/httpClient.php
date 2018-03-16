@@ -15,14 +15,18 @@ class HttpClient
      */
     function post($url, $data, $token = false, $parse = true)
     {
+        Debug::write("start request for url:".$url,"http");
         global $is_in_debug;
         $ch = curl_init();
 
+        $encoded=json_encode($data);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $encoded);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        Debug::write("writing data:".$encoded,"http");
 
         $headers = [
             'Content-Type:application/json'
@@ -34,7 +38,9 @@ class HttpClient
 
         $server_output = curl_exec($ch);
         curl_close($ch);
-        Debug::write($server_output);
+
+
+        Debug::write("received data:".$server_output,"http");
 
         if($parse) {
             return json_decode($server_output, true);
@@ -52,7 +58,7 @@ class HttpClient
     {
         global $is_in_debug;
         $ch = curl_init();
-
+        Debug::write("start request for url:".$url,"http");
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -65,7 +71,7 @@ class HttpClient
 
         $server_output = curl_exec($ch);
         curl_close($ch);
-        Debug::write($server_output);
+        Debug::write("received data:".$server_output,"http");
         if($parse) {
             return json_decode($server_output, true);
         }else{

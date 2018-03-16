@@ -17,6 +17,7 @@ $_['entry_base_url'] = 'Base url';
 $_['entry_api_url'] = 'Api url';
 $_['entry_api_key'] = 'Api Key';
 $_['entry_auth_url'] = 'Api Auth url';
+$_['label_version'] = 'Version';
 
 $_['button_sync'] = 'Synchronize';
 $_['button_sync_all'] = "Synchronize all";

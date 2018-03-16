@@ -24,6 +24,18 @@
 
                 <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form"
                       class="form-horizontal">
+
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"><?php echo $label_version; ?></label>
+                        <div class="col-sm-10">
+                                <div class="form-control">
+                                    <?php echo $version;?>
+                                </div>
+                        </div>
+                    </div>
+
+
                     <div class="form-group">
                         <label class="col-sm-2 control-label"><?php echo $entry_simple_connect; ?></label>
                         <div class="col-sm-10">

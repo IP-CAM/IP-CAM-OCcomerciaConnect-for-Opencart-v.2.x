@@ -13,7 +13,9 @@ class ModelCcSync1ExportCategory extends Model
         $categoriesChanged = array();
         $triggerStructure = false;
 
+        \comerciaConnect\lib\Debug::writeMemory("Loaded categories");
         foreach ($categories as $category) {
+            \comerciaConnect\lib\Debug::writeMemory("Start prepare category ". $category["category_id"]);
             if (Util::version()->isMaximal("1.5.2.1")) {
                 $category = $data->ccProductModel->getCategory($category['category_id']);
             } else {
@@ -26,6 +28,9 @@ class ModelCcSync1ExportCategory extends Model
             }
             $categoriesMap[$category["category_id"]] = $apiCategory;
 
+
+            \comerciaConnect\lib\Debug::writeMemory("Prepared category ". $category["category_id"]);
+
             if (count($categoriesChanged) > CC_BATCH_SIZE) {
                 if( $data->ccProductModel->sendCategoryToApi($categoriesChanged, $data->session)){
                     foreach($toSaveHash as $toSaveHashCategory){
@@ -35,6 +40,8 @@ class ModelCcSync1ExportCategory extends Model
                 }
                 $toSaveHash = [];
                 $categoriesChanged = [];
+
+                \comerciaConnect\lib\Debug::writeMemory("Saved batch of categories");
             }
         }
 
@@ -45,12 +52,23 @@ class ModelCcSync1ExportCategory extends Model
                 }
                 $triggerStructure = true;
             }
+            \comerciaConnect\lib\Debug::writeMemory("Saved batch of categories");
         }
 
         if ($triggerStructure) {
             $data->ccProductModel->updateCategoryStructure($data->session, $categories);
+            \comerciaConnect\lib\Debug::writeMemory("Built category structure");
         }
 
+        $data->categoriesMap = $categoriesMap;
+    }
+
+    function resultOnly($data){
+        $categories = $data->categoryModel->getCategories(array());
+        $categoriesMap=array();
+        foreach ($categories as $category) {
+            $categoriesMap[$category["category_id"]] = $data->ccProductModel->createApiCategory($category, $data->session);
+        }
         $data->categoriesMap = $categoriesMap;
     }
 }
