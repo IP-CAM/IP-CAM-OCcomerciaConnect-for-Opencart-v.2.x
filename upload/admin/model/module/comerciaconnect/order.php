@@ -307,12 +307,10 @@ class ModelModuleComerciaconnectOrder extends Model
         //invoice info
         $dbOrderInfo["payment_firstname"] = $order->invoiceAddress->firstName;
         $dbOrderInfo["payment_lastname"] = $order->invoiceAddress->lastName;
-        //todo: Implement company in comerciaConnect in the future
-        $dbOrderInfo["payment_company"] = "";
         $dbOrderInfo["payment_city"] = $order->invoiceAddress->city;
         $dbOrderInfo["payment_postcode"] = $order->invoiceAddress->postalCode;
         $dbOrderInfo["payment_country"] = $this->getCountryName($order->invoiceAddress->country);
-        $dbOrderInfo["payment_company"] = $this->getCountryName($order->invoiceAddress->company);
+        $dbOrderInfo["payment_company"] = $order->invoiceAddress->company;
         $dbOrderInfo["payment_country_id"] = $this->getCountryId($order->invoiceAddress->country);
         $dbOrderInfo["payment_zone"] = $order->invoiceAddress->province;
         $dbOrderInfo["payment_zone_id"] = $this->getZoneId($dbOrderInfo["payment_country_id"], $order->invoiceAddress->province);
@@ -323,12 +321,10 @@ class ModelModuleComerciaconnectOrder extends Model
         //shippinginfo
         $dbOrderInfo["shipping_firstname"] = $order->deliveryAddress->firstName;
         $dbOrderInfo["shipping_lastname"] = $order->deliveryAddress->lastName;
-        //todo: Implement company in comerciaConnect in the future
-        $dbOrderInfo["shipping_company"] = "";
         $dbOrderInfo["shipping_city"] = $order->deliveryAddress->city;
         $dbOrderInfo["shipping_postcode"] = $order->deliveryAddress->postalCode;
         $dbOrderInfo["shipping_country"] = $this->getCountryName($order->deliveryAddress->country);
-        $dbOrderInfo["shipping_company"] = $this->getCountryName($order->deliveryAddress->company);
+        $dbOrderInfo["shipping_company"] = $order->deliveryAddress->company;
         $dbOrderInfo["shipping_country_id"] = $this->getCountryId($order->deliveryAddress->country);
         $dbOrderInfo["shipping_zone"] = $order->deliveryAddress->province;
         $dbOrderInfo["shipping_zone_id"] = $this->getZoneId($dbOrderInfo["shipping_country_id"], $order->deliveryAddress->province);
