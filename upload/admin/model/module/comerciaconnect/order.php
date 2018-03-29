@@ -312,7 +312,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["payment_city"] = $order->invoiceAddress->city;
         $dbOrderInfo["payment_postcode"] = $order->invoiceAddress->postalCode;
         $dbOrderInfo["payment_country"] = $this->getCountryName($order->invoiceAddress->country);
-        $dbOrderInfo["payment_company"] = $this->getCountryName($order->invoiceAddress->company);
+        $dbOrderInfo["payment_company"] = $order->invoiceAddress->company;
         $dbOrderInfo["payment_country_id"] = $this->getCountryId($order->invoiceAddress->country);
         $dbOrderInfo["payment_zone"] = $order->invoiceAddress->province;
         $dbOrderInfo["payment_zone_id"] = $this->getZoneId($dbOrderInfo["payment_country_id"], $order->invoiceAddress->province);
@@ -328,7 +328,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["shipping_city"] = $order->deliveryAddress->city;
         $dbOrderInfo["shipping_postcode"] = $order->deliveryAddress->postalCode;
         $dbOrderInfo["shipping_country"] = $this->getCountryName($order->deliveryAddress->country);
-        $dbOrderInfo["shipping_company"] = $this->getCountryName($order->deliveryAddress->company);
+        $dbOrderInfo["shipping_company"] = $order->deliveryAddress->company;
         $dbOrderInfo["shipping_country_id"] = $this->getCountryId($order->deliveryAddress->country);
         $dbOrderInfo["shipping_zone"] = $order->deliveryAddress->province;
         $dbOrderInfo["shipping_zone_id"] = $this->getZoneId($dbOrderInfo["shipping_country_id"], $order->deliveryAddress->province);
