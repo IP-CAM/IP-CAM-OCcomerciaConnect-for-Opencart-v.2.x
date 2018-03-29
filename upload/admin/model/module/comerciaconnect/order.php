@@ -308,7 +308,6 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["payment_firstname"] = $order->invoiceAddress->firstName;
         $dbOrderInfo["payment_lastname"] = $order->invoiceAddress->lastName;
         //todo: Implement company in comerciaConnect in the future
-        $dbOrderInfo["payment_company"] = "";
         $dbOrderInfo["payment_city"] = $order->invoiceAddress->city;
         $dbOrderInfo["payment_postcode"] = $order->invoiceAddress->postalCode;
         $dbOrderInfo["payment_country"] = $this->getCountryName($order->invoiceAddress->country);
@@ -324,7 +323,6 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["shipping_firstname"] = $order->deliveryAddress->firstName;
         $dbOrderInfo["shipping_lastname"] = $order->deliveryAddress->lastName;
         //todo: Implement company in comerciaConnect in the future
-        $dbOrderInfo["shipping_company"] = "";
         $dbOrderInfo["shipping_city"] = $order->deliveryAddress->city;
         $dbOrderInfo["shipping_postcode"] = $order->deliveryAddress->postalCode;
         $dbOrderInfo["shipping_country"] = $this->getCountryName($order->deliveryAddress->country);
