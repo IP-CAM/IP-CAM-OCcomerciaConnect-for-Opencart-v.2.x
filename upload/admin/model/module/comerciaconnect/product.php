@@ -280,7 +280,7 @@ class ModelModuleComerciaconnectProduct extends Model
 
     function getHashForProduct($product)
     {
-        return md5(@$product['date_modified'] . '_' . $product["quantity"] . '_' . ControllerModuleComerciaConnect::$subHash);
+        return md5(@$product['date_modified'] . '_' . $product["quantity"] . '_' . ControllerModuleComerciaConnect::$subHash."_".$product["price"]."_".$product["status"]);
     }
 
     function saveHashForProduct($product)
