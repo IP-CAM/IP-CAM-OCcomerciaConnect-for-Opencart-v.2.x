@@ -6,8 +6,8 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
     include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian.php");
 }
 
-define("CC_VERSION", "1.5");
-define("CC_RELEASE", CC_VERSION . ".4");
+define("CC_VERSION", "1.6");
+define("CC_RELEASE", CC_VERSION . ".0");
 define("CC_VERSION_URL", "https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
 
 
@@ -21,9 +21,9 @@ if (!defined("CC_DEBUG")) {
 
 
 if (!defined("CC_TMP")) {
-    define("CC_TMP", CC_TMP);
+    define("CC_TMP", sys_get_temp_dir());
 }
-if(!define("CC_PATH_LOG")){
+if(!defined("CC_PATH_LOG")){
     define("CC_PATH_LOG",DIR_LOGS."cc.log");
 }
 
