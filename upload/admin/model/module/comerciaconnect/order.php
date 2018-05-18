@@ -242,7 +242,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["store_url"] = $this->getCatalogUrl();
         //todo: lets implement customers later.. for now leave it as a guest..
         $dbOrderInfo["customer_id"] = 0;
-        $dbOrderInfo["customer_group_id"] = $dbOrderInfo["store_name"] = $this->config->get('config_customer_group_id');
+        $dbOrderInfo["customer_group_id"] = $this->config->get('config_customer_group_id');
         //todo:maybe implment this in the future in comercia connect
         $dbOrderInfo["comment"] = "";
         $dbOrderInfo["order_status_id"] = $this->getOrderStatusId($order->status);
