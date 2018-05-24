@@ -14,24 +14,31 @@ class Load
             return $result;
         };
 
-        $className = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $library))));
-        $className = $className;
-        $libDir = DIR_SYSTEM . "library/";
-        $bestOption = $this->findBestOption($libDir, $library, "php");
-        if (!class_exists($className)) {
-            if (class_exists("VQMod")) {
-                @include_once(\VQMod::modCheck($libDir . $bestOption["name"] . ".php"));
-            } else {
-                @include_once($libDir . $bestOption["name"] . ".php");
+        static $singletons=[];
+        if(!isset($singletons[$library])){
+            $className = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $library))));
+            $className = $className;
+            $libDir = DIR_SYSTEM . "library/";
+            $bestOption = $this->findBestOption($libDir, $library, "php");
+            if (!class_exists($className)) {
+                if (class_exists("VQMod")) {
+                    @include_once(\VQMod::modCheck($libDir . $bestOption["name"] . ".php"));
+                } else {
+                    @include_once($libDir . $bestOption["name"] . ".php");
+                }
             }
+
+            if(class_exists($className)) {
+                $result = new $className(Util::registry());
+                Util::registry()->set(Util::stringHelper()->ccToUnderline($className), $result);
+                $singletons[$library]=$result;
+            }else{
+                $singletons[$library]=false;
+            }
+
         }
 
-        if(class_exists($className)) {
-            $result = new $className(Util::registry());
-            Util::registry()->set(Util::stringHelper()->ccToUnderline($className), $result);
-            return $result;
-        }
-        return false;
+        return $singletons[$library];
     }
 
     function findBestOption($dir, $name, $extension)
@@ -317,7 +324,7 @@ class Load
 
     private function rewriteModel($model)
     {
-       return Util::stringHelper()->rewriteForVersion($model,
+    return   Util::stringHelper()->rewriteForVersion($model,
            [
                [
                    ""=>"sale/custom_field",
@@ -330,7 +337,7 @@ class Load
 
     private function rewriteLanguage($model)
     {
-        return Util::stringHelper()->rewriteForVersion($model,
+       return Util::stringHelper()->rewriteForVersion($model,
             [
                 [
                     ""=>"payment/",

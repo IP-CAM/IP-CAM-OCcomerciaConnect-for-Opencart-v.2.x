@@ -1,5 +1,6 @@
 <?php
 namespace comercia;
+
 class ArrayObject
 {
     private $data;
@@ -27,6 +28,44 @@ class ArrayObject
     function all()
     {
         return $this->data;
+    }
+
+    function timestamp($field)
+    {
+        $data = $this->data[$field];
+        if (!is_numeric($data)) {
+            Util::dateTimeHelper()->toTimestamp($data);
+        }
+        return $data;
+    }
+
+    function bool($field, $default = false)
+    {
+        if (!isset($this->data[$field])) {
+            return $default;
+        }
+
+        $data = $this->data[$field];
+        if ($data == "false") {
+            return false;
+        } else {
+            return $data ? true : false;
+        }
+    }
+
+    function allPrefixed($prefix, $removePrefix = true)
+    {
+        $result = [];
+        $prefixLen = strlen($prefix);
+        foreach ($this->data as $key => $val) {
+            if (substr($key, 0, $prefixLen) == $prefix) {
+                if ($removePrefix) {
+                    $key = substr($key, $prefixLen);
+                }
+                $result[$key] = $val;
+            }
+        }
+        return $result;
     }
 }
 

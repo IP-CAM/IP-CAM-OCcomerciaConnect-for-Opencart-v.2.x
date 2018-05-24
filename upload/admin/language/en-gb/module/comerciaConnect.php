@@ -5,7 +5,6 @@ $_['heading_title'] = 'Comercia Connect';
 // Text
 $_['text_extension'] = 'Extensions';
 $_['text_success'] = 'Success: You have modified account module!';
-$_['text_edit'] = 'Edit Account Module';
 
 $_['text_actions'] = 'Actions';
 
@@ -33,5 +32,7 @@ $_["button_simple_connect"]="Start simple connect";
 $_["title_simple_connect"]="Simple connect";
 
 $_["button_update"]="Update";
+$_["button_open"]="Open details";
+$_["button_close"]="Close details";
 
 $_["button_cc"]="Comercia Connect";

@@ -82,7 +82,7 @@ class ModuleSettings
         Util::document()->setTitle(Util::language()->heading_title);
 
         //create links
-        $data['action'] = Util::url()->link('module/' . $name);
+        $data['action'] = Util::version()->isMinimal("2.3")?Util::url()->link('extension/module/' . $name):Util::url()->link('module/' . $name);
         $data['cancel'] = Util::url()->link(Util::route()->extension());
 
         //create a response

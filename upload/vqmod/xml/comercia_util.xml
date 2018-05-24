@@ -61,12 +61,13 @@
     <file name="system/library/template/twig.php" error="skip">
         <operation>
             <search position="after"><![CDATA[$this->twig = new \Twig_Environment]]></search>
-            <add><![CDATA[		$this->twig->addFunction("html_variables",new \Twig_SimpleFunction("html_variables",function(){
-            return \comercia\Util::html()->variables();
-        }));]]>
+            <add><![CDATA[
+            \comercia\Util::twig()->prepare($this->twig);
+           ]]>
             </add>
         </operation>
     </file>
+
 
 
     <file name="system/engine/action.php" error="skip">

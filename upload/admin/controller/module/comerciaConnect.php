@@ -23,8 +23,8 @@ if (!defined("CC_DEBUG")) {
 if (!defined("CC_TMP")) {
     define("CC_TMP", sys_get_temp_dir());
 }
-if(!defined("CC_PATH_LOG")){
-    define("CC_PATH_LOG",DIR_LOGS."cc.log");
+if (!defined("CC_PATH_LOG")) {
+    define("CC_PATH_LOG", DIR_LOGS . "cc.log");
 }
 
 use comercia\Util;
@@ -48,39 +48,64 @@ class ControllerModuleComerciaConnect extends Controller
 
         $form->finish(function ($data) {
             Util::config()->set("comerciaConnect", Util::request()->post()->all());
+            $stores = Util::info()->stores();
+            foreach ($stores as $store) {
+                Util::config($store["store_id"])->set("comerciaConnect", Util::request()->post()->allPrefixed($store["store_id"] . "_"));
+            }
+
             Util::session()->success = $data['msg_settings_saved'];
-            Util::response()->redirect(Util::route()->extension());
         });
 
         //title
-        Util::document()->setTitle(Util::language()->heading_title);
+        Util::document()
+            ->setTitle(Util::language()->heading_title)
+            ->addStyle("view/stylesheet/comerciaConnect.css")
+            ->addScript("view/javascript/comerciaConnect.js")
+
+        ;
 
 
-        $formFields = array("comerciaConnect_status", "comerciaConnect_base_url", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url");
         //place the prepared data into the form
-
         $form
-            ->fillFromSessionClear("error_warning", "success")
-            ->fillFromPost($formFields)
-            ->fillFromConfig($formFields);
+            ->fillFromSessionClear("error_warning", "success");
+
+        $formGeneralFields = ["comerciaConnect_storeMode"];
+        $form
+            ->fillFromPost($formGeneralFields)
+            ->fillFromConfig($formGeneralFields);
+
+        $storeFormFields = array("comerciaConnect_status", "comerciaConnect_base_url", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url");
+        $data['stores'] = Util::info()->stores();
+        foreach ($data['stores'] as &$store) {
+
+            Util::form($store, $store["store_id"])
+                ->fillFromPost($storeFormFields)
+                ->fillFromConfig($storeFormFields);
+
+
+            //set up api session
+            $connect = Util::load()->library("comerciaConnect");
+            $api = $connect->getApi(
+                $store['comerciaConnect_base_url'],
+                $store['comerciaConnect_auth_url'],
+                $store['comerciaConnect_api_url']
+            );
+
+            $apiSession = $api->createSession($store['comerciaConnect_api_key']);
+            $website = Website::getWebsite($apiSession);
+            if ($website) {
+                $store['control_panel_url'] = $website->controlPanelUrl();
+                $store['login_success'] = true;
+            } else {
+                $store['control_panel_url'] = false;
+                $store['login_success'] = false;
+            }
+        }
 
         Util::breadcrumb($data)
             ->add("text_home", "common/home")
             ->add("settings_title", "module/comerciaConnect");
 
-        //set up api session
-        $connect = Util::load()->library("comerciaConnect");
-        $api = $connect->getApi($data['comerciaConnect_base_url'], $data['comerciaConnect_auth_url'], $data['comerciaConnect_api_url']);
-        $apiSession = $api->createSession($data['comerciaConnect_api_key']);
-        $website = Website::getWebsite($apiSession);
-
-        if ($website) {
-            $data['control_panel_url'] = $website->controlPanelUrl();
-            $data['login_success'] = true;
-        } else {
-            $data['control_panel_url'] = false;
-            $data['login_success'] = false;
-        }
 
         //actions
         $data['action'] = Util::url()->link('module/comerciaConnect');
@@ -88,7 +113,6 @@ class ControllerModuleComerciaConnect extends Controller
         $data['sync_url'] = Util::url()->link('module/comerciaConnect/sync');
         $data['simple_connect_url'] = Util::url()->link('module/comerciaConnect/simpleConnect');
         $data['update_url'] = $this->getUpdateUrl();
-
 
         //This god mode is for development troubleshooting purposes
         if (Util::request()->get()->mode == "CCG0D") {
@@ -196,7 +220,7 @@ class ControllerModuleComerciaConnect extends Controller
 
 
         foreach ($syncModels as $model) {
-            \comerciaConnect\lib\Debug::writeMemory("started sync ".$model );
+            \comerciaConnect\lib\Debug::writeMemory("started sync " . $model);
             if (!Util::request()->get()->syncModel || $model == Util::request()->get()->syncModel) {
                 Util::load()->model('ccSync/' . $model)->sync($data);
             } else {
@@ -205,7 +229,7 @@ class ControllerModuleComerciaConnect extends Controller
                     $modelObj->resultOnly($data);
                 }
             }
-            \comerciaConnect\lib\Debug::writeMemory("finished sync ".$model );
+            \comerciaConnect\lib\Debug::writeMemory("finished sync " . $model);
         }
 
         if (@$this->request->get['mode'] == "api") {

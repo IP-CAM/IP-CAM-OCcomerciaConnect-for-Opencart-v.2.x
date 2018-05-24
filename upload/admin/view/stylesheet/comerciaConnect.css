@@ -1,0 +1,15 @@
+.store:not(.opened) .hide-closed{
+    display: none;
+}
+
+.store.opened .hide-opened{
+    display: none;
+}
+
+td.store-title{
+    font-weight:bold;
+    border-bottom:1px solid black !important;
+}
+tbody.opened{
+    border-bottom:1px solid black !important;
+}
