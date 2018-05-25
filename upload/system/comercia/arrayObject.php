@@ -55,17 +55,7 @@ class ArrayObject
 
     function allPrefixed($prefix, $removePrefix = true)
     {
-        $result = [];
-        $prefixLen = strlen($prefix);
-        foreach ($this->data as $key => $val) {
-            if (substr($key, 0, $prefixLen) == $prefix) {
-                if ($removePrefix) {
-                    $key = substr($key, $prefixLen);
-                }
-                $result[$key] = $val;
-            }
-        }
-        return $result;
+        return Util::arrayHelper()->allPrefixed($this->all(),$prefix,$removePrefix);
     }
 }
 

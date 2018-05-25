@@ -1,12 +1,11 @@
 <?php
 include_once(DIR_SYSTEM . "/comercia/util.php");
-use comercia\Util;
 
 class ModelCcSync2ExportProduct extends Model
 {
     public function sync($data)
     {
-        $products = $this->getProducts($data);
+        $products = $data->ccProductModel->getProducts($data->storeId, $data->syncMethod);
 
         $productMap = array();
         $productsChanged = array();
@@ -15,7 +14,7 @@ class ModelCcSync2ExportProduct extends Model
         \comerciaConnect\lib\Debug::writeMemory("Loaded products");
         foreach ($products as $product) {
 
-            \comerciaConnect\lib\Debug::writeMemory("Start prepare product ". $product["product_id"]);
+            \comerciaConnect\lib\Debug::writeMemory("Start prepare product " . $product["product_id"]);
             $product['specialPrice'] = 0;
             $specialPrices = $data->productModel->getProductSpecials($product['product_id']);
             foreach ($specialPrices as $specialPrice) {
@@ -28,19 +27,15 @@ class ModelCcSync2ExportProduct extends Model
             $productMap[$product["product_id"]] = $apiProduct;
 
             //save product to comercia connect
-            if ($product["ccHash"] != $data->ccProductModel->getHashForProduct($product)) {
+            if ($product["ccHash"] != $data->ccProductModel->getHashForProduct($product, $data->storeId)) {
                 $productsChanged[] = $apiProduct;
-                $toSaveHash[]=$product;
+                $toSaveHash[] = $product;
                 $productOptionMap = array();
                 $productOptions = $data->productModel->getProductOptions($product['product_id']);
 
                 foreach ($productOptions as $productOption) {
                     $productOptionMap[$productOption['option_id']] = array_map(function ($productOptionValue) use ($data) {
-                        if (Util::version()->isMaximal("1.5.2.1")) {
-                            $productOptionValue['full_value'] = $data->ccProductModel->getOptionValue($productOptionValue['option_value_id']);
-                        } else {
-                            $productOptionValue['full_value'] = $data->optionModel->getOptionValue($productOptionValue['option_value_id']);
-                        }
+                        $productOptionValue['full_value'] = $data->ccProductModel->getOptionValue($productOptionValue['option_value_id'],$data->storeId);
                         return $productOptionValue;
                     }, $productOption['product_option_value']);
                 }
@@ -52,25 +47,25 @@ class ModelCcSync2ExportProduct extends Model
                 }
             }
 
-            \comerciaConnect\lib\Debug::writeMemory("Prepared product ". $product["product_id"]);
+            \comerciaConnect\lib\Debug::writeMemory("Prepared product " . $product["product_id"]);
 
 
             if (count($productsChanged) > CC_BATCH_SIZE) {
-                if($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
+                if ($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
                     foreach ($toSaveHash as $toSaveHashProduct) {
-                        $data->ccProductModel->saveHashForProduct($toSaveHashProduct);
+                        $data->ccProductModel->saveHashForProduct($toSaveHashProduct, $data->storeId);
                     }
                 }
-                $toSaveHash=[];
-                $productsChanged=[];
+                $toSaveHash = [];
+                $productsChanged = [];
                 \comerciaConnect\lib\Debug::writeMemory("Saved batch of products");
             }
         }
 
         if (count($productsChanged)) {
-            if($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
+            if ($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
                 foreach ($toSaveHash as $toSaveHashProduct) {
-                    $data->ccProductModel->saveHashForProduct($toSaveHashProduct);
+                    $data->ccProductModel->saveHashForProduct($toSaveHashProduct, $data->storeId);
                 }
             }
             \comerciaConnect\lib\Debug::writeMemory("Saved batch of products");
@@ -79,22 +74,14 @@ class ModelCcSync2ExportProduct extends Model
         $data->productMap = $productMap;
     }
 
-    function resultOnly($data){
-        $products = $this->getProducts($data);
+    function resultOnly($data)
+    {
+        $products = $data->ccProductModel->getProducts($data->storeId, $data->syncMethod);;
         foreach ($products as $product) {
             $productMap[$product["product_id"]] = $data->ccProductModel->createApiProduct($product, $data->session, $data->categoriesMap);
         }
         $data->productMap = $productMap;
     }
 
-    public function getProducts($data)
-    {
-        if (Util::version()->isMaximal("1.5.2.1")) {
-            $products = $data->productModel->getProducts(array(1));
-            return $products;
-        } else {
-            $products = $data->productModel->getProducts();
-            return $products;
-        }
-    }
+
 }

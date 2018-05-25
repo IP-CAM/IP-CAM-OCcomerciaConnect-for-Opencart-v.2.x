@@ -63,6 +63,24 @@ class PatchTable
                 }
             }
         }
+
+        if (isset($this->actions["editField"])) {
+            foreach ($this->actions["editField"] as $action) {
+                if ($this->columnExists($action['name'])) {
+                    if ($i > 0) {
+                        $query .= ",";
+                    }
+
+                    if($action["default"]!==null && $action["default"]!==false){
+                        $action["default"]="'".$action["default"]."'";
+                    }
+                    $query .= "MODIFY `" . $action["name"] . "` " . $action["type"]. ($action["default"]!==false?" DEFAULT ".$action["default"]:"");
+                    $i++;
+                }
+            }
+        }
+
+
         if (isset($this->actions['removeField'])) {
             foreach ($this->actions['removeField'] as $action) {
                 if ($this->columnExists($action['name'])) {
@@ -113,6 +131,18 @@ class PatchTable
     function addField($field, $type,$default=false)
     {
         $this->actions["addField"][] = array(
+            "name" => $field,
+            "type" => $type,
+            "default"=>$default
+        );
+
+        return $this;
+    }
+
+
+    function editField($field, $type,$default=false)
+    {
+        $this->actions["editField"][] = array(
             "name" => $field,
             "type" => $type,
             "default"=>$default

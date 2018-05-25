@@ -20,10 +20,18 @@
                     <td><label><?php echo $label_version; ?></label></td>
                     <td> <?php echo $version;?></td>
                 </tr>
+
+
+                <tr class="hide-closed">
+                    <td><label for="input-status"><?php echo $entry_syncMethod; ?></label></td>
+                    <td>
+                        <?php echo \comercia\Util::html()->selectbox("comerciaConnect_syncMethod",$comerciaConnect_syncMethod,$syncMethods); ?>
+                    </td>
+                </tr>
+
+
                 <?php foreach($stores as $store){ ?>
-                <tbody class="store" data-store="<?php echo $store['store_id']; ?>" data-scu="<?php echo str_replace("
-                       &amp;
-                "," & ",$simple_connect_url);?>">
+                <tbody class="store" data-store="<?php echo $store['store_id']; ?>" data-scu="<?php echo str_replace("&amp;","&",$simple_connect_url);?>">
 
                 <tr>
                     <td class="store-title hide-closed" colspan="2"><?php echo $store["name"]; ?></td>
@@ -31,7 +39,7 @@
 
                 <?php if(!$store['login_success']){ ?>
                 <tr>
-                    <td><label><?php echo $entry_simple_connect; ?></label></td>
+                    <td><label><?php echo $store["name"]; ?></label></td>
                     <td>
                         <a type="button" class="button simpleConnectButton"><?php echo $button_simple_connect; ?>
                     </td>
@@ -56,7 +64,7 @@
                         <a href="<?php echo $store['control_panel_url']; ?>"
                            class="button"><?php echo $button_control_panel; ?></a>
                         <a type="button" class="button openButton hide-opened"><?php echo $button_open; ?>
-                        <a type="button" class="button closeButton hide-closed"><?php echo $button_close; ?>
+                            <a type="button" class="button closeButton hide-closed"><?php echo $button_close; ?>
                     </td>
                 </tr>
                 <?php } ?>
@@ -66,10 +74,12 @@
                         <a type="button" class="button simpleConnectButton"><?php echo $button_simple_connect; ?>
                     </td>
                 </tr>
+
+
                 <tr class="hide-closed">
                     <td><label for="input-status"><?php echo $entry_status; ?></label></td>
                     <td>
-                        <select name="<?php echo $store['store_id']; ?>_comerciaConnect_status" id="input-status">
+                        <select name="<?php echo $store['store_id']; ?>_comerciaConnect_status" id="<?php echo $store['store_id']; ?>_status">
                             <?php if ($store['comerciaConnect_status']) { ?>
                             <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
                             <option value="0"><?php echo $text_disabled; ?></option>

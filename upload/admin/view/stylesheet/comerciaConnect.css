@@ -13,3 +13,16 @@ td.store-title{
 tbody.opened{
     border-bottom:1px solid black !important;
 }
+
+.store h2{
+    font-size:13pt;
+    margin:8px;
+    margin-left:20px;
+    border-bottom:1px solid gray;
+    padding:5px;
+}
+
+.store.opened{
+    border-top:1px solid black;
+    border-bottom:1px solid black;
+}

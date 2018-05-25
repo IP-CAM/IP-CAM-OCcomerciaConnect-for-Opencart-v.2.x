@@ -140,8 +140,8 @@ class Form
             }
 
             $this->initializeKey($key);
-            if (!$this->data[$key] && $config->$value) {
-                $this->data[$key] = $config->$value;
+            if (!$this->data[$key] && $config->get($value,true)) {
+                $this->data[$key] = $config->get($value,true);
             }
         }
         return $this;

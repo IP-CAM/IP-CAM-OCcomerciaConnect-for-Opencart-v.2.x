@@ -24,7 +24,7 @@ class ModelModuleComerciaconnectOrder extends Model
         Util::load()->model('localisation/geo_zone');
     }
 
-    public function createApiOrder($order, $session, $productMap)
+    public function createApiOrder($order, $session, $productMap,$storeId)
     {
         static $voucherProduct;
         static $couponProduct;
@@ -81,7 +81,7 @@ class ModelModuleComerciaconnectOrder extends Model
             $order['shipping_code'] = explode('.', $order['shipping_code'])[0];
         }
 
-        $shippingTaxClassId = $this->config->get($order['shipping_code'] . '_tax_class_id');
+        $shippingTaxClassId = Util::config($storeId)->get($order['shipping_code'] . '_tax_class_id');
 
         $shippingMethod = new Product($session);
         $shippingMethod->id = $order['shipping_code'] ?: 'connect_shipping';
@@ -215,7 +215,7 @@ class ModelModuleComerciaconnectOrder extends Model
     }
 
 
-    function saveOrder($order)
+    function saveOrder($order,$storeId)
     {
         Util::load()->language("module/comerciaConnect");
         Util::load()->model("localisation/currency");
@@ -237,15 +237,15 @@ class ModelModuleComerciaconnectOrder extends Model
 
         $dbOrderInfo["invoice_no"] = $order->invoiceNumber;
         //todo: lets see in the future how we can get this multi store for now take the default.
-        $dbOrderInfo["store_id"] = 0;
-        $dbOrderInfo["store_name"] = $this->config->get('config_name');
+        $dbOrderInfo["store_id"] = $storeId;
+        $dbOrderInfo["store_name"] = Util::config($storeId)->config_name;
         $dbOrderInfo["store_url"] = $this->getCatalogUrl();
         //todo: lets implement customers later.. for now leave it as a guest..
         $dbOrderInfo["customer_id"] = 0;
-        $dbOrderInfo["customer_group_id"] = $this->config->get('config_customer_group_id');
+        $dbOrderInfo["customer_group_id"] = Util::config($storeId)->get('config_customer_group_id');
         //todo:maybe implment this in the future in comercia connect
         $dbOrderInfo["comment"] = "";
-        $dbOrderInfo["order_status_id"] = $this->getOrderStatusId($order->status);
+        $dbOrderInfo["order_status_id"] = $this->getOrderStatusId($order->status,$storeId);
 
         $dbOrderInfo["affiliate_id"] = 0;
         $dbOrderInfo["commission"] = 0;
@@ -253,12 +253,12 @@ class ModelModuleComerciaconnectOrder extends Model
             $dbOrderInfo["marketing_id"] = 0;
         }
         $dbOrderInfo["tracking"] = $order->trackingCode;
-        $dbOrderInfo["language_id"] = $this->config->get('config_language_id');
+        $dbOrderInfo["language_id"] = Util::config($storeId)->get('config_language_id');
 
-        $currency = $this->model_localisation_currency->getCurrencyByCode($this->config->get('config_currency'));
+        $currency = $this->model_localisation_currency->getCurrencyByCode(Util::config($storeId)->get('config_currency'));
         $dbOrderInfo["currency_id"] = $currency['currency_id'];
         $dbOrderInfo["currency_value"] = $currency['value'];
-        $dbOrderInfo["currency_code"] = $this->config->get('config_currency');
+        $dbOrderInfo["currency_code"] = Util::config($storeId)->get('config_currency');
 
         $dbOrderInfo["ip"] = "";
         $dbOrderInfo["forwarded_ip"] = "";
@@ -480,7 +480,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
     }
 
-    private function getOrderStatusId($name)
+    private function getOrderStatusId($name,$storeId)
     {
         $orderStatusQuery = $this->db->query("SELECT `order_status_id` FROM `" . DB_PREFIX . "order_status` WHERE `name` LIKE '" . $name . "'");
 
@@ -488,7 +488,7 @@ class ModelModuleComerciaconnectOrder extends Model
             return $orderStatusQuery->row["order_status_id"];
         }
 
-        return $this->config->get("config_order_status_id");
+        return Util::config($storeId)->get("config_order_status_id");
     }
 
     private function getZoneId($countryId, $name)
@@ -595,12 +595,12 @@ class ModelModuleComerciaconnectOrder extends Model
         );
     }
 
-    function getOrders()
+    function getOrders($storeId = 0, $syncMode = 0)
     {
         $sql = "SELECT 
                  o.order_id, 
                  CONCAT(o.firstname, ' ', o.lastname) AS customer, 
-                 (SELECT os.name FROM " . DB_PREFIX . "order_status os WHERE os.order_status_id = o.order_status_id AND os.language_id = '" . (int)$this->config->get('config_language_id') . "') AS order_status,
+                 (SELECT os.name FROM " . DB_PREFIX . "order_status os WHERE os.order_status_id = o.order_status_id AND os.language_id = '" . (int)Util::config($storeId)->get('config_language_id') . "') AS order_status,
                  o.shipping_code, 
                  o.total, 
                  o.currency_code, 
@@ -615,6 +615,7 @@ class ModelModuleComerciaconnectOrder extends Model
             WHERE
                o.date_added >= curdate() - INTERVAL DAYOFWEEK(curdate())+30 DAY
                AND o.order_status_id > 0
+               " . ($syncMode ? "AND store_id='" . $storeId . "'" : "") . "
                AND md5(concat(COALESCE(o.date_modified,''),'_',COALESCE(o.order_status_id,''),'_',COALESCE(o.tracking,''),'_" . ControllerModuleComerciaConnect::$subHash . "')) != COALESCE(o.ccHash, '')
         ";
         $query = $this->db->query($sql);
@@ -631,9 +632,10 @@ class ModelModuleComerciaconnectOrder extends Model
         $this->db->query("update `" . DB_PREFIX . "order` set ccHash='" . $this->getHashForOrder($order) . "' where order_id='" . $order['order_id'] . "'");
     }
 
-    function isHashed($orderId){
-        $result = $this->db->query("select ccHash from `" . DB_PREFIX . "order` where order_id='".$orderId."'")->row;
-        return $result["ccHash"]?true:false;
+    function isHashed($orderId)
+    {
+        $result = $this->db->query("select ccHash from `" . DB_PREFIX . "order` where order_id='" . $orderId . "'")->row;
+        return $result["ccHash"] ? true : false;
     }
 
 }

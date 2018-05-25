@@ -22,9 +22,14 @@ class Config
         return $this->get($name);
     }
 
-    function get($key)
+    function get($key,$ignoreMainStore=false)
     {
-        return @$this->data[$key]?:"";
+        if(isset($this->data[$key])){
+            return @$this->data[$key]?:"";
+        }elseif($this->store_id && !$ignoreMainStore) {
+            return Util::config(0)->$key;
+        }
+        return "";
     }
 
     function getGroup($code)
@@ -36,6 +41,10 @@ class Config
     {
         if (is_array($key)) {
             $this->model->editSetting($code, $key,$this->store_id);
+            $items=Util::arrayHelper()->allPrefixed($key,$code,false);
+            foreach($items as $key=>$val){
+                $this->data[$key]=$val;
+            }
         } else {
             $this->model->editSettingValue($code, $key, $value,$this->store_id);
             $this->data[$key]=$value;
