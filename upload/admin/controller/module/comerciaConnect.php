@@ -276,7 +276,6 @@ class ControllerModuleComerciaConnect extends Controller
 
     function update()
     {
-        die();
         //load cc module for libraries
         $connect = Util::load()->library("comerciaConnect");
         $connect->getApi("");
