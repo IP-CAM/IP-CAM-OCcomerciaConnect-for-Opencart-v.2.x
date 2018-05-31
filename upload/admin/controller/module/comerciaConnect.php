@@ -192,7 +192,7 @@ class ControllerModuleComerciaConnect extends Controller
 
         $this->patch();
 
-        $synMethod = Util::config()->comerciaConnect_syncMethod;
+        $syncMethod = Util::config()->comerciaConnect_syncMethod;
         $storeId = Util::request()->get()->store_id ?: 0;
         $status = Util::config($storeId)->get("comerciaConnect_status",true);
         if ($status) {
@@ -217,7 +217,7 @@ class ControllerModuleComerciaConnect extends Controller
 
             //load models
             $data = (object)[
-                'syncMethod' => $synMethod,
+                'syncMethod' => $syncMethod,
                 'storeId' => $storeId,
                 'productModel' => Util::load()->model("catalog/product"),
                 'optionModel' => Util::load()->model("catalog/option"),
