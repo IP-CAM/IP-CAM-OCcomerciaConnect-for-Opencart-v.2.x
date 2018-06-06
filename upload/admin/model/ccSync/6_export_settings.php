@@ -30,7 +30,8 @@ class ModelCcSync6ExportSettings extends Model
         $website->stockStatus=$this->getStockStatus();
         $website->fieldsOrder=$this->getFieldsOrder();
         $website->fieldsProduct=$this->getFieldsProduct();
-        $website->syncEndpoint="?route=module/comerciaConnect/sync&mode=api&store_id=".$data->storeId;
+        $adminDir=str_replace(HTTP_CATALOG,"",HTTP_SERVER);
+        $website->syncEndpoint="/".$adminDir."/?route=module/comerciaConnect/sync&mode=api&store_id=".$data->storeId;
         $website->save();
     }
 
