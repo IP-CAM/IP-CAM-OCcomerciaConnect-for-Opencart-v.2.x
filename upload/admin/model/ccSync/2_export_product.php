@@ -76,7 +76,7 @@ class ModelCcSync2ExportProduct extends Model
 
     function resultOnly($data)
     {
-        $products = $data->ccProductModel->getProducts($data->storeId, $data->syncMethod);;
+        $products = $data->ccProductModel->getProducts($data->storeId, $data->syncMethod);
         foreach ($products as $product) {
             $productMap[$product["product_id"]] = $data->ccProductModel->createApiProduct($product, $data->session, $data->categoriesMap);
         }

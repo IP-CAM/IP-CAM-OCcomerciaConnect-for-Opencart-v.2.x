@@ -1,4 +1,5 @@
 <?php
+
 use comercia\Util;
 use comerciaConnect\logic\Event;
 
@@ -33,13 +34,9 @@ class ModelCcSync7Cleanup extends Model
                     }
                 } elseif ($item["type"] == "product") {
                     $batch[] = new Event($data->session, EVENT_DELETE_PRODUCT, ["id" => $item["entityId"]]);
-                } elseif
-                ($item["type"] == "category"
-                ) {
+                } elseif ($item["type"] == "category") {
                     $batch[] = new Event($data->session, EVENT_DELETE_CATEGORY, ["id" => $item["entityId"]]);
-                } elseif
-                ($item["type"] == "purchase"
-                ) {
+                } elseif ($item["type"] == "purchase") {
                     $batch[] = new Event($data->session, EVENT_DELETE_PURCHASE, ["id" => $item["entityId"]]);
                 }
             }

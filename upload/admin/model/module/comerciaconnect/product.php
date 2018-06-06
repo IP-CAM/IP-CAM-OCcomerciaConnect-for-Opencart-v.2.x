@@ -358,7 +358,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $sql = "SELECT * FROM " . DB_PREFIX . "product as p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)";
 
         if ($syncMethod) {
-            $sql .= "left join " . DB_PREFIX . "product_to_store as ps on ps.product_id=p.product_id where ps.store_id='" . $store . "'";
+            $sql .= "LEFT JOIN " . DB_PREFIX . "product_to_store AS ps ON ps.product_id=p.product_id WHERE ps.store_id='" . $store . "'";
         }
 
 
@@ -371,11 +371,11 @@ class ModelModuleComerciaconnectProduct extends Model
     {
         $sql = "SELECT 
                 c.category_id AS category_id
-                from " . DB_PREFIX . "category as c
+                FROM " . DB_PREFIX . "category AS c
             ";
 
         if ($syncMethod) {
-            $sql .= "left join " . DB_PREFIX . "category_to_store as cs on cs.category_id=c.category_id where cs.store_id='" . $store . "'";
+            $sql .= "LEFT JOIN " . DB_PREFIX . "category_to_store AS cs ON cs.category_id=c.category_id WHERE cs.store_id='" . $store . "'";
         }
 
 
