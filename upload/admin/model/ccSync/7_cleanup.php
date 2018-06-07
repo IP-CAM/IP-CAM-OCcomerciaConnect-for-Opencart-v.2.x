@@ -1,7 +1,7 @@
 <?php
+
 use comercia\Util;
 use comerciaConnect\logic\Event;
-use comerciaConnect\logic\Product;
 
 class ModelCcSync7Cleanup extends Model
 {
@@ -13,21 +13,35 @@ class ModelCcSync7Cleanup extends Model
 
         if (count($deletedItems)) {
 
-            $batch=[];
-            foreach ($deletedItems as $item) {
-                if($item["type"]=="product_to_category"){
-                    $exp=explode("_",$item["entityId"]);
-                    $batch[]=new Event($data->session,EVENT_DELETE_PRODUCT_FROM_CATEGORY,["product_id"=>$exp[0],"category_id"=>$exp[1]]);
-                }elseif($item["type"]=="product"){
-                    $batch[]=new Event($data->session,EVENT_DELETE_PRODUCT,["id"=>$exp[0]]);
-                }elseif($item["type"]=="category"){
-                    $batch[]=new Event($data->session,EVENT_DELETE_CATEGORY,["id"=>$exp[0]]);
-                }elseif($item["type"]=="purchase"){
-                    $batch[]=new Event($data->session,EVENT_DELETE_PURCHASE,["id"=>$exp[0]]);
+            $batch = [];
+            foreach ($deletedItems as $key => $item) {
+                if ($item["type"] == "productCategory") {
+                    $exp = explode("_", $item["entityId"]);
+                    $batch[] = new Event($data->session, EVENT_DELETE_PRODUCT_FROM_CATEGORY, ["product_id" => $exp[0], "category_id" => $exp[1]]);
+                } elseif ($item["type"] == "productStore") {
+                    $exp = explode("_", $item["entityId"]);
+                    if ($exp[1] == $data->storeId) {
+                        $batch[] = new Event($data->session, EVENT_DELETE_PRODUCT, ["id" => $exp[0]]);
+                    } else {
+                        unset($deletedItems[$key]);
+                    }
+                } elseif ($item["type"] == "categoryStore") {
+                    $exp = explode("_", $item["entityId"]);
+                    if ($exp[1] == $data->storeId) {
+                        $batch[] = new Event($data->session, EVENT_DELETE_CATEGORY, ["id" => $exp[0]]);
+                    } else {
+                        unset($deletedItems[$key]);
+                    }
+                } elseif ($item["type"] == "product") {
+                    $batch[] = new Event($data->session, EVENT_DELETE_PRODUCT, ["id" => $item["entityId"]]);
+                } elseif ($item["type"] == "category") {
+                    $batch[] = new Event($data->session, EVENT_DELETE_CATEGORY, ["id" => $item["entityId"]]);
+                } elseif ($item["type"] == "purchase") {
+                    $batch[] = new Event($data->session, EVENT_DELETE_PURCHASE, ["id" => $item["entityId"]]);
                 }
             }
 
-           Event::raiseBatch($data->session,$batch);
+            Event::raiseBatch($data->session, $batch);
             foreach ($deletedItems as &$item) {
                 $item['isCleaned'] = 1;
             }

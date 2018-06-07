@@ -4,7 +4,7 @@ class ModelCcSync3ExportOrder extends Model
 {
     public function sync($data)
     {
-        $orders = $data->ccOrderModel->getOrders();
+        $orders = $data->ccOrderModel->getOrders($data->storeId,$data->syncMethod);
         $ordersChanged = array();
         $toSaveHash = [];
 
@@ -12,7 +12,7 @@ class ModelCcSync3ExportOrder extends Model
         foreach ($orders as $order) {
             \comerciaConnect\lib\Debug::writeMemory("Start prepare order ". $order["order_id"]);
             if ($order['ccHash'] != $data->ccOrderModel->getHashForOrder($order)) {
-                $ordersChanged[] = $data->ccOrderModel->createApiOrder($order, $data->session, $data->productMap);
+                $ordersChanged[] = $data->ccOrderModel->createApiOrder($order, $data->session, $data->productMap,$data->storeId);
                 $toSaveHash[] = $order;
             }
             \comerciaConnect\lib\Debug::writeMemory("Start prepare order ". $order["order_id"]);

@@ -1,13 +1,16 @@
 <?php
+
 namespace comercia;
 class Form
 {
 
     var $data;
+    var $store_id;
 
-    function __construct(&$data)
+    function __construct(&$data, $store_id)
     {
         $this->data =& $data;
+        $this->store_id=$store_id;
     }
 
     function fillFromSession($first)
@@ -18,9 +21,12 @@ class Form
             $keys = func_get_args();
         }
         $session = Util::session();
-        foreach ($keys as $key=>$value) {
-            if(is_numeric($key)){
-                $key=$value;
+        foreach ($keys as $key => $value) {
+            if (is_numeric($key)) {
+                $key = $value;
+            }
+            if (!($this->store_id < 0)) {
+                $value = $this->store_id . "_" . $value;
             }
 
             $this->initializeKey($key);
@@ -47,9 +53,12 @@ class Form
             $keys = func_get_args();
         }
         $session = Util::session();
-        foreach ($keys as $key=>$value) {
-            if(is_numeric($key)){
-                $key=$value;
+        foreach ($keys as $key => $value) {
+            if (is_numeric($key)) {
+                $key = $value;
+            }
+            if (!($this->store_id < 0)) {
+                $value = $this->store_id . "_" . $value;
             }
 
             $this->initializeKey($key);
@@ -69,10 +78,15 @@ class Form
             $keys = func_get_args();
         }
         $post = Util::request()->post();
-        foreach ($keys as $key=>$value) {
-            if(is_numeric($key)){
-                $key=$value;
+        foreach ($keys as $key => $value) {
+            if (is_numeric($key)) {
+                $key = $value;
             }
+
+            if (!($this->store_id < 0)) {
+                $value = $this->store_id . "_" . $value;
+            }
+
             $this->initializeKey($key);
             if (!$this->data[$key] && isset($post->$value)) {
                 $this->data[$key] = $post->$value;
@@ -90,10 +104,15 @@ class Form
             $keys = func_get_args();
         }
         $get = Util::request()->get();
-        foreach ($keys as $key=>$value) {
-            if(is_numeric($key)){
-                $key=$value;
+        foreach ($keys as $key => $value) {
+            if (is_numeric($key)) {
+                $key = $value;
             }
+
+            if (!($this->store_id < 0)) {
+                $value = $this->store_id . "_" . $value;
+            }
+
             $this->initializeKey($key);
             if (!$this->data[$key] && isset($get->$value)) {
                 $this->data[$key] = $get->$value;
@@ -109,13 +128,20 @@ class Form
         } else {
             $keys = func_get_args();
         }
-        foreach ($keys as $key=>$value) {
-            if(is_numeric($key)){
-                $key=$value;
+        foreach ($keys as $key => $value) {
+            if (is_numeric($key)) {
+                $key = $value;
             }
+
+            if (!($this->store_id < 0)) {
+                $config = Util::config($this->store_id);
+            } else {
+                $config = Util::config();
+            }
+
             $this->initializeKey($key);
-            if (!$this->data[$key] && Util::config()->$value) {
-                $this->data[$key] = Util::config()->$value;
+            if (!$this->data[$key] && $config->get($value,true)) {
+                $this->data[$key] = $config->get($value,true);
             }
         }
         return $this;

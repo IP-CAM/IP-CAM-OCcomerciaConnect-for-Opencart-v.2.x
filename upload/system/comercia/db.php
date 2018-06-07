@@ -103,10 +103,9 @@ class db
     public function saveDataObjectArray($table, $data,$keys=null)
     {
         foreach ($data as $obj) {
-            $this->saveDataObject($table, $obj,$keys);
+            $this->saveDataObject($table, $obj,$keys=null);
         }
     }
-
     private function _db()
     {
         $registry = Util::registry();
@@ -150,7 +149,6 @@ class db
 
         return $result->row;
     }
-
     public function query($query)
     {
         $result = $this->_db()->query($query);

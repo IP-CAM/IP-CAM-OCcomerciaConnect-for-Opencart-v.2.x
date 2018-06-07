@@ -12,4 +12,5 @@ admin/model/module/comerciaconnect
 admin/patch/comerciaConnect
 vqmod/xml/comercia_util.xml
 vqmod/xml/comercia_connect.xml
-
+admin/view/stylesheet/comerciaConnect.css
+admin/view/javascript/comerciaConnect.js

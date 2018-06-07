@@ -25,8 +25,8 @@ class ModelModuleComerciaconnectProduct extends Model
         $dbOrderInfo["ccConnector"] = $product->connector;
         $dbProduct["subtract"] = $product->usesStock;
 
-        $image=$this->handleImage($product->image,$product);
-        if($image) {
+        $image = $this->handleImage($product->image, $product);
+        if ($image) {
             $dbProduct["image"] = $image;
         }
 
@@ -230,7 +230,7 @@ class ModelModuleComerciaconnectProduct extends Model
             }
             $option = Util::load()->model("catalog/option")->getOption($value["full_value"]["option_id"]);
             $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
-            if($specialPrice){
+            if ($specialPrice) {
                 $specialPrice = ($value['price_prefix'] == '-') ? $specialPrice - (float)$value['price'] : $specialPrice + (float)$value['price'];
             }
 
@@ -251,7 +251,7 @@ class ModelModuleComerciaconnectProduct extends Model
             'descriptions' => $parent->descriptions,
             'categories' => $parent->categories,
             'taxGroup' => $parent->taxGroup,
-            'specialPrice'=>$specialPrice,
+            'specialPrice' => $specialPrice,
             'type' => PRODUCT_TYPE_PRODUCT,
             'image' => $parent->image,
             'brand' => $parent->brand,
@@ -278,36 +278,73 @@ class ModelModuleComerciaconnectProduct extends Model
         Product::touchBatch($session, $products);
     }
 
-    function getHashForProduct($product)
+    function getHashForProduct($product,$storeId=0)
     {
-        return md5(@$product['date_modified'] . '_' . $product["quantity"] . '_' . ControllerModuleComerciaConnect::$subHash."_".$product["price"]."_".$product["status"]);
+        $originalHash = $product["ccHash"];
+        $length = CC_HASH_LENGTH;
+        $currentProductHash = substr(md5(@$product['date_modified'] . '_' . $product["quantity"] . '_' . ControllerModuleComerciaConnect::$subHash . "_" . $product["price"] . "_" . $product["status"]),0,$length);
+        $stores = Util::info()->stores();
+        $newHash = "";
+        foreach ($stores as $key => $store) {
+            if ($store["store_id"] == $storeId) {
+                $newHash .= $currentProductHash;
+            } else {
+                if (strlen($originalHash) >= $length * $key + $length) {
+                    $newHash .= substr($originalHash, $key * $length, $length);
+                } else {
+                    $newHash .= str_repeat("_", $length);
+                }
+            }
+        }
+
+        return $newHash;
     }
 
-    function saveHashForProduct($product)
+    function saveHashForProduct($product,$storeId=0)
     {
-        $this->db->query("UPDATE `" . DB_PREFIX . "product` SET `ccHash` = '" . $this->getHashForProduct($product) . "' WHERE `product_id` = '" . $product['product_id'] . "'");
+        $this->db->query("UPDATE `" . DB_PREFIX . "product` SET `ccHash` = '" . $this->getHashForProduct($product,$storeId) . "' WHERE `product_id` = '" . $product['product_id'] . "'");
     }
 
-    function getHashForCategory($category)
+    function getHashForCategory($category, $storeId = 0)
     {
-        return md5(@$category['date_modified'] . '_' . ControllerModuleComerciaConnect::$subHash);
+        $originalHash = $category["ccHash"];
+        $length = CC_HASH_LENGTH;
+        $currentCategoryHash = substr(md5(@$category['date_modified'] . '_' . ControllerModuleComerciaConnect::$subHash), 0, $length);
+        $stores = Util::info()->stores();
+
+        $newHash = "";
+
+        foreach ($stores as $key => $store) {
+            if ($store["store_id"] == $storeId) {
+                $newHash .= $currentCategoryHash;
+            } else {
+                if (strlen($originalHash) >= $length * $key + $length) {
+                    $newHash .= substr($originalHash, $key * $length, $length);
+                } else {
+                    $newHash .= str_repeat("_", $length);
+                }
+            }
+        }
+
+        return $newHash;
     }
 
-    function saveHashForCategory($category)
+    function saveHashForCategory($category, $storeId = 0)
     {
-        $this->db->query("UPDATE `" . DB_PREFIX . "category` SET `ccHash` = '" . $this->getHashForCategory($category) . "' WHERE `category_id` = '" . $category['category_id'] . "'");
+        $this->db->query("UPDATE `" . DB_PREFIX . "category` SET `ccHash` = '" . $this->getHashForCategory($category, $storeId) . "' WHERE `category_id` = '" . $category['category_id'] . "'");
     }
 
 
-    function isHashed($productId){
-        $result = $this->db->query("select ccHash from `" . DB_PREFIX . "product` where product_id='".$productId."'")->row;
-        return $result["ccHash"]?true:false;
+    function isHashed($productId)
+    {
+        $result = $this->db->query("select ccHash from `" . DB_PREFIX . "product` where product_id='" . $productId . "'")->row;
+        return $result["ccHash"] ? true : false;
     }
 
     // Start OC Version <= 1.5.2.1 specific functions
-    public function getOptionValue($option_value_id)
+    public function getOptionValue($option_value_id,$storeId)
     {
-        return $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_value_id = '" . (int)$option_value_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "'")->row;
+        return $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_value_id = '" . (int)$option_value_id . "' AND ovd.language_id = '" . (int)Util::config($storeId)->get('config_language_id') . "'")->row;
     }
 
     public function getCategory($category_id)
@@ -315,18 +352,50 @@ class ModelModuleComerciaconnectProduct extends Model
         return $this->db->query("SELECT DISTINCT *, (SELECT keyword FROM " . DB_PREFIX . "url_alias WHERE query = 'category_id=" . (int)$category_id . "') AS keyword FROM " . DB_PREFIX . "category c JOIN " . DB_PREFIX . "category_description cd ON (cd.category_id = c.category_id) WHERE c.category_id = '" . (int)$category_id . "'")->row;
     }
 
-    private function handleImage($image,$product)
+
+    public function getProducts($store = 0, $syncMethod = 0)
+    {
+        $sql = "SELECT * FROM " . DB_PREFIX . "product as p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)";
+
+        if ($syncMethod) {
+            $sql .= "LEFT JOIN " . DB_PREFIX . "product_to_store AS ps ON ps.product_id=p.product_id WHERE ps.store_id='" . $store . "'";
+        }
+
+
+        $query = $this->db->query($sql);
+
+        return $query->rows;
+    }
+
+    public function getCategories($store = 0, $syncMethod = 0)
+    {
+        $sql = "SELECT 
+                c.category_id AS category_id
+                FROM " . DB_PREFIX . "category AS c
+            ";
+
+        if ($syncMethod) {
+            $sql .= "LEFT JOIN " . DB_PREFIX . "category_to_store AS cs ON cs.category_id=c.category_id WHERE cs.store_id='" . $store . "'";
+        }
+
+
+        $query = $this->db->query($sql);
+
+        return $query->rows;
+    }
+
+    private function handleImage($image, $product)
     {
 
         if (strpos($image, $_SERVER['HTTP_HOST']) !== false) {
-            $image = str_replace([@HTTP_CATALOG."image", @HTTPS_CATALOG."image", "/cache"], "", $image);
-            $image = substr($image,1);
+            $image = str_replace([@HTTP_CATALOG . "image", @HTTPS_CATALOG . "image", "/cache"], "", $image);
+            $image = substr($image, 1);
 
             $exp = explode("-", $image);
             array_pop($exp);
 
-            $image = implode("-",$exp);
-            $image = Util::filesystem()->search(DIR_IMAGE,$image);
+            $image = implode("-", $exp);
+            $image = Util::filesystem()->search(DIR_IMAGE, $image);
             $image = $image[0];
 
             return str_replace(DIR_IMAGE, '', $image);
@@ -334,17 +403,17 @@ class ModelModuleComerciaconnectProduct extends Model
 
         $pathConnect = DIR_IMAGE . 'connect/';
         $dirConnect = 'connect/';
-        if(!is_dir($pathConnect)){
+        if (!is_dir($pathConnect)) {
             mkdir($pathConnect);
         }
 
         $exp = explode("/", $image);
-        $filename = $exp[count($exp)-1];
+        $filename = $exp[count($exp) - 1];
 
         $content = $product->getImageData($image);
-        if($content) {
+        if ($content) {
             $handle = fopen($pathConnect . $filename, "w+");
-            fwrite($handle,$content);
+            fwrite($handle, $content);
             fclose($handle);
             return $dirConnect . $filename;
         }

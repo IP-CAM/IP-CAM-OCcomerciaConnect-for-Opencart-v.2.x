@@ -21,15 +21,66 @@
                     <td> <?php echo $version;?></td>
                 </tr>
 
-                <tr>
-                    <td><label><?php echo $entry_simple_connect; ?></label></td>
-                    <td><a type="button" id="simple_connect" class="button"><?php echo $button_simple_connect; ?></td>
+
+                <tr class="hide-closed">
+                    <td><label for="input-status"><?php echo $entry_syncMethod; ?></label></td>
+                    <td>
+                        <?php echo \comercia\Util::html()->selectbox("comerciaConnect_syncMethod",$comerciaConnect_syncMethod,$syncMethods); ?>
+                    </td>
                 </tr>
+
+
+                <?php foreach($stores as $store){ ?>
+                <tbody class="store" data-store="<?php echo $store['store_id']; ?>" data-scu="<?php echo str_replace("&amp;","&",$simple_connect_url);?>">
+
                 <tr>
+                    <td class="store-title hide-closed" colspan="2"><?php echo $store["name"]; ?></td>
+                </tr>
+
+                <?php if(!$store['login_success']){ ?>
+                <tr>
+                    <td><label><?php echo $store["name"]; ?></label></td>
+                    <td>
+                        <a type="button" class="button simpleConnectButton"><?php echo $button_simple_connect; ?>
+                    </td>
+                </tr>
+                <?php } if($store['login_success']){ ?>
+                <tr>
+                    <td>
+                        <span class="hide-closed"><?php echo $text_actions; ?></span>
+                        <span class="hide-opened"><?php echo $store["name"]; ?></span>
+
+                    </td>
+                    <td>
+
+                        <a href="<?php echo $store['sync_url']; ?>" class="button"><?php echo $button_sync; ?></a>
+                        <?php if($godMode){ ?>
+                        <a href="<?php echo $store['sync_url']; ?>&reset=true"
+                           class="button"><?php echo $button_sync_all; ?></a>
+                        <?php foreach($syncModels as $syncModel){ ?>
+                        <a href="<?php echo $store['sync_url']; ?>&syncModel=<?php echo $syncModel ?>"
+                           class="button"><?php echo $button_sync." - ".$syncModel; ?></a>
+                        <?php }} ?>
+                        <a href="<?php echo $store['control_panel_url']; ?>"
+                           class="button"><?php echo $button_control_panel; ?></a>
+                        <a type="button" class="button openButton hide-opened"><?php echo $button_open; ?>
+                            <a type="button" class="button closeButton hide-closed"><?php echo $button_close; ?>
+                    </td>
+                </tr>
+                <?php } ?>
+                <tr class="hide-closed">
+                    <td><label><?php echo $entry_simple_connect; ?></label></td>
+                    <td>
+                        <a type="button" class="button simpleConnectButton"><?php echo $button_simple_connect; ?>
+                    </td>
+                </tr>
+
+
+                <tr class="hide-closed">
                     <td><label for="input-status"><?php echo $entry_status; ?></label></td>
                     <td>
-                        <select name="comerciaConnect_status" id="input-status">
-                            <?php if ($comerciaConnect_status) { ?>
+                        <select name="<?php echo $store['store_id']; ?>_comerciaConnect_status" id="<?php echo $store['store_id']; ?>_status">
+                            <?php if ($store['comerciaConnect_status']) { ?>
                             <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
                             <option value="0"><?php echo $text_disabled; ?></option>
                             <?php } else { ?>
@@ -39,76 +90,47 @@
                         </select>
                     </td>
                 </tr>
-                <tr>
-                    <td><label for="base_url"><?php echo $entry_base_url; ?></label></td>
-                    <td><input type="text" name="comerciaConnect_base_url"
-                               value="<?php echo $comerciaConnect_base_url; ?>" id="base_url"></td>
-                </tr>
-
-                <tr>
-                    <td><label for="auth_url"><?php echo $entry_auth_url; ?></label></td>
-                    <td><input type="text" name="comerciaConnect_auth_url"
-                               value="<?php echo $comerciaConnect_auth_url; ?>" id="auth_url"></td>
-                </tr>
-
-                <tr>
-                    <td><label for="api_url"><?php echo $entry_api_url; ?></label></td>
-                    <td><input type="text" name="comerciaConnect_api_url"
-                               value="<?php echo $comerciaConnect_api_url; ?>" id="api_url" class="form-control"></td>
-                </tr>
-
-                <tr>
-                    <td><label for="api_key"><?php echo $entry_api_key; ?></label></td>
-                    <td><input type="text" name="comerciaConnect_api_key"
-                               value="<?php echo $comerciaConnect_api_key; ?>" id="api_key"></td>
-                </tr>
-                <tr>
-                    <td><label><?php echo $text_actions; ?></label></td>
-                    <td>
-                <?php if($login_success){ ?>
-
-
-                        <a href="<?php echo $sync_url; ?>" class="button"><?php echo $button_sync; ?></a>
-                        <?php if($godMode){ ?>
-                        <a href="<?php echo $sync_url; ?>&reset=true" class="button"><?php echo $button_sync_all; ?></a>
-                        <?php
-                   foreach($syncModels as $syncModel){
-                ?>
-                        <a href="<?php echo $sync_url; ?>&syncModel=<?php echo $syncModel ?>" class="button"><?php echo $button_sync." - ".$syncModel; ?></a>
-                        <?php }} ?>
-                        <a href="<?php echo $control_panel_url; ?>" class="button"><?php echo $button_control_panel; ?></a>
+                <tr class="hide-closed">
+                    <td><label for="<?php echo $store['store_id']; ?>_base_url"><?php echo $entry_base_url; ?></label>
                     </td>
-                <?php } ?>
-
-
-                    <?php if($update_url){ ?>
-                    <a href="<?php echo $update_url; ?>" class="button"><?php echo $button_update; ?></a>
-                    <?php } ?>
-                    </td>
+                    <td><input type="text" name="<?php echo $store['store_id']; ?>_comerciaConnect_base_url"
+                               value="<?php echo $store['comerciaConnect_base_url']; ?>"
+                               id="<?php echo $store['store_id']; ?>_base_url"></td>
                 </tr>
+
+                <tr class="hide-closed">
+                    <td><label for="<?php echo $store['store_id']; ?>_auth_url"><?php echo $entry_auth_url; ?></label>
+                    </td>
+                    <td><input type="text" name="<?php echo $store['store_id']; ?>_comerciaConnect_auth_url"
+                               value="<?php echo $store['comerciaConnect_auth_url']; ?>"
+                               id="<?php echo $store['store_id']; ?>_auth_url"></td>
+                </tr>
+
+                <tr class="hide-closed">
+                    <td><label for="<?php echo $store['store_id']; ?>_api_url"><?php echo $entry_api_url; ?></label>
+                    </td>
+                    <td><input type="text" name="<?php echo $store['store_id']; ?>_comerciaConnect_api_url"
+                               value="<?php echo $store['comerciaConnect_api_url']; ?>"
+                               id="<?php echo $store['store_id']; ?>_api_url" class="form-control"></td>
+                </tr>
+
+                <tr class="hide-closed">
+                    <td><label for="<?php echo $store['store_id']; ?>_api_key"><?php echo $entry_api_key; ?></label>
+                    </td>
+                    <td><input type="text" name="<?php echo $store['store_id']; ?>_comerciaConnect_api_key"
+                               value="<?php echo $store['comerciaConnect_api_key']; ?>"
+                               id="<?php echo $store['store_id']; ?>_api_key"></td>
+                </tr>
+                </tbody>
+                <?php // end of foreach($stores as $store){
+                } ?>
             </table>
+            <?php if($update_url){ ?>
+            <a href="<?php echo $update_url; ?>" class="button"><?php echo $button_update; ?></a>
+            <?php } ?>
         </form>
 
     </div>
 </div>
 
-
-
-
-<script>
-    $("#simple_connect").click(function () {
-        var w = 800;
-        var h = 500;
-        var left = (screen.width - w) / 2;
-        var top = (screen.width - h) / 2;
-
-        window.open("<?php echo str_replace("&amp;","&",$simple_connect_url);?>", "_blank", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=no, copyhistory=no, width=" + w + ", height=" + h + ", top=" + top + ", left=" + left);
-    });
-    function simple_connect_finish(base_url, auth_url, api_url, api_key) {
-        $("#base_url").val(base_url)
-        $("#auth_url").val(auth_url)
-        $("#api_url").val(api_url);
-        $("#api_key").val(api_key);
-    }
-</script>
 <?php echo $footer; ?>

@@ -21,7 +21,20 @@ class ArrayHelper
         }
         return $new;
     }
-
+    function allPrefixed($input,$prefix, $removePrefix = true)
+    {
+        $result = [];
+        $prefixLen = strlen($prefix);
+        foreach ($input as $key => $val) {
+            if (substr($key, 0, $prefixLen) == $prefix) {
+                if ($removePrefix) {
+                    $key = substr($key, $prefixLen);
+                }
+                $result[$key] = $val;
+            }
+        }
+        return $result;
+    }
 }
 
 ?>

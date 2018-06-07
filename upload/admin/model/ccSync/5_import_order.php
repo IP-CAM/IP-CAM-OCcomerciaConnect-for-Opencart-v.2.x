@@ -12,7 +12,7 @@ class ModelCcSync5ImportOrder extends Model
         \comerciaConnect\lib\Debug::writeMemory("Received order data");
 
         foreach ($orders as $order) {
-            $data->ccOrderModel->saveOrder($order);
+            $data->ccOrderModel->saveOrder($order,$data->storeId);
             \comerciaConnect\lib\Debug::writeMemory("Saved order ".$order->id);
         }
         $data->ccOrderModel->touchBatch($data->session,$orders);

@@ -6,9 +6,16 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
     include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian.php");
 }
 
-define("CC_VERSION", "1.6");
-define("CC_RELEASE", CC_VERSION . ".1");
+define("CC_VERSION", "2.0");
+define("CC_RELEASE", CC_VERSION . ".0");
 define("CC_VERSION_URL", "https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
+
+define("CC_SYNC_METHOD_SINGLE", 0);
+define("CC_SYNC_METHOD_MULTI", 1);
+
+if (!defined("CC_HASH_LENGTH")) {
+    define("CC_HASH_LENGTH", 10);
+}
 
 
 if (!defined("CC_BATCH_SIZE")) {
@@ -23,8 +30,8 @@ if (!defined("CC_DEBUG")) {
 if (!defined("CC_TMP")) {
     define("CC_TMP", sys_get_temp_dir());
 }
-if(!defined("CC_PATH_LOG")){
-    define("CC_PATH_LOG",DIR_LOGS."cc.log");
+if (!defined("CC_PATH_LOG")) {
+    define("CC_PATH_LOG", DIR_LOGS . "cc.log");
 }
 
 use comercia\Util;
@@ -47,48 +54,82 @@ class ControllerModuleComerciaConnect extends Controller
         $form = Util::form($data);
 
         $form->finish(function ($data) {
-            Util::config()->set("comerciaConnect", Util::request()->post()->all());
+
+            $stores = Util::info()->stores();
+            foreach ($stores as $store) {
+                $configSet = Util::request()->post()->allPrefixed($store["store_id"] . "_");
+                if (!$store["store_id"]) {
+                    $configSet = array_merge($configSet, Util::request()->post()->allPrefixed("comerciaConnect", false));
+                }
+                Util::config($store["store_id"])->set("comerciaConnect", $configSet);
+            }
+
             Util::session()->success = $data['msg_settings_saved'];
-            Util::response()->redirect(Util::route()->extension());
         });
 
+
+        $form->selectboxOptions("syncMethods")
+            ->add($data["syncMethod_single"], CC_SYNC_METHOD_SINGLE)
+            ->add($data["syncMethod_multi"], CC_SYNC_METHOD_MULTI);
+
+
         //title
-        Util::document()->setTitle(Util::language()->heading_title);
+        Util::document()
+            ->setTitle(Util::language()->heading_title)
+            ->addStyle("view/stylesheet/comerciaConnect.css")
+            ->addScript("view/javascript/comerciaConnect.js");
 
 
-        $formFields = array("comerciaConnect_status", "comerciaConnect_base_url", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url");
         //place the prepared data into the form
-
         $form
-            ->fillFromSessionClear("error_warning", "success")
-            ->fillFromPost($formFields)
-            ->fillFromConfig($formFields);
+            ->fillFromSessionClear("error_warning", "success");
+
+        $formGeneralFields = ["comerciaConnect_syncMethod"];
+        $form
+            ->fillFromPost($formGeneralFields)
+            ->fillFromConfig($formGeneralFields);
+
+        $storeFormFields = array("comerciaConnect_status", "comerciaConnect_base_url", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url");
+        $data['stores'] = Util::info()->stores();
+        foreach ($data['stores'] as &$store) {
+
+            Util::form($store, $store["store_id"])
+                ->fillFromPost($storeFormFields)
+                ->fillFromConfig($storeFormFields);
+
+
+            //set up api session
+            $connect = Util::load()->library("comerciaConnect");
+            $api = $connect->getApi(
+                $store['comerciaConnect_base_url'],
+                $store['comerciaConnect_auth_url'],
+                $store['comerciaConnect_api_url']
+            );
+
+            $apiSession = $api->createSession($store['comerciaConnect_api_key']);
+            $website = Website::getWebsite($apiSession);
+            if ($website) {
+                $store['control_panel_url'] = $website->controlPanelUrl();
+                $store['login_success'] = true;
+            } else {
+                $store['control_panel_url'] = false;
+                $store['login_success'] = false;
+            }
+
+            $store['sync_url'] = Util::url()->link('module/comerciaConnect/sync', "store_id=" . $store["store_id"]);
+
+        }
 
         Util::breadcrumb($data)
             ->add("text_home", "common/home")
             ->add("settings_title", "module/comerciaConnect");
 
-        //set up api session
-        $connect = Util::load()->library("comerciaConnect");
-        $api = $connect->getApi($data['comerciaConnect_base_url'], $data['comerciaConnect_auth_url'], $data['comerciaConnect_api_url']);
-        $apiSession = $api->createSession($data['comerciaConnect_api_key']);
-        $website = Website::getWebsite($apiSession);
-
-        if ($website) {
-            $data['control_panel_url'] = $website->controlPanelUrl();
-            $data['login_success'] = true;
-        } else {
-            $data['control_panel_url'] = false;
-            $data['login_success'] = false;
-        }
 
         //actions
         $data['action'] = Util::url()->link('module/comerciaConnect');
         $data['cancel'] = Util::url()->link('modules');
-        $data['sync_url'] = Util::url()->link('module/comerciaConnect/sync');
         $data['simple_connect_url'] = Util::url()->link('module/comerciaConnect/simpleConnect');
         $data['update_url'] = $this->getUpdateUrl();
-
 
         //This god mode is for development troubleshooting purposes
         if (Util::request()->get()->mode == "CCG0D") {
@@ -123,7 +164,7 @@ class ControllerModuleComerciaConnect extends Controller
             } else {
                 $url = "https://app.comerciaconnect.nl";
             }
-            $url .= "/index.php?route=simpleConnect";
+            $url .= "/index.php?route=simpleConnect/start/" . base64_encode(Util::url()->link("module/comerciaConnect/sync", "mode=api&store_id=" . Util::request()->get()->store_id, true, false));
             Util::response()->redirectToUrl($url);
         } else {
             $data = array();
@@ -148,69 +189,76 @@ class ControllerModuleComerciaConnect extends Controller
     function sync()
     {
         global $is_in_debug;
-        //  $is_in_debug=true;
 
         $this->patch();
 
-        if (util::request()->get()->reset) {
-            $this->db->query("update `" . DB_PREFIX . "product` set ccHash=''");
-            $this->db->query("update `" . DB_PREFIX . "order` set ccHash=''");
-            $this->db->query("update `" . DB_PREFIX . "category` set ccHash=''");
-        }
+        $syncMethod = Util::config()->comerciaConnect_syncMethod;
+        $storeId = Util::request()->get()->store_id ?: 0;
+        $status = Util::config($storeId)->get("comerciaConnect_status",true);
+        if ($status) {
 
-        //prepare variables
-        $baseUrl = Util::config()->comerciaConnect_base_url;
-        $authUrl = Util::config()->comerciaConnect_auth_url;
-        $apiKey = Util::config()->comerciaConnect_api_key;
-        $apiUrl = Util::config()->comerciaConnect_api_url;
-
-        self::$subHash = md5($apiKey . "_" . CC_VERSION);
-
-        //create session
-        $connect = Util::load()->library("comerciaConnect");
-        $api = $connect->getApi($baseUrl, $authUrl, $apiUrl);
-
-        //load models
-        $data = (object)[
-            'productModel' => Util::load()->model("catalog/product"),
-            'optionModel' => Util::load()->model("catalog/option"),
-            'categoryModel' => Util::load()->model("catalog/category"),
-            'ccOrderModel' => Util::load()->model("module/comerciaconnect/order"),
-            'ccProductModel' => Util::load()->model("module/comerciaconnect/product"),
-            'orderModel' => Util::load()->model("sale/order"),
-            'session' => $api->createSession($apiKey),
-        ];
-
-
-        $dir = DIR_APPLICATION . 'model/ccSync';
-        if ($handle = opendir($dir)) {
-            while (false !== ($entry = readdir($handle))) {
-                if ($entry != '.' && $entry != '..' && !is_dir($dir . '/' . $entry) && substr($entry, -3) === 'php') {
-                    $syncModels[] = substr($entry, 0, -4);
-                }
+            if (util::request()->get()->reset) {
+                $this->db->query("update `" . DB_PREFIX . "product` set ccHash=''");
+                $this->db->query("update `" . DB_PREFIX . "order` set ccHash=''");
+                $this->db->query("update `" . DB_PREFIX . "category` set ccHash=''");
             }
 
-            sort($syncModels);
-            closedir($handle);
-        }
+            //prepare variables
+            $baseUrl = Util::config($storeId)->comerciaConnect_base_url;
+            $authUrl = Util::config($storeId)->comerciaConnect_auth_url;
+            $apiKey = Util::config($storeId)->get("comerciaConnect_api_key", true);
+            $apiUrl = Util::config($storeId)->comerciaConnect_api_url;
+
+            self::$subHash = md5($apiKey . "_" . CC_VERSION);
+
+            //create session
+            $connect = Util::load()->library("comerciaConnect");
+            $api = $connect->getApi($baseUrl, $authUrl, $apiUrl);
+
+            //load models
+            $data = (object)[
+                'syncMethod' => $syncMethod,
+                'storeId' => $storeId,
+                'productModel' => Util::load()->model("catalog/product"),
+                'optionModel' => Util::load()->model("catalog/option"),
+                'categoryModel' => Util::load()->model("catalog/category"),
+                'ccOrderModel' => Util::load()->model("module/comerciaconnect/order"),
+                'ccProductModel' => Util::load()->model("module/comerciaconnect/product"),
+                'orderModel' => Util::load()->model("sale/order"),
+                'session' => $api->createSession($apiKey),
+            ];
 
 
-        foreach ($syncModels as $model) {
-            \comerciaConnect\lib\Debug::writeMemory("started sync ".$model );
-            if (!Util::request()->get()->syncModel || $model == Util::request()->get()->syncModel) {
-                Util::load()->model('ccSync/' . $model)->sync($data);
-            } else {
-                $modelObj = Util::load()->model('ccSync/' . $model);
-                if (method_exists($modelObj, "resultOnly")) {
-                    $modelObj->resultOnly($data);
+            $dir = DIR_APPLICATION . 'model/ccSync';
+            if ($handle = opendir($dir)) {
+                while (false !== ($entry = readdir($handle))) {
+                    if ($entry != '.' && $entry != '..' && !is_dir($dir . '/' . $entry) && substr($entry, -3) === 'php') {
+                        $syncModels[] = substr($entry, 0, -4);
+                    }
                 }
+
+                sort($syncModels);
+                closedir($handle);
             }
-            \comerciaConnect\lib\Debug::writeMemory("finished sync ".$model );
+
+
+            foreach ($syncModels as $model) {
+                \comerciaConnect\lib\Debug::writeMemory("started sync " . $model);
+                if (!Util::request()->get()->syncModel || $model == Util::request()->get()->syncModel) {
+                    Util::load()->model('ccSync/' . $model)->sync($data);
+                } else {
+                    $modelObj = Util::load()->model('ccSync/' . $model);
+                    if (method_exists($modelObj, "resultOnly")) {
+                        $modelObj->resultOnly($data);
+                    }
+                }
+                \comerciaConnect\lib\Debug::writeMemory("finished sync " . $model);
+            }
         }
 
         if (@$this->request->get['mode'] == "api") {
             header("content-type:application/json");
-            echo "true";
+            echo $status ? "true" : "false";
         } else {
             Util::response()->redirectBack();
         }
