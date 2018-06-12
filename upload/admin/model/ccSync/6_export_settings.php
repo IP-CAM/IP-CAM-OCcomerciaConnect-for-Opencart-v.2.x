@@ -145,7 +145,7 @@ class ModelCcSync6ExportSettings extends Model
         $result = [];
 
         $query = $this->db->query("SHOW FIELDS FROM `" . DB_PREFIX . "product`");
-        $languages = $this->db->query("SELECT * FROM `language`");
+        $languages = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language`");
 
         foreach ($languages as $language) {
             Util::language($language["directory"])->load("catalog/product");
@@ -216,6 +216,7 @@ class ModelCcSync6ExportSettings extends Model
 
 
         $result["fields"] = array_values($result["fields"]);
+        $result["translations"] = array_values($result["translations"]);
 
         return $result;
 
