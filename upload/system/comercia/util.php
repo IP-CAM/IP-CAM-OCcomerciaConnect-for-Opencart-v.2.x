@@ -162,14 +162,14 @@ class Util
         return $path;
     }
 
-    static function language()
+    static function language($language=false)
     {
-        static $language = false;
-        if (!$language) {
+        static $languages = [];
+        if (!$languages[$language]) {
             require_once(__DIR__ . "/language.php");
-            $path = new Language();
+            $languages[$language] = new Language($language);
         }
-        return $path;
+        return $languages[$language];
     }
 
     public static function session()

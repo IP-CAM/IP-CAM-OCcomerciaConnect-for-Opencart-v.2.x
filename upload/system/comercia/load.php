@@ -242,7 +242,7 @@ class Load
 
     }
 
-    function language($file, &$data = array())
+    function language($file, &$data = array(),$language=false)
     {
         if(is_array($file)){
             $files=$file;
@@ -256,7 +256,11 @@ class Load
         $file=$this->rewriteLanguage($file);
 
         $registry = Util::registry();
-        $result = $registry->get("load")->language($file);
+        if($language){
+          $language->load($file);
+        } else {
+            $result = $registry->get("load")->language($file);
+        }
         foreach ($result as $key => $val) {
             $data[$key] = $val;
         }

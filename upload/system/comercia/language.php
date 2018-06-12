@@ -4,9 +4,13 @@ class Language
 {
     private $language;
 
-    function __construct()
+    function __construct($language=false)
     {
-        $this->language = Util::registry()->get("language");
+        if(!$language){
+            $this->language = Util::registry()->get("language");
+        }else{
+            $this->language=new \Language($language);
+        }
     }
 
     function __get($name)

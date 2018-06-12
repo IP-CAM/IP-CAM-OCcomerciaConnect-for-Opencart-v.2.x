@@ -74,6 +74,9 @@ class Website
     /** @var string */
     var $defaultOrderStatus;
 
+    /** @var translation[] */
+    var $translations;
+
     private $session;
 
 
