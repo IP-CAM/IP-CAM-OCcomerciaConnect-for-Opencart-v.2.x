@@ -147,7 +147,7 @@ class ModelCcSync6ExportSettings extends Model
         $query = $this->db->query("SHOW FIELDS FROM `" . DB_PREFIX . "product`");
         $languages = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language`");
 
-        foreach ($languages as $language) {
+        foreach ($languages->rows as $language) {
             Util::language($language["directory"])->load("catalog/product");
         }
 
@@ -158,12 +158,10 @@ class ModelCcSync6ExportSettings extends Model
 
             foreach ($languages->rows as $language) {
                 $key = $row["Field"] . "_" . $language["code"];
-                if (Util::language($language["directory"])->get("entry_" . $row["Field"])) {
-                    $result["translations"][$key] = new Translation($language["code"], "productField", $row["Field"], Util::language($language["directory"])->get("entry_" . $row["Field"]));
-                } elseif (Util::language($language["directory"])->get("text_" . $row["Field"])) {
-                    $result["translations"][$key] = new Translation($language["code"], "productField", $row["Field"], Util::language($language["directory"])->get("text_" . $row["Field"]));
-                } elseif (Util::language($language["directory"])->get("field_" . $row["Field"])) {
-                    $result["translations"][$key] = new Translation($language["code"], "productField", $row["Field"], Util::language($language["directory"])->get("field_" . $row["Field"]));
+
+                $text=explode("<",Util::language($language["directory"])->get("entry_" . $row["Field"]))[0];
+                if ($text && $text != "entry_" . $row["Field"]) {
+                    $result["translations"][$key] = new Translation($language["code"], "productField", $row["Field"], $text);
                 }
             }
 
