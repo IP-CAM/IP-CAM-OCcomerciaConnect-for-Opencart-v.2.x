@@ -1,5 +1,7 @@
 <?php
+
 use comercia\Util;
+use comerciaConnect\logic\Translation;
 use comerciaConnect\logic\Website;
 
 class ModelCcSync6ExportSettings extends Model
@@ -26,21 +28,22 @@ class ModelCcSync6ExportSettings extends Model
         $website->weightUnits = $this->getWeightUnits();
         $website->lengthUnits = $this->getLengthUnits();
         $website->taxRates = $this->getTaxRates();
-        $website->orderStatus=$this->getOrderStatus();
-        $website->stockStatus=$this->getStockStatus();
-        $website->fieldsOrder=$this->getFieldsOrder();
-        $website->fieldsProduct=$this->getFieldsProduct();
-        $adminDir=parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
-        $website->syncEndpoint=$adminDir."?route=module/comerciaConnect/sync&mode=api&store_id=".$data->storeId;
+        $website->orderStatus = $this->getOrderStatus();
+        $website->stockStatus = $this->getStockStatus();
+        $website->fieldsOrder = $this->getFieldsOrder();
+        $fields = $this->getFieldsProduct();
+        $website->fieldsProduct = $fields["fields"];
+        $website->translations = $fields["translations"];
+        $adminDir = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
+        $website->syncEndpoint = $adminDir . "?route=module/comerciaConnect/sync&mode=api&store_id=" . $data->storeId;
         $website->save();
     }
-
 
 
     function getTaxRates()
     {
         $countryModel = Util::load()->model("localisation/country");
-        $defaultCountry=$countryModel->getCountry(Util::config()->get("config_country_id"));
+        $defaultCountry = $countryModel->getCountry(Util::config()->get("config_country_id"));
 
         $query = $this->db->query("SELECT r.tax_class_id AS class, tr.rate AS rate, c.iso_code_2 AS country FROM " . DB_PREFIX . "tax_rule AS r 
         LEFT JOIN " . DB_PREFIX . "tax_rate AS tr ON tr.tax_rate_id=r.tax_rate_id 
@@ -128,28 +131,46 @@ class ModelCcSync6ExportSettings extends Model
 
     private function getFieldsOrder()
     {
-        $result=[];
-        $query=$this->db->query("SHOW FIELDS FROM `".DB_PREFIX."order`");
-        foreach($query->rows as $row){
-            $result[]=$row["Field"];
+        $result = [];
+        $query = $this->db->query("SHOW FIELDS FROM `" . DB_PREFIX . "order`");
+        foreach ($query->rows as $row) {
+            $result[] = $row["Field"];
         }
         return $result;
     }
 
     private function getFieldsProduct()
     {
-        $result=[];
-        $query=$this->db->query("SHOW FIELDS FROM `".DB_PREFIX."product`");
-        foreach($query->rows as $row){
-            $result[] = [
+
+        $result = [];
+
+        $query = $this->db->query("SHOW FIELDS FROM `" . DB_PREFIX . "product`");
+        $languages = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language`");
+
+        foreach ($languages->rows as $language) {
+            Util::language($language["directory"])->load("catalog/product");
+        }
+
+        foreach ($query->rows as $row) {
+            $result["fields"][$row["Field"]] = [
                 "name" => $row["Field"],
             ];
+
+            foreach ($languages->rows as $language) {
+                $key = $row["Field"] . "_" . $language["code"];
+
+                $text=explode("<",Util::language($language["directory"])->get("entry_" . $row["Field"]))[0];
+                if ($text && $text != "entry_" . $row["Field"]) {
+                    $result["translations"][$key] = new Translation($language["code"], "productField", $row["Field"], $text);
+                }
+            }
+
         }
 
         $optionsModel = Util::load()->model("catalog/option");
         $options = $optionsModel->getOptions();
 
-        foreach($options as $option){
+        foreach ($options as $option) {
             $optionValues = $optionsModel->getOptionValues($option["option_id"]);
 
             $value = [];
@@ -157,21 +178,47 @@ class ModelCcSync6ExportSettings extends Model
                 $value[] = $optionValue["name"];
             }
 
-            $result[] = [
-                "name" => "option_".$option['name'],
+            $optionDescriptions=$optionsModel->getOptionDescriptions($option["option_id"]);
+            foreach ($languages->rows as $language) {
+                $key = "option_" . $option['name'] . "_" . $language["code"];
+                if($optionDescriptions[$language["language_id"]]){
+                    $result["translations"][$key] = new Translation($language["code"], "productField", "option_" . $option['name'],$optionDescriptions[$language["language_id"]]);
+                }
+            }
+
+            $result["fields"]["option_" . $option['name']] = [
+                "name" => "option_" . $option['name'],
                 "options" => $value,
             ];
+
+
+
+        }
+        $attributeGroupModel=Util::load()->model("catalog/attribute_group");
+        $attributes = $attributeGroupModel->getAttributeGroups();
+        foreach ($attributes as $attribute) {
+            $result["fields"]["attribute_" . $attribute["name"]] = [
+                "name" => "attribute_" . $attribute["name"],
+            ];
+
+
+            $attributeDescriptions=$attributeGroupModel->getAttributeGroupDescriptions($attribute["attribute_id"]);
+            foreach ($languages->rows as $language) {
+                $key = "attribute_" . $attribute["name"] . "_" . $language["code"];
+                if($attributeDescriptions[$language["language_id"]]){
+                    $result["translations"][$key] = new Translation($language["code"], "productField", "attribute_" . $attribute["name"],$attributeDescriptions[$language["language_id"]]);
+                }
+            }
+
         }
 
-        $attributes=Util::load()->model("catalog/attribute_group")->getAttributeGroups();
-        foreach($attributes as $attribute){
-            $result[] = [
-                "name" => "attribute_".$attribute["name"],
-            ];
-        }
+
+        $result["fields"] = array_values($result["fields"]);
+        $result["translations"] = array_values($result["translations"]);
 
         return $result;
 
     }
+
 
 }

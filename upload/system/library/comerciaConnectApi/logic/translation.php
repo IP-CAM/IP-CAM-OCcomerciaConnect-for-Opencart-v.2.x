@@ -1,4 +1,3 @@
-<?php
 
 namespace comerciaConnect\logic;
 use ForceUTF8\Encoding;
@@ -11,7 +10,7 @@ class Translation
 {
     /**
      * @var string | ISO 3166-1 alpha-2 format
-     * @link https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 <Inforamtion about the format>
+     * @link https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 <Information about the format>
      */
     var $language;
     /** @var string */
