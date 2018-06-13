@@ -1,5 +1,6 @@
 <?php
 namespace comerciaConnect\logic;
+use ForceUTF8\Encoding;
 
 /**
  * This class represents an address. It will only be used as part of an order. addresses are not separately usable.
@@ -37,7 +38,7 @@ class Address
     function __construct($data)
     {
         foreach ($data as $key => $value) {
-            $this->{$key} = $value;
+            $this->{$key} =  Encoding::fixUTF8($value);
         }
     }
 }
