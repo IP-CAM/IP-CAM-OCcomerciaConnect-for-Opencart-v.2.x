@@ -1,12 +1,11 @@
 <?php
-namespace comerciaConnect\logic;
-use ForceUTF8\Encoding;
 
+namespace comerciaConnect\logic;
 /**
  * This class represents a description. It will only be used as part of a product. Descriptions are not separately usable.
  * @author Mark Smit <m.smit@comercia.nl>
  */
-class ProductDescription
+class Translation
 {
     /**
      * @var string | ISO 3166-1 alpha-2 format
@@ -14,21 +13,25 @@ class ProductDescription
      */
     var $language;
     /** @var string */
-    var $name;
+    var $key;
     /** @var string */
-    var $description;
+    var $val;
+    /** @var string */
+    var $section;
+
     /**  @param array $data The data to initialize the address with */
-    function __construct($language = "", $name = "", $description = "")
+    function __construct($language = "", $section = "", $key = "", $val = "")
     {
         if (is_array($language)) {
             $data = $language;
             foreach ($data as $key => $value) {
-                $this->{$key} =  Encoding::fixUTF8($value);
+                $this->{$key} = $value;
             }
         } else {
-            $this->name = $name;
+            $this->key = $key;
             $this->language = $language;
-            $this->description = $description;
+            $this->val = $val;
+            $this->section = $section;
         }
     }
 }

@@ -7,7 +7,7 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
 }
 
 define("CC_VERSION", "2.0");
-define("CC_RELEASE", CC_VERSION . ".1");
+define("CC_RELEASE", CC_VERSION . ".3");
 define("CC_VERSION_URL", "https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
 
 define("CC_SYNC_METHOD_SINGLE", 0);

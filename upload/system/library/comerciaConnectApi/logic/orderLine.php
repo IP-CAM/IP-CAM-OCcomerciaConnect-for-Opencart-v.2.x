@@ -1,5 +1,6 @@
 <?php
 namespace comerciaConnect\logic;
+use ForceUTF8\Encoding;
 
 /**
  * This class represents an orderline. It will only be used as part of an order. Orderlines are not separately usable.
@@ -29,7 +30,7 @@ class OrderLine
     function __construct($session, $data)
     {
         foreach ($data as $key => $value) {
-            $this->{$key} = $value;
+            $this->{$key} =  Encoding::fixUTF8($value);
         }
 
         $this->product = new Product($session, $data["product"]);

@@ -1,5 +1,6 @@
 <?php
 namespace comerciaConnect\logic;
+use ForceUTF8\Encoding;
 
 /**
  * This class represents a category which can contain categories or subcategories
@@ -25,7 +26,7 @@ class ProductCategory
         $this->session = $session;
 
         foreach ($data as $key => $value) {
-            $this->{$key} = $value;
+            $this->{$key} =  Encoding::fixUTF8($value);
         }
     }
 
