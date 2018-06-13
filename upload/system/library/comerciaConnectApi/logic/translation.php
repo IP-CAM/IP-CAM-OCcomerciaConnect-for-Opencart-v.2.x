@@ -1,4 +1,4 @@
-
+<?php
 namespace comerciaConnect\logic;
 use ForceUTF8\Encoding;
 
