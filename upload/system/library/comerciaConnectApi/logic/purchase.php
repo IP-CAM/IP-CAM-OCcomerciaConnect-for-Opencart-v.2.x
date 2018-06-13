@@ -1,5 +1,7 @@
 <?php
 namespace comerciaConnect\logic;
+use ForceUTF8\Encoding;
+
 /**
  * This class represents an order. It is named Purchase because order is a reserved keyword in some php versions.
  * @author Mark Smit <m.smit@comercia.nl>
@@ -48,7 +50,7 @@ class Purchase
     {
         $this->session = $session;
         foreach ($data as $key => $value) {
-            $this->{$key} = $value;
+            $this->{$key} =  Encoding::fixUTF8($value);
         }
 
         $this->deliveryAddress = new Address($data["deliveryAddress"]);

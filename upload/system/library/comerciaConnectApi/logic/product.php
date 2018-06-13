@@ -3,6 +3,7 @@ namespace comerciaConnect\logic;
 
 use comercia\Util;
 use comerciaConnect\lib\HttpClient;
+use ForceUTF8\Encoding;
 use MongoDB\BSON\Binary;
 
 /**
@@ -91,7 +92,7 @@ class Product
     {
         $this->session = $session;
         foreach ($data as $key => $value) {
-            $this->{$key} = $value;
+            $this->{$key} = Encoding::fixUTF8($value);
         }
 
         if($this->parent) {
