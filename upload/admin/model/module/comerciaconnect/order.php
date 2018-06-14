@@ -253,7 +253,7 @@ class ModelModuleComerciaconnectOrder extends Model
             $dbOrderInfo["marketing_id"] = 0;
         }
         $dbOrderInfo["tracking"] = $order->trackingCode;
-        $dbOrderInfo["language_id"] = Util::config($storeId)->get('config_language_id');
+        $dbOrderInfo["language_id"] = Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($storeId);
 
         $currency = $this->model_localisation_currency->getCurrencyByCode(Util::config($storeId)->get('config_currency'));
         $dbOrderInfo["currency_id"] = $currency['currency_id'];
@@ -600,7 +600,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $sql = "SELECT 
                  o.order_id, 
                  CONCAT(o.firstname, ' ', o.lastname) AS customer, 
-                 (SELECT os.name FROM " . DB_PREFIX . "order_status os WHERE os.order_status_id = o.order_status_id AND os.language_id = '" . (int)Util::config($storeId)->get('config_language_id') . "') AS order_status,
+                 (SELECT os.name FROM " . DB_PREFIX . "order_status os WHERE os.order_status_id = o.order_status_id AND os.language_id = '" . (int)Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($storeId) . "') AS order_status,
                  o.shipping_code, 
                  o.total, 
                  o.currency_code, 

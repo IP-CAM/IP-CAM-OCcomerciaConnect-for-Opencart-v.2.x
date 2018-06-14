@@ -344,7 +344,7 @@ class ModelModuleComerciaconnectProduct extends Model
     // Start OC Version <= 1.5.2.1 specific functions
     public function getOptionValue($option_value_id,$storeId)
     {
-        return $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_value_id = '" . (int)$option_value_id . "' AND ovd.language_id = '" . (int)Util::config($storeId)->get('config_language_id') . "'")->row;
+        return $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_value_id = '" . (int)$option_value_id . "' AND ovd.language_id = '" . (int)Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($storeId) . "'")->row;
     }
 
     public function getCategory($category_id)
