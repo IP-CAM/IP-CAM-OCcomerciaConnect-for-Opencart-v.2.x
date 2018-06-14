@@ -361,6 +361,7 @@ class ModelModuleComerciaconnectProduct extends Model
             $sql .= "LEFT JOIN " . DB_PREFIX . "product_to_store AS ps ON ps.product_id=p.product_id WHERE ps.store_id='" . $store . "'";
         }
 
+        $sql .= " WHERE pd.language_id = '" . (int)Util::config($store?:0)->config_language_id . "'";
 
         $query = $this->db->query($sql);
 
