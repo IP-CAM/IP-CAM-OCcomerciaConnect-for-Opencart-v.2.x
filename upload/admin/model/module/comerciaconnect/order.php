@@ -24,7 +24,7 @@ class ModelModuleComerciaconnectOrder extends Model
         Util::load()->model('localisation/geo_zone');
     }
 
-    public function createApiOrder($order, $session, $productMap,$storeId)
+    public function createApiOrder($order, $session, $productMap, $storeId)
     {
         static $voucherProduct;
         static $couponProduct;
@@ -215,7 +215,7 @@ class ModelModuleComerciaconnectOrder extends Model
     }
 
 
-    function saveOrder($order,$storeId)
+    function saveOrder($order, $storeId)
     {
         Util::load()->language("module/comerciaConnect");
         Util::load()->model("localisation/currency");
@@ -245,7 +245,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["customer_group_id"] = Util::config($storeId)->get('config_customer_group_id');
         //todo:maybe implment this in the future in comercia connect
         $dbOrderInfo["comment"] = "";
-        $dbOrderInfo["order_status_id"] = $this->getOrderStatusId($order->status,$storeId);
+        $dbOrderInfo["order_status_id"] = $this->getOrderStatusId($order->status, $storeId);
 
         $dbOrderInfo["affiliate_id"] = 0;
         $dbOrderInfo["commission"] = 0;
@@ -369,7 +369,7 @@ class ModelModuleComerciaconnectOrder extends Model
                 } else {
                     $taxGroup = $orderLine->taxGroup;
                 }
-                $this->addToTotals($totals, "tax", $taxGroup, $orderLine->tax);
+                $this->addToTotals($totals, "tax", $taxGroup, $orderLine->tax * $orderLine->quantity);
             }
         }
 
@@ -480,7 +480,7 @@ class ModelModuleComerciaconnectOrder extends Model
 
     }
 
-    private function getOrderStatusId($name,$storeId)
+    private function getOrderStatusId($name, $storeId)
     {
         $orderStatusQuery = $this->db->query("SELECT `order_status_id` FROM `" . DB_PREFIX . "order_status` WHERE `name` LIKE '" . $name . "'");
 
