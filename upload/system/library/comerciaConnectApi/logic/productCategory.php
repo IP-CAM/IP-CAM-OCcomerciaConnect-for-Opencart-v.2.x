@@ -26,7 +26,11 @@ class ProductCategory
         $this->session = $session;
 
         foreach ($data as $key => $value) {
-            $this->{$key} =  Encoding::fixUTF8($value);
+            if(is_string($this->{$key})) {
+                $this->{$key} = Encoding::fixUTF8($value);
+            }else{
+                $this->{$key} = $value;
+            }
         }
     }
 

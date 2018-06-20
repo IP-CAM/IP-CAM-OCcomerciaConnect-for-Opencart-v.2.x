@@ -23,7 +23,11 @@ class ProductDescription
         if (is_array($language)) {
             $data = $language;
             foreach ($data as $key => $value) {
-                $this->{$key} =  Encoding::fixUTF8($value);
+                if(is_string($this->{$key})) {
+                    $this->{$key} = Encoding::fixUTF8($value);
+                }else{
+                    $this->{$key} = $value;
+                }
             }
         } else {
             $this->name = $name;
