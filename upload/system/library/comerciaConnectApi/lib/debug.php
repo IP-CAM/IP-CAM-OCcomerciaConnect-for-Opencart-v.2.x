@@ -19,7 +19,7 @@ class Debug
             }else{
                 $logFile="ccLog.log";
             }
-            if(!array(CC_DEBUG) || in_array($type,CC_DEBUG)) {
+            if(!is_array(CC_DEBUG) || in_array($type,CC_DEBUG)) {
                 file_put_contents($logFile, "[" . date("d-m-Y H:i:s") . "] " . $message . "\n", FILE_APPEND);
             }
         }
