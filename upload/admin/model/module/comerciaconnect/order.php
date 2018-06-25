@@ -337,11 +337,11 @@ class ModelModuleComerciaconnectOrder extends Model
 
         //calculate totals
         foreach ($order->orderLines as $orderLine) {
-            if (@$orderLine->product->type == 'shipping') {
+            if (@$orderLine->product->type == PRODUCT_TYPE_SHIPPING) {
                 $dbOrderInfo["shipping_method"] = $orderLine->product->name;
                 $dbOrderInfo["shipping_code"] = $orderLine->product->code;
                 $this->addToTotals($totals, "shipping", $orderLine->product->name, $orderLine->price * $orderLine->quantity);
-            } elseif (@$orderLine->product->type == 'payment') {
+            } elseif (@$orderLine->product->type == PRODUCT_TYPE_PAYMENT) {
                 $dbOrderInfo["payment_method"] = $orderLine->product->name;
                 $dbOrderInfo["payment_code"] = $orderLine->product->code;
                 $this->addToTotals($totals, "payment", $orderLine->product->name, $orderLine->price * $orderLine->quantity);
