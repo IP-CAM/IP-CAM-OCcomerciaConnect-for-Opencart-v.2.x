@@ -1,4 +1,5 @@
 <?php
+
 use comercia\Util;
 use comerciaConnect\logic\Product;
 use comerciaConnect\logic\ProductCategory;
@@ -70,7 +71,42 @@ class ModelModuleComerciaconnectProduct extends Model
         }
     }
 
-    //fix for 1.5
+    function updateOptionQuantity($product)
+    {
+        //prepare some information
+        $productModel = Util::load()->model("catalog/product");
+        $optionPrefix = "option_";
+        $parent = $product->parent;
+        $quantity = $product->quantity;
+        $expectedQuantity = -1;
+
+        //find all used option values, and calculate an expected Quantity
+        $ocOptions = $productOptions = $productModel->getProductOptions($parent->id);
+        $ocUsedOptionValues = [];
+        foreach ($parent->originalData as $optionKey => $optionValue) {
+            if (substr($optionKey, 0, strlen($optionPrefix)) == $optionPrefix) {
+                $optionName = substr($optionKey, strlen($optionPrefix));
+                foreach ($ocOptions as $ocOption) {
+                    if ($ocOption["name"] == $optionName) {
+                        foreach($ocOption["product_option_value"] as $ocOptionValue){
+                            $ocUsedOptionValues[]=$ocOptionValue;
+                            if($expectedQuantity<0 || $ocOptionValue["quantity"]<$expectedQuantity){
+                                $expectedQuantity=$ocOptionValue["quantity"];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //calculate the change made in the quantity
+        $diff=$quantity-$expectedQuantity;
+
+        foreach($ocUsedOptionValues as $ocOptionValue){
+            Util::db()->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity=quantity-".$diff." WHERE product_option_value_id='".$ocOptionValue['product_option_value_id']."'" );
+        }
+    }
+
     private function getLanguageByCode($code)
     {
         $code = is_array($code) ? $code['language'] : $code;
@@ -278,11 +314,11 @@ class ModelModuleComerciaconnectProduct extends Model
         Product::touchBatch($session, $products);
     }
 
-    function getHashForProduct($product,$storeId=0)
+    function getHashForProduct($product, $storeId = 0)
     {
         $originalHash = $product["ccHash"];
         $length = CC_HASH_LENGTH;
-        $currentProductHash = substr(md5(@$product['date_modified'] . '_' . $product["quantity"] . '_' . ControllerModuleComerciaConnect::$subHash . "_" . $product["price"] . "_" . $product["status"]),0,$length);
+        $currentProductHash = substr(md5(@$product['date_modified'] . '_' . $product["quantity"] . '_' . ControllerModuleComerciaConnect::$subHash . "_" . $product["price"] . "_" . $product["status"]), 0, $length);
         $stores = Util::info()->stores();
         $newHash = "";
         foreach ($stores as $key => $store) {
@@ -300,9 +336,9 @@ class ModelModuleComerciaconnectProduct extends Model
         return $newHash;
     }
 
-    function saveHashForProduct($product,$storeId=0)
+    function saveHashForProduct($product, $storeId = 0)
     {
-        $this->db->query("UPDATE `" . DB_PREFIX . "product` SET `ccHash` = '" . $this->getHashForProduct($product,$storeId) . "' WHERE `product_id` = '" . $product['product_id'] . "'");
+        $this->db->query("UPDATE `" . DB_PREFIX . "product` SET `ccHash` = '" . $this->getHashForProduct($product, $storeId) . "' WHERE `product_id` = '" . $product['product_id'] . "'");
     }
 
     function getHashForCategory($category, $storeId = 0)
@@ -342,7 +378,7 @@ class ModelModuleComerciaconnectProduct extends Model
     }
 
     // Start OC Version <= 1.5.2.1 specific functions
-    public function getOptionValue($option_value_id,$storeId)
+    public function getOptionValue($option_value_id, $storeId)
     {
         return $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_value_id = '" . (int)$option_value_id . "' AND ovd.language_id = '" . (int)Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($storeId) . "'")->row;
     }
@@ -361,9 +397,9 @@ class ModelModuleComerciaconnectProduct extends Model
             $sql .= "LEFT JOIN " . DB_PREFIX . "product_to_store AS ps ON ps.product_id=p.product_id WHERE ps.store_id='" . $store . "'";
         }
 
-        $language=Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($store);
+        $language = Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($store);
 
-        $sql .= " WHERE pd.language_id = '" . $language  . "'";
+        $sql .= " WHERE pd.language_id = '" . $language . "'";
 
         $query = $this->db->query($sql);
 
