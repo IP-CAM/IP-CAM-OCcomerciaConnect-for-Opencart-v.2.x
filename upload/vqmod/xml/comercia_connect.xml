@@ -17,7 +17,7 @@
 
     <file name="admin/controller/common/login.php" error="log">
         <operation>
-            <search position="after"><![CDATA[public function index() {]]></search>
+            <search position="after"><![CDATA[public function check() {]]></search>
             <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
             </add>
         </operation>
@@ -39,7 +39,7 @@
         </operation>
     </file>
 
-    <file name="admin/controller/startup/permission.php" error="log">
+    <file name="admin/controller/startup/permission.php" error="skip">
         <operation>
             <search position="after"><![CDATA[public function index() {]]></search>
             <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
