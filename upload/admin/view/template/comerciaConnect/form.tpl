@@ -18,7 +18,7 @@
     <div class="container-fluid">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title"><i class="fa fa-pencil"></i> <?php echo $text_settings; ?></h3>
+                <h3 class="panel-title"><i class="fa fa-plug"></i> <?php echo $text_connection; ?></h3>
             </div>
             <div class="panel-body">
 
@@ -46,12 +46,13 @@
 
                     <?php foreach($stores as $store){ ?>
 
-                    <div class="store" data-store="<?php echo $store['store_id']; ?>" data-scu="<?php echo str_replace("&amp;","&",$simple_connect_url);?>">
+                    <div class="store" data-store="<?php echo $store['store_id']; ?>" data-scu="<?php echo str_replace("
+                         &amp;
+                    ","&",$simple_connect_url);?>">
 
                     <h2 class="hide-closed">
                         <?php echo $store["name"]; ?>
                     </h2>
-
 
 
                     <?php if(!$store['login_success']){ ?>
@@ -67,7 +68,7 @@
                     <?php } else{ ?>
                     <div class="form-group">
                         <label class="col-sm-2 control-label hide-closed">
-                           <?php echo $text_actions; ?>
+                            <?php echo $text_actions; ?>
                         </label>
 
                         <label class="col-sm-2 control-label hide-opened">
@@ -77,9 +78,11 @@
                             <input type="button"
                                    value="<?php echo $button_simple_connect; ?>"
                                    class="btn btn-warning simpleConnectButton">
-                            <a href="<?php echo $store['sync_url']; ?>" class="btn btn-success"><?php echo $button_sync; ?></a>
+                            <a href="<?php echo $store['sync_url']; ?>"
+                               class="btn btn-success"><?php echo $button_sync; ?></a>
                             <?php if($godMode){ ?>
-                            <a href="<?php echo $store['sync_url']; ?>&reset=true" class="btn btn-danger"><?php echo $button_sync_all; ?></a>
+                            <a href="<?php echo $store['sync_url']; ?>&reset=true"
+                               class="btn btn-danger"><?php echo $button_sync_all; ?></a>
                             <?php
                    foreach($syncModels as $syncModel){
                 ?>
@@ -88,8 +91,10 @@
                             <?php }} ?>
                             <a href="<?php echo $store['control_panel_url']; ?>"
                                class="btn btn-info"><?php echo $button_control_panel; ?></a>
-                            <a type="btn btn-info" class="btn btn-info openButton hide-opened"><?php echo $button_open; ?> </a>
-                            <a type="button" class="btn btn-info closeButton hide-closed"><?php echo $button_close; ?> </a>
+                            <a type="btn btn-info"
+                               class="btn btn-info openButton hide-opened"><?php echo $button_open; ?> </a>
+                            <a type="button"
+                               class="btn btn-info closeButton hide-closed"><?php echo $button_close; ?> </a>
                         </div>
                     </div>
                     <?php }?>
@@ -157,29 +162,33 @@
                         </div>
                     </div>
             </div>
-                    <?php // end of foreach($stores as $store){
+            <?php // end of foreach($stores as $store){
                 } ?>
 
-            </form>
         </div>
-    </div>
-
-
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h3 class="panel-title"><i class="fa fa-pencil"></i> <?php echo $text_actions; ?></h3>
+        <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-exchange"></i> <?php echo $text_sync; ?></h3>
         </div>
-
-
         <div class="panel-body">
+            <?php foreach($sync_models as $syncModel){ ?>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="<?php echo $syncModel["key"]; ?>" name="<?php echo $syncModel["key"]; ?>" <?php if(${$syncModel["key"]}){echo "checked";}?>>
+                <label class="form-check-label"  for="<?php echo $syncModel["key"]; ?>"><?php echo $syncModel["text"]; ?></label>
+            </div>
+            <?php } ?>
+        </div>
 
-
+        <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-exclamation"></i> <?php echo $text_actions; ?></h3>
+        </div>
+        <div class="panel-body">
             <?php if($update_url){ ?>
             <a href="<?php echo $update_url; ?>" class="btn btn-success"><?php echo $button_update; ?></a>
             <?php } ?>
         </div>
+
+        </form>
     </div>
 </div>
-</div>
+
 
 <?php echo $footer; ?>

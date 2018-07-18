@@ -1,7 +1,7 @@
 <?php
 use comerciaConnect\logic\Product;
 
-class ModelCcSync4ImportProduct extends Model
+class ModelCcSync5ImportProduct extends Model
 {
     public function sync($data)
     {

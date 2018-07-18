@@ -4,7 +4,7 @@ use comercia\Util;
 use comerciaConnect\logic\Translation;
 use comerciaConnect\logic\Website;
 
-class ModelCcSync7ExportSettings extends Model
+class ModelCcSync8ExportSettings extends Model
 {
     public function sync($data)
     {

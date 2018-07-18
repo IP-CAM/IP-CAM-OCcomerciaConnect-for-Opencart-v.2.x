@@ -128,6 +128,9 @@ class Util
         return $route;
     }
 
+    /**
+     * @return Config
+     */
     static function config($store_id = 0)
     {
         static $config = array();
@@ -162,6 +165,10 @@ class Util
         return $path;
     }
 
+
+    /**
+     * @return Language
+     */
     static function language($language=false)
     {
         static $languages = [];
