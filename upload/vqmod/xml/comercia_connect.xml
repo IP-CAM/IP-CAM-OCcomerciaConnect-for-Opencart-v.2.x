@@ -4,7 +4,7 @@
     <vqmver>2.3.0</vqmver>
     <author>Comercia - Mark Smit</author>
 
-    <file name="admin/controller/common/home.php" error="skip">
+    <file name="admin/controller/common/home.php" error="log">
         <operation>
             <search position="after"><![CDATA[public function login() {]]></search>
             <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]></add>
@@ -15,7 +15,7 @@
         </operation>
     </file>
 
-    <file name="admin/controller/common/login.php" error="skip">
+    <file name="admin/controller/common/login.php" error="log">
         <operation>
             <search position="after"><![CDATA[public function index() {]]></search>
             <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
@@ -23,7 +23,7 @@
         </operation>
     </file>
 
-    <file name="admin/controller/startup/login.php" error="skip">
+    <file name="admin/controller/startup/login.php" error="log">
         <operation>
             <search position="after"><![CDATA[public function index() {]]></search>
             <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
@@ -31,7 +31,7 @@
         </operation>
     </file>
 
-    <file name="admin/controller/error/permission.php">
+    <file name="admin/controller/error/permission.php" error="log">
         <operation>
             <search position="after"><![CDATA[public function check() {]]></search>
             <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
@@ -39,7 +39,7 @@
         </operation>
     </file>
 
-    <file name="admin/controller/startup/permission.php">
+    <file name="admin/controller/startup/permission.php" error="log">
         <operation>
             <search position="after"><![CDATA[public function index() {]]></search>
             <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
