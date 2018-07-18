@@ -71,7 +71,7 @@ class ModelModuleComerciaconnectProduct extends Model
         }
     }
 
-    function updateOptionQuantity($product)
+    function updateOptionQuantity($product,$storeId)
     {
         //prepare some information
         $productModel = Util::load()->model("catalog/product");
@@ -83,15 +83,18 @@ class ModelModuleComerciaconnectProduct extends Model
         //find all used option values, and calculate an expected Quantity
         $ocOptions = $productOptions = $productModel->getProductOptions($parent->id);
         $ocUsedOptionValues = [];
-        foreach ($parent->originalData as $optionKey => $optionValue) {
+        foreach ($product->originalData as $optionKey => $optionValue) {
             if (substr($optionKey, 0, strlen($optionPrefix)) == $optionPrefix) {
                 $optionName = substr($optionKey, strlen($optionPrefix));
                 foreach ($ocOptions as $ocOption) {
                     if ($ocOption["name"] == $optionName) {
                         foreach($ocOption["product_option_value"] as $ocOptionValue){
-                            $ocUsedOptionValues[]=$ocOptionValue;
-                            if($expectedQuantity<0 || $ocOptionValue["quantity"]<$expectedQuantity){
-                                $expectedQuantity=$ocOptionValue["quantity"];
+                            $optionValueInfo=$this->getOptionValue($ocOptionValue["option_value_id"],$storeId);
+                            if($optionValueInfo["name"]==$optionValue) {
+                                $ocUsedOptionValues[] = $ocOptionValue;
+                                if ($expectedQuantity < 0 || $ocOptionValue["quantity"] < $expectedQuantity) {
+                                    $expectedQuantity = $ocOptionValue["quantity"];
+                                }
                             }
                         }
                     }
@@ -100,7 +103,7 @@ class ModelModuleComerciaconnectProduct extends Model
         }
 
         //calculate the change made in the quantity
-        $diff=$quantity-$expectedQuantity;
+        $diff=$expectedQuantity-$quantity;
 
         foreach($ocUsedOptionValues as $ocOptionValue){
             Util::db()->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity=quantity-".$diff." WHERE product_option_value_id='".$ocOptionValue['product_option_value_id']."'" );

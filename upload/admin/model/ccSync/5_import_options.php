@@ -1,7 +1,7 @@
 <?php
 use comerciaConnect\logic\Product;
 
-class ModelCcSync4ImportProduct extends Model
+class ModelCcSync5ImportOptions extends Model
 {
     public function sync($data)
     {
@@ -14,7 +14,7 @@ class ModelCcSync4ImportProduct extends Model
         \comerciaConnect\lib\Debug::writeMemory("Received product data");
 
         foreach ($products as $product) {
-            $data->ccProductModel->updateOptionQuantity($product);
+            $data->ccProductModel->updateOptionQuantity($product,$data->storeId);
             \comerciaConnect\lib\Debug::writeMemory("Saved product ".$product->id);
         }
 

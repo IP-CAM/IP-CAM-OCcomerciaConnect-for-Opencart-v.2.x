@@ -30,9 +30,10 @@ class Request
     {
         static $server = false;
         if (!$server) {
-            $server = new ArrayObject(array_merge(Util::registry("load")->get("request")->server,[
+            $serverObject=array_merge(Util::registry("load")->get("request")->server,[
                 "protocol"=>(!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://"
-            ]));
+            ]);
+            $server = new ArrayObject($serverObject);
         }
         return $server;
     }

@@ -103,7 +103,7 @@ class db
     public function saveDataObjectArray($table, $data,$keys=null)
     {
         foreach ($data as $obj) {
-            $this->saveDataObject($table, $obj,$keys);
+            $this->saveDataObject($table, $obj);
         }
     }
     private function _db()
@@ -153,7 +153,7 @@ class db
     {
         $result = $this->_db()->query($query);
 
-        if ($result) {
+        if ($result && is_object($result)) {
             return $result->rows;
         }
 

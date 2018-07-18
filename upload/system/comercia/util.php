@@ -131,7 +131,7 @@ class Util
     static function config($store_id = 0)
     {
         static $config = array();
-        if (!$config[$store_id]) {
+        if (!@$config[$store_id]) {
             require_once(__DIR__ . "/config.php");
             $config[$store_id] = new Config($store_id);
         }
@@ -165,7 +165,7 @@ class Util
     static function language($language=false)
     {
         static $languages = [];
-        if (!$languages[$language]) {
+        if (!@$languages[$language]) {
             require_once(__DIR__ . "/language.php");
             $languages[$language] = new Language($language);
         }
