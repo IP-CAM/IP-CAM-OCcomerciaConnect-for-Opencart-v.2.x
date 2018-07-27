@@ -18,7 +18,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $dbProduct["price"] = $product->price;
         $dbProduct["jan"] = $product->jan;
         $dbProduct["upc"] = $product->upc;
-        $dbProduct["ean"] = $product->ean;
+        $dbProductge["ean"] = $product->ean;
         $dbProduct["isbn"] = $product->isbn;
         $dbProduct["sku"] = $product->sku;
         $dbProduct["tax_class_id"] = $product->taxGroup;
