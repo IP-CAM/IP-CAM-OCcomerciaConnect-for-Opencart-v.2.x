@@ -1,11 +1,11 @@
 <?php
 namespace comerciaConnect\logic;
+use ForceUTF8\Encoding;
 
 /**
  * This class represents a Website. This contains all website related settings.
  * @author Mark Smit <m.smit@comercia.nl>
  */
-
 class Website
 {
     /** @var string */
@@ -88,7 +88,7 @@ class Website
     {
         $this->session = $session;
         foreach ($data as $key => $value) {
-            if(is_string($this->{$key})) {
+            if(is_string($value)) {
                 $this->{$key} = Encoding::fixUTF8($value);
             }else{
                 $this->{$key} = $value;

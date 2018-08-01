@@ -9,6 +9,7 @@ class ModelCcSync2ExportProduct extends Model
 
         $productMap = array();
         $productsChanged = array();
+        $allProductsChanged=[];
         $toSaveHash = [];
 
         \comerciaConnect\lib\Debug::writeMemory("Loaded products");
@@ -30,21 +31,6 @@ class ModelCcSync2ExportProduct extends Model
             if ($product["ccHash"] != $data->ccProductModel->getHashForProduct($product, $data->storeId)) {
                 $productsChanged[] = $apiProduct;
                 $toSaveHash[] = $product;
-                $productOptionMap = array();
-                $productOptions = $data->productModel->getProductOptions($product['product_id']);
-
-                foreach ($productOptions as $productOption) {
-                    $productOptionMap[$productOption['option_id']] = array_map(function ($productOptionValue) use ($data) {
-                        $productOptionValue['full_value'] = $data->ccProductModel->getOptionValue($productOptionValue['option_value_id'],$data->storeId);
-                        return $productOptionValue;
-                    }, $productOption['product_option_value']);
-                }
-
-                if (count($productOptionMap) > 0) {
-                    foreach (cc_cartesian($productOptionMap) as $child) {
-                        $productsChanged[] = $data->ccProductModel->createChildProduct($data->session, $child, $productMap[$product["product_id"]]);
-                    }
-                }
             }
 
             \comerciaConnect\lib\Debug::writeMemory("Prepared product " . $product["product_id"]);
@@ -56,6 +42,7 @@ class ModelCcSync2ExportProduct extends Model
                         $data->ccProductModel->saveHashForProduct($toSaveHashProduct, $data->storeId);
                     }
                 }
+                $allProductsChanged=array_merge($allProductsChanged,$productsChanged);
                 $toSaveHash = [];
                 $productsChanged = [];
                 \comerciaConnect\lib\Debug::writeMemory("Saved batch of products");
@@ -63,6 +50,7 @@ class ModelCcSync2ExportProduct extends Model
         }
 
         if (count($productsChanged)) {
+            $allProductsChanged=array_merge($allProductsChanged,$productsChanged);
             if ($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
                 foreach ($toSaveHash as $toSaveHashProduct) {
                     $data->ccProductModel->saveHashForProduct($toSaveHashProduct, $data->storeId);
@@ -71,6 +59,8 @@ class ModelCcSync2ExportProduct extends Model
             \comerciaConnect\lib\Debug::writeMemory("Saved batch of products");
         }
 
+
+        $data->productsChanged=$allProductsChanged;
         $data->productMap = $productMap;
     }
 

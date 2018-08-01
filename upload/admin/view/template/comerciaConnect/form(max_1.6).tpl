@@ -17,6 +17,10 @@
             <h3 class="panel-title"><i class="fa fa-pencil"></i> <?php echo $text_edit; ?></h3>
             <table class="form">
                 <tr>
+                    <th colspan="2"><?php echo $text_connection; ?></th>
+                </tr>
+
+                <tr>
                     <td><label><?php echo $label_version; ?></label></td>
                     <td> <?php echo $version;?></td>
                 </tr>
@@ -25,13 +29,16 @@
                 <tr class="hide-closed">
                     <td><label for="input-status"><?php echo $entry_syncMethod; ?></label></td>
                     <td>
-                        <?php echo \comercia\Util::html()->selectbox("comerciaConnect_syncMethod",$comerciaConnect_syncMethod,$syncMethods); ?>
+                        <?php echo \comercia\Util::html()->
+                        selectbox("comerciaConnect_syncMethod",$comerciaConnect_syncMethod,$syncMethods); ?>
                     </td>
                 </tr>
 
 
                 <?php foreach($stores as $store){ ?>
-                <tbody class="store" data-store="<?php echo $store['store_id']; ?>" data-scu="<?php echo str_replace("&amp;","&",$simple_connect_url);?>">
+                <tbody class="store" data-store="<?php echo $store['store_id']; ?>" data-scu="<?php echo str_replace("
+                       &amp;
+                ","&",$simple_connect_url);?>">
 
                 <tr>
                     <td class="store-title hide-closed" colspan="2"><?php echo $store["name"]; ?></td>
@@ -79,7 +86,8 @@
                 <tr class="hide-closed">
                     <td><label for="input-status"><?php echo $entry_status; ?></label></td>
                     <td>
-                        <select name="<?php echo $store['store_id']; ?>_comerciaConnect_status" id="<?php echo $store['store_id']; ?>_status">
+                        <select name="<?php echo $store['store_id']; ?>_comerciaConnect_status"
+                                id="<?php echo $store['store_id']; ?>_status">
                             <?php if ($store['comerciaConnect_status']) { ?>
                             <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
                             <option value="0"><?php echo $text_disabled; ?></option>
@@ -124,10 +132,32 @@
                 </tbody>
                 <?php // end of foreach($stores as $store){
                 } ?>
+
+                <tr>
+                    <th colspan="2"><?php echo $text_sync; ?></th>
+                </tr>
+                <?php foreach($sync_models as $syncModel){ ?>
+                <tr>
+                    <td>
+                        <label for="<?php echo $syncModel[" key"]; ?>">
+                        <input type="checkbox" id="<?php echo $syncModel["key"]; ?>" name="<?php echo $syncModel["key"]; ?>" <?php if(${$syncModel["key"]}){echo "checked";}?>><?php echo $syncModel["text"]; ?></label>
+                    </td>
+                </tr>
+                <?php } ?>
+
+
+                <tr>
+                    <th colspan="2"><?php echo $text_actions; ?></th>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <?php if($update_url){ ?>
+                        <a href="<?php echo $update_url; ?>" class="button"><?php echo $button_update; ?></a>
+                        <?php } ?>
+                    </td>
+                </tr>
             </table>
-            <?php if($update_url){ ?>
-            <a href="<?php echo $update_url; ?>" class="button"><?php echo $button_update; ?></a>
-            <?php } ?>
+
         </form>
 
     </div>

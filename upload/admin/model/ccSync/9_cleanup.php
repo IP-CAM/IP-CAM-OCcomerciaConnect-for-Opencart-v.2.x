@@ -3,7 +3,7 @@
 use comercia\Util;
 use comerciaConnect\logic\Event;
 
-class ModelCcSync7Cleanup extends Model
+class ModelCcSync9Cleanup extends Model
 {
     public function sync($data)
     {
