@@ -193,6 +193,9 @@ class Load
         }
         elseif (Util::version()->isMinimal(2.0)) {
             if (Util::version()->isMinimal("2.2") || Util::version()->isMinimal("2") && Util::info()->IsInAdmin()) {
+                if (Util::version()->isMaximal("2.1")) { // must be 2.0 or 2.1; both versions don't add tpl in the loader
+                    $view .= "." . $extension;
+                }
                 return $registry->get("load")->view($view, $data);
             } else {
                 if (file_exists(DIR_TEMPLATE . Util::info()->theme() . '/template/' . $view)) {

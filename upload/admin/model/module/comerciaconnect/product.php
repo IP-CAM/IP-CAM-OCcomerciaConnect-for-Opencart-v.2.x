@@ -412,7 +412,7 @@ class ModelModuleComerciaconnectProduct extends Model
     public function getCategories($store = 0, $syncMethod = 0)
     {
         $sql = "SELECT 
-                c.category_id AS category_id
+                c.category_id AS category_id, c.parent_id AS parent_id
                 FROM " . DB_PREFIX . "category AS c
             ";
 
