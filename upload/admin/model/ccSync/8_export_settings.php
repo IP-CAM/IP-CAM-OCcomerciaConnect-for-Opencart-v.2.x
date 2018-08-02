@@ -31,6 +31,8 @@ class ModelCcSync8ExportSettings extends Model
         $website->orderStatus = $this->getOrderStatus();
         $website->stockStatus = $this->getStockStatus();
         $website->fieldsOrder = $this->getFieldsOrder();
+        $website->customerGroups=$this->getCustomerGroups();
+
         $fields = $this->getFieldsProduct();
         $website->fieldsProduct = $fields["fields"];
         $website->translations = $fields["translations"];
@@ -39,6 +41,18 @@ class ModelCcSync8ExportSettings extends Model
         $website->save();
     }
 
+
+    function getCustomerGroups(){
+        if(Util::version()->isMinimal("2.0")) {
+            $cgModel = Util::load()->model("customer/customer_group");
+        }else{
+            $cgModel= Util::load()->model("account/customer_group");
+        }
+        $customerGroups=$cgModel->getCustomerGroups();
+        return array_map(function($customerGroup){
+            return $customerGroup["name"];
+        },$customerGroups);
+    }
 
     function getTaxRates()
     {
