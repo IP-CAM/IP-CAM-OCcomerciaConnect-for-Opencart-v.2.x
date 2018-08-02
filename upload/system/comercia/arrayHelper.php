@@ -13,6 +13,14 @@ class ArrayHelper
         return $array;
     }
 
+    function keyValuePairs($array,$keyField,$valueField){
+        $result=[];
+        foreach($array as $arrayItem){
+            $result[$arrayItem[$keyField]]=$arrayItem[$valueField];
+        }
+        return $result;
+    }
+
     function keyToVal($data)
     {
         $new = array();

@@ -1,6 +1,6 @@
 <?php
 
-class ModelCcSync3ExportOrder extends Model
+class ModelCcSync4ExportOrder extends Model
 {
     public function sync($data)
     {

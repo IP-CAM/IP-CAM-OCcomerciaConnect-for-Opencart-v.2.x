@@ -16,6 +16,22 @@ class ModelModuleComerciaconnectGeneral extends Model
             return $query[0]["language_id"];
     }
 
+    function getSyncModels(){
+        $syncModels=[];
+        $dir = DIR_APPLICATION . 'model/ccSync';
+        if ($handle = opendir($dir)) {
+            while (false !== ($entry = readdir($handle))) {
+                if ($entry != '.' && $entry != '..' && !is_dir($dir . '/' . $entry) && substr($entry, -3) === 'php') {
+                    $syncModels[] = substr($entry, 0, -4);
+                }
+            }
+
+            sort($syncModels);
+            closedir($handle);
+        }
+        return $syncModels;
+    }
+
 }
 
 ?>

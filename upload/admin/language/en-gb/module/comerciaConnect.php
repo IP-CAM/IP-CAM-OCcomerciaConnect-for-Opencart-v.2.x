@@ -2,7 +2,8 @@
 // Heading
 $_['heading_title'] = 'Comercia Connect';
 
-$_['text_settings'] = 'Settings';
+$_['text_connection'] = 'Connection';
+$_['text_sync'] = 'Synchronization';
 
 // Text
 $_['text_extension'] = 'Extensions';
@@ -46,3 +47,13 @@ $_["syncMethod_multi"] = "Multi store";
 $_["entry_syncMethod"] = "Synchronization method";
 
 $_["button_cc"] = "Comercia Connect";
+
+$_["sync_model_export_category"]="Export categories";
+$_["sync_model_export_product"]="Export products";
+$_["sync_model_export_variant"]="Export product variants";
+$_["sync_model_export_order"]="Export orders";
+$_["sync_model_import_product"]="Import products";
+$_["sync_model_import_variant"]="Import product variants";
+$_["sync_model_import_order"]="Import orders";
+$_["sync_model_export_settings"]="Export settings";
+$_["sync_model_cleanup"]="Clean up deleted data";

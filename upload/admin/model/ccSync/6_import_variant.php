@@ -1,20 +1,20 @@
 <?php
 use comerciaConnect\logic\Product;
 
-class ModelCcSync4ImportProduct extends Model
+class ModelCcSync6ImportVariant extends Model
 {
     public function sync($data)
     {
         $filter = Product::createFilter($data->session);
         $filter->filter("lastTouchedBy", TOUCHED_BY_API, "!=");
         $filter->filter("type", PRODUCT_TYPE_PRODUCT);
-        $filter->filter("parent_product_id", "empty", "=");
+        $filter->filter("parent_product_id", "empty", "!=");
         $products = $filter->getData();
 
         \comerciaConnect\lib\Debug::writeMemory("Received product data");
 
         foreach ($products as $product) {
-            $data->ccProductModel->saveProduct($product);
+            $data->ccProductModel->updateOptionQuantity($product,$data->storeId);
             \comerciaConnect\lib\Debug::writeMemory("Saved product ".$product->id);
         }
 

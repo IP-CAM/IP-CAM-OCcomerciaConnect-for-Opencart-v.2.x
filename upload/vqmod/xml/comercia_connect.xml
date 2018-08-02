@@ -1,10 +1,10 @@
 <modification>
     <id>Comercia Connect</id>
-    <version>1.0.6</version>
+    <version>2.2.1</version>
     <vqmver>2.3.0</vqmver>
     <author>Comercia - Mark Smit</author>
 
-    <file name="admin/controller/common/home.php" error="skip">
+    <file name="admin/controller/common/home.php" error="log">
         <operation>
             <search position="after"><![CDATA[public function login() {]]></search>
             <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]></add>
@@ -15,20 +15,38 @@
         </operation>
     </file>
 
-    <file name="admin/controller/startup/login.php">
+    <file name="admin/controller/common/login.php" error="log">
         <operation>
-            <search position="after"><![CDATA[	public function index() {]]></search>
+            <search position="after"><![CDATA[public function check() {]]></search>
             <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
             </add>
         </operation>
     </file>
-    <file name="admin/controller/startup/permission.php">
+
+    <file name="admin/controller/startup/login.php" error="log">
         <operation>
-            <search position="after"><![CDATA[	public function index() {]]></search>
+            <search position="after"><![CDATA[public function index() {]]></search>
             <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
             </add>
         </operation>
     </file>
+
+    <file name="admin/controller/error/permission.php" error="log">
+        <operation>
+            <search position="after"><![CDATA[public function check() {]]></search>
+            <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
+            </add>
+        </operation>
+    </file>
+
+    <file name="admin/controller/startup/permission.php" error="skip">
+        <operation>
+            <search position="after"><![CDATA[public function index() {]]></search>
+            <add><![CDATA[if(@$this->request->get['route']=="module/comerciaConnect/sync"){return null;}]]>
+            </add>
+        </operation>
+    </file>
+
     <file name="admin/model/sale/order.php">
         <operation>
             <search position="before"><![CDATA[=> $order_query->row['date_modified']]]></search>
@@ -48,7 +66,6 @@
             <?php foreach ($order['action'] as $action) { ?>]]>
             </add>
         </operation>
-
         <operation>
             <search position="replace"><![CDATA[<a href="<?php echo $order['view']; ?>" ]]></search>
             <add><![CDATA[
@@ -60,10 +77,7 @@
                             <a href="<?php echo $order['view']; ?>" ]]>
             </add>
         </operation>
-
-
     </file>
-
 
     <file name="admin/view/template/catalog/product_list.tpl">
         <operation error="skip">>
@@ -76,10 +90,7 @@
                ?>
             <?php foreach ($product['action'] as $action) { ?>]]>
             </add>
-
-
         </operation>
-
         <operation>
             <search position="replace">
                 <![CDATA[<a href="<?php echo $product['edit']; ?>" data-toggle="tooltip"]]></search>
@@ -90,7 +101,5 @@
                             <a href="<?php echo $product['edit']; ?>" data-toggle="tooltip"]]>
             </add>
         </operation>
-
     </file>
-
 </modification>
