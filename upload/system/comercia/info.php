@@ -37,6 +37,12 @@ class Info
         }
         return $stores;
     }
+
+
+    function currentStore()
+    {
+        return Util::config()->config_store_id;
+    }
 }
 
 ?>

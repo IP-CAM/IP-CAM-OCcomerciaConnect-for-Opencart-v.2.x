@@ -74,6 +74,9 @@ class Website
     /** @var string */
     var $defaultOrderStatus;
 
+    /** @var string[] */
+    var $customerGroups;
+
     /** @var translation[] */
     var $translations;
 
