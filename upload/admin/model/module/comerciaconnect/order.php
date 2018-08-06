@@ -345,6 +345,8 @@ class ModelModuleComerciaconnectOrder extends Model
                 $dbOrderInfo["payment_method"] = $orderLine->product->name;
                 $dbOrderInfo["payment_code"] = $orderLine->product->code;
                 $this->addToTotals($totals, "payment", $orderLine->product->name, $orderLine->price * $orderLine->quantity);
+            } elseif (@$orderLine->product->type == PRODUCT_TYPE_DISCOUNT) {
+                $this->addToTotals($totals, "discount", $orderLine->product->name, $orderLine->price * $orderLine->quantity);
             } else {
                 $this->addToTotals($totals, "sub_total", $this->language->get("sub_total"), $orderLine->price * $orderLine->quantity);
             }
@@ -394,17 +396,24 @@ class ModelModuleComerciaconnectOrder extends Model
 
         //add products
         foreach ($order->orderLines as $orderLine) {
-            $product = [];
-            $product["order_id"] = $order_id;
-            $product["product_id"] = $orderLine->product->id;
-            $product["name"] = $orderLine->product->name;
-            $product["model"] = $orderLine->product->code;
-            $product["quantity"] = $orderLine->quantity;
-            $product["price"] = $orderLine->price;
-            $product["total"] = $orderLine->price * $orderLine->quantity;
-            $product["tax"] = $orderLine->tax;
-            $product["reward"] = 0;
-            Util::db()->saveDataObject("order_product", $product, ["order_id", "product_id"]);
+            if (
+                @$orderLine->product->type == PRODUCT_TYPE_PRODUCT
+                || @$orderLine->product->type == PRODUCT_TYPE_VIRTUAL
+                || @$orderLine->product->type == PRODUCT_TYPE_SERVICE
+                || @$orderLine->product->type == PRODUCT_TYPE_OTHER
+            ) {
+                $product = [];
+                $product["order_id"] = $order_id;
+                $product["product_id"] = $orderLine->product->id;
+                $product["name"] = $orderLine->product->name;
+                $product["model"] = $orderLine->product->code;
+                $product["quantity"] = $orderLine->quantity;
+                $product["price"] = $orderLine->price;
+                $product["total"] = $orderLine->price * $orderLine->quantity;
+                $product["tax"] = $orderLine->tax;
+                $product["reward"] = 0;
+                Util::db()->saveDataObject("order_product", $product, ["order_id", "product_id"]);
+            }
         }
         $dbTotals = $this->totalsToDbTotals($totals);
         $dbTotals = array_map(function ($total) use ($order_id) {

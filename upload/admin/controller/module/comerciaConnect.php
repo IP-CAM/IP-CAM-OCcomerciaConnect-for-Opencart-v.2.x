@@ -7,7 +7,7 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
 }
 
 define("CC_VERSION", "2.2");
-define("CC_RELEASE", CC_VERSION . ".4");
+define("CC_RELEASE", CC_VERSION . ".2");
 define("CC_VERSION_URL", "https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
 
 define("CC_SYNC_METHOD_SINGLE", 0);
@@ -35,7 +35,6 @@ if (!defined("CC_PATH_LOG")) {
 }
 
 use comercia\Util;
-use comerciaConnect\lib\Debug;
 use comerciaConnect\logic\Website;
 
 class ControllerModuleComerciaConnect extends Controller
@@ -85,15 +84,16 @@ class ControllerModuleComerciaConnect extends Controller
         $form
             ->fillFromSessionClear("error_warning", "success");
 
+
         $syncModelFields = array_map(function ($syncModel) {
             return "comerciaConnect_sync_" . $syncModel;
         }, Util::load()->model("module/comerciaconnect/general")->getSyncModels());
 
         $formGeneralFields = array_merge($syncModelFields, ["comerciaConnect_syncMethod"]);
+
         $form
             ->fillFromPost($formGeneralFields)
             ->fillFromConfig($formGeneralFields);
-
 
         $storeFormFields = array("comerciaConnect_status", "comerciaConnect_base_url", "comerciaConnect_auth_url", "comerciaConnect_api_key", "comerciaConnect_api_url");
         $data['stores'] = Util::info()->stores();
@@ -136,6 +136,7 @@ class ControllerModuleComerciaConnect extends Controller
         $data['cancel'] = Util::url()->link('modules');
         $data['simple_connect_url'] = Util::url()->link('module/comerciaConnect/simpleConnect');
         $data['update_url'] = $this->getUpdateUrl();
+
         $data["sync_models"] = array_map(function ($syncModel) {
             $langKey = "sync_model_" . substr($syncModel, strpos($syncModel, "_") + 1);
             return [
@@ -243,11 +244,22 @@ class ControllerModuleComerciaConnect extends Controller
                 'session' => $api->createSession($apiKey),
             ];
 
-
             $syncModels = Util::load()->model("module/comerciaconnect/general")->getSyncModels();
+            $dir = DIR_APPLICATION . 'model/ccSync';
+            if ($handle = opendir($dir)) {
+                while (false !== ($entry = readdir($handle))) {
+                    if ($entry != '.' && $entry != '..' && !is_dir($dir . '/' . $entry) && substr($entry, -3) === 'php') {
+                        $syncModels[] = substr($entry, 0, -4);
+                    }
+                }
+
+                sort($syncModels);
+                closedir($handle);
+            }
+
 
             foreach ($syncModels as $model) {
-                Debug::writeMemory("started sync " . $model);
+                \comerciaConnect\lib\Debug::writeMemory("started sync " . $model);
                 if (
                     (!Util::request()->get()->syncModel && Util::config()->get("comerciaConnect_sync_" . $model))
                     || $model == Util::request()->get()->syncModel
@@ -260,6 +272,7 @@ class ControllerModuleComerciaConnect extends Controller
                     }
                 }
                 Debug::writeMemory("finished sync " . $model);
+                \comerciaConnect\lib\Debug::writeMemory("finished sync " . $model);
             }
         }
 
