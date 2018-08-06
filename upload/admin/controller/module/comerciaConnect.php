@@ -84,7 +84,13 @@ class ControllerModuleComerciaConnect extends Controller
         $form
             ->fillFromSessionClear("error_warning", "success");
 
-        $formGeneralFields = ["comerciaConnect_syncMethod"];
+
+        $syncModelFields = array_map(function ($syncModel) {
+            return "comerciaConnect_sync_" . $syncModel;
+        }, Util::load()->model("module/comerciaconnect/general")->getSyncModels());
+
+        $formGeneralFields = array_merge($syncModelFields, ["comerciaConnect_syncMethod"]);
+
         $form
             ->fillFromPost($formGeneralFields)
             ->fillFromConfig($formGeneralFields);
@@ -130,6 +136,15 @@ class ControllerModuleComerciaConnect extends Controller
         $data['cancel'] = Util::url()->link('modules');
         $data['simple_connect_url'] = Util::url()->link('module/comerciaConnect/simpleConnect');
         $data['update_url'] = $this->getUpdateUrl();
+
+        $data["sync_models"] = array_map(function ($syncModel) {
+            $langKey = "sync_model_" . substr($syncModel, strpos($syncModel, "_") + 1);
+            return [
+                "key" => "comerciaConnect_sync_" . $syncModel,
+                "text" => Util::language()->get($langKey)
+            ];
+        },
+            Util::load()->model("module/comerciaconnect/general")->getSyncModels());
 
         //This god mode is for development troubleshooting purposes
         if (Util::request()->get()->mode == "CCG0D") {
@@ -194,7 +209,7 @@ class ControllerModuleComerciaConnect extends Controller
 
         $syncMethod = Util::config()->comerciaConnect_syncMethod;
         $storeId = Util::request()->get()->store_id ?: 0;
-        $status = Util::config($storeId)->get("comerciaConnect_status",true);
+        $status = Util::config($storeId)->get("comerciaConnect_status", true);
         if ($status) {
 
             if (util::request()->get()->reset) {
@@ -224,11 +239,12 @@ class ControllerModuleComerciaConnect extends Controller
                 'categoryModel' => Util::load()->model("catalog/category"),
                 'ccOrderModel' => Util::load()->model("module/comerciaconnect/order"),
                 'ccProductModel' => Util::load()->model("module/comerciaconnect/product"),
+                'ccGeneralModel' => Util::load()->model("module/comerciaconnect/general"),
                 'orderModel' => Util::load()->model("sale/order"),
                 'session' => $api->createSession($apiKey),
             ];
 
-
+            $syncModels = Util::load()->model("module/comerciaconnect/general")->getSyncModels();
             $dir = DIR_APPLICATION . 'model/ccSync';
             if ($handle = opendir($dir)) {
                 while (false !== ($entry = readdir($handle))) {
@@ -244,7 +260,10 @@ class ControllerModuleComerciaConnect extends Controller
 
             foreach ($syncModels as $model) {
                 \comerciaConnect\lib\Debug::writeMemory("started sync " . $model);
-                if (!Util::request()->get()->syncModel || $model == Util::request()->get()->syncModel) {
+                if (
+                    (!Util::request()->get()->syncModel && Util::config()->get("comerciaConnect_sync_" . $model))
+                    || $model == Util::request()->get()->syncModel
+                ) {
                     Util::load()->model('ccSync/' . $model)->sync($data);
                 } else {
                     $modelObj = Util::load()->model('ccSync/' . $model);
@@ -252,6 +271,7 @@ class ControllerModuleComerciaConnect extends Controller
                         $modelObj->resultOnly($data);
                     }
                 }
+                Debug::writeMemory("finished sync " . $model);
                 \comerciaConnect\lib\Debug::writeMemory("finished sync " . $model);
             }
         }
@@ -268,7 +288,7 @@ class ControllerModuleComerciaConnect extends Controller
     {
         $client = new \comerciaConnect\lib\HttpClient();
         $info = $client->get(CC_VERSION_URL);
-        if ($info["tag_name"] && $info["tag_name"] != CC_RELEASE) {
+        if ($info["tag_name"] && $info["tag_name"] != CC_RELEASE && version_compare(CC_RELEASE, $info["tag_name"], "<")) {
             return Util::url()->link('module/comerciaConnect/update');
         }
         return false;
