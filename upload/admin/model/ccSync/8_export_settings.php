@@ -32,6 +32,7 @@ class ModelCcSync8ExportSettings extends Model
         $website->stockStatus = $this->getStockStatus();
         $website->fieldsOrder = $this->getFieldsOrder();
         $website->customerGroups=$this->getCustomerGroups();
+        $website->countries=$this->getCountries();
 
         $fields = $this->getFieldsProduct();
         $website->fieldsProduct = $fields["fields"];
@@ -98,6 +99,21 @@ class ModelCcSync8ExportSettings extends Model
         }
         return $result;
     }
+
+
+    function getCountries()
+    {
+        $result = [];
+        $countryModel = Util::load()->model("localisation/country");
+        if($countryModel) {
+            $countries = $countryModel->getCountries();
+            foreach ($countries as $country) {
+                $result[] = $country["iso_code_2"];
+            }
+        }
+        return $result;
+    }
+
 
     function getLanguages()
     {
