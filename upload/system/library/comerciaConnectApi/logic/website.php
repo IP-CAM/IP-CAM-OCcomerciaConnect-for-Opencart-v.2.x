@@ -80,6 +80,9 @@ class Website
     /** @var translation[] */
     var $translations;
 
+    /** @var string[] */
+    var $countries;
+
     private $session;
 
 
