@@ -1,5 +1,6 @@
 <?php
 namespace comerciaConnect\logic;
+
 use ForceUTF8\Encoding;
 
 /**
@@ -17,15 +18,28 @@ class ProductDescription
     var $name;
     /** @var string */
     var $description;
+
+    /** @var string[] */
+    var $originalData;
+
     /**  @param array $data The data to initialize the address with */
-    function __construct($language = "", $name = "", $description = "")
+    function __construct($language = "", $name = "", $description = "", $originalData = [])
     {
+
+        if (count($originalData)) {
+            $originalDataResult = [];
+            foreach ($originalData as $key => $val) {
+                $originalDataResult["description_" . $key] = $val;
+            }
+            $this->originalData = $originalDataResult;
+        }
+
         if (is_array($language)) {
             $data = $language;
             foreach ($data as $key => $value) {
-                if(is_string($value)) {
+                if (is_string($value)) {
                     $this->{$key} = Encoding::fixUTF8($value);
-                }else{
+                } else {
                     $this->{$key} = $value;
                 }
             }

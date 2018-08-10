@@ -169,7 +169,7 @@ class ModelModuleComerciaconnectProduct extends Model
 
         foreach ($languages as $language) {
             if (isset($productDescriptions[$language['language_id']])) {
-                $descriptions[] = new ProductDescription($language["code"], $productDescriptions[$language["language_id"]]["name"], $productDescriptions[$language["language_id"]]["description"]);
+                $descriptions[] = new ProductDescription($language["code"], $productDescriptions[$language["language_id"]]["name"], $productDescriptions[$language["language_id"]]["description"],$productDescriptions[$language["language_id"]]);
             }
         }
 
