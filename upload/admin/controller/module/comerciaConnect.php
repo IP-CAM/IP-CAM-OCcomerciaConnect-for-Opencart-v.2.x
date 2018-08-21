@@ -252,18 +252,6 @@ class ControllerModuleComerciaConnect extends Controller
             ];
 
             $syncModels = Util::load()->model("module/comerciaconnect/general")->getSyncModels();
-            $dir = DIR_APPLICATION . 'model/ccSync';
-            if ($handle = opendir($dir)) {
-                while (false !== ($entry = readdir($handle))) {
-                    if ($entry != '.' && $entry != '..' && !is_dir($dir . '/' . $entry) && substr($entry, -3) === 'php') {
-                        $syncModels[] = substr($entry, 0, -4);
-                    }
-                }
-
-                sort($syncModels);
-                closedir($handle);
-            }
-
 
             foreach ($syncModels as $model) {
                 \comerciaConnect\lib\Debug::writeMemory("started sync " . $model);
