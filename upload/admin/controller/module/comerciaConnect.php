@@ -271,7 +271,6 @@ class ControllerModuleComerciaConnect extends Controller
                         $modelObj->resultOnly($data);
                     }
                 }
-                Debug::writeMemory("finished sync " . $model);
                 \comerciaConnect\lib\Debug::writeMemory("finished sync " . $model);
             }
         }
