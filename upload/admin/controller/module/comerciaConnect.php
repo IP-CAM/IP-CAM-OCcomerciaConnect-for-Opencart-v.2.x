@@ -7,7 +7,7 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
 }
 
 define("CC_VERSION", "2.2");
-define("CC_RELEASE", CC_VERSION . ".2");
+define("CC_RELEASE", CC_VERSION . ".3");
 define("CC_VERSION_URL", "https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
 
 define("CC_SYNC_METHOD_SINGLE", 0);
@@ -271,7 +271,6 @@ class ControllerModuleComerciaConnect extends Controller
                         $modelObj->resultOnly($data);
                     }
                 }
-                Debug::writeMemory("finished sync " . $model);
                 \comerciaConnect\lib\Debug::writeMemory("finished sync " . $model);
             }
         }
