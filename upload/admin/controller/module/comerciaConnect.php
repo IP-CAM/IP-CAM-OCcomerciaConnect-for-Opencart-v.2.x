@@ -7,7 +7,7 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
 }
 
 define("CC_VERSION", "2.2");
-define("CC_RELEASE", CC_VERSION . ".3");
+define("CC_RELEASE", CC_VERSION . ".4");
 define("CC_VERSION_URL", "https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
 
 define("CC_SYNC_METHOD_SINGLE", 0);
@@ -45,6 +45,13 @@ class ControllerModuleComerciaConnect extends Controller
 
     public function index()
     {
+
+        //this is how we reconize a corrupted ccSync folder from before 2.2.4
+        if(file_exists(DIR_APPLICATION."model/ccSync/3_export_order.php")){
+            //if corrupted, do a dummy update
+            Util::response()->redirect("module/comerciaConnect/update");
+        }
+
         if (isset($_POST["SimpleConnect"])) {
             return $this->simpleConnect();
         }
@@ -331,6 +338,12 @@ class ControllerModuleComerciaConnect extends Controller
                 $upload_dir = $temp_dir . "/" . $file . "/upload";
                 break;
             }
+        }
+
+
+        //delete sync models, they can potentially cause problems.
+        if(is_dir(DIR_APPLICATION."model/ccSync")){
+            $this->rmDirRecursive(DIR_APPLICATION."model/ccSync");
         }
 
         //copy files
