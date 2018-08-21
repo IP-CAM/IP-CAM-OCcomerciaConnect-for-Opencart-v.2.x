@@ -47,7 +47,7 @@ class ModelCcSync8ExportSettings extends Model
         if(Util::version()->isMinimal("2.0")) {
             $cgModel = Util::load()->model("customer/customer_group");
         }else{
-            $cgModel= Util::load()->model("account/customer_group");
+            $cgModel= Util::load()->model("sale/customer_group");
         }
         $customerGroups=$cgModel->getCustomerGroups();
         return array_map(function($customerGroup){
