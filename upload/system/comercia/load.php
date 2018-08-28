@@ -336,6 +336,10 @@ class Load
                [
                    ""=>"sale/custom_field",
                    "2.1"=>"customer/custom_field"
+               ],
+               [
+                    ""=>"extension/extension",
+                    "3.0"=>"setting/extension"
                ]
            ]
        );

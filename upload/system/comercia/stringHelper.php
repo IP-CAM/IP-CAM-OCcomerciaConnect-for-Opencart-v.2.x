@@ -28,7 +28,6 @@ class StringHelper
                 $string= str_replace($newWord,$versionMatch,$string);
             }
         }
-
         return $string;
     }
 
