@@ -386,9 +386,16 @@ class ModelModuleComerciaconnectProduct extends Model
         return $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_value_id = '" . (int)$option_value_id . "' AND ovd.language_id = '" . (int)Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($storeId) . "'")->row;
     }
 
-    public function getCategory($category_id)
+    public function getCategory($category_id,$storeId)
     {
-        return $this->db->query("SELECT DISTINCT *, (SELECT keyword FROM " . DB_PREFIX . "url_alias WHERE query = 'category_id=" . (int)$category_id . "') AS keyword FROM " . DB_PREFIX . "category c JOIN " . DB_PREFIX . "category_description cd ON (cd.category_id = c.category_id) WHERE c.category_id = '" . (int)$category_id . "'")->row;
+        $languageId = Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($storeId);
+        return $this->db->query("
+              SELECT DISTINCT *
+              FROM " . DB_PREFIX . "category c 
+              JOIN " . DB_PREFIX . "category_description cd ON (cd.category_id = c.category_id) 
+              WHERE c.category_id = '" . (int)$category_id . "' 
+              AND cd.language_id = '" . $languageId . "'
+              ")->row;
     }
 
 
