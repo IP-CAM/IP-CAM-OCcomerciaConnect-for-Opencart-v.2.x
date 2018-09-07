@@ -402,7 +402,10 @@ class ModelModuleComerciaconnectProduct extends Model
 
         $language = Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($store);
 
-        $sql .= " WHERE ps.store_id='" . $store . "' AND pd.language_id = '" . $language . "'";
+        $sql .= " WHERE pd.language_id = '" . $language . "'";
+        if ($syncMethod) {
+            $sql .= " AND ps.store_id='" . $store . "'";
+        }
 
         $query = $this->db->query($sql);
 
