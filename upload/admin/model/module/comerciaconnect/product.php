@@ -397,12 +397,12 @@ class ModelModuleComerciaconnectProduct extends Model
         $sql = "SELECT * FROM " . DB_PREFIX . "product as p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)";
 
         if ($syncMethod) {
-            $sql .= "LEFT JOIN " . DB_PREFIX . "product_to_store AS ps ON ps.product_id=p.product_id WHERE ps.store_id='" . $store . "'";
+            $sql .= " LEFT JOIN " . DB_PREFIX . "product_to_store AS ps ON ps.product_id=p.product_id";
         }
 
         $language = Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($store);
 
-        $sql .= " WHERE pd.language_id = '" . $language . "'";
+        $sql .= " WHERE ps.store_id='" . $store . "' AND pd.language_id = '" . $language . "'";
 
         $query = $this->db->query($sql);
 
