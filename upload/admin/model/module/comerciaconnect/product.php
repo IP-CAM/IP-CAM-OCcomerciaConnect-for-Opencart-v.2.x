@@ -391,7 +391,6 @@ class ModelModuleComerciaconnectProduct extends Model
         return $this->db->query("SELECT DISTINCT *, (SELECT keyword FROM " . DB_PREFIX . "url_alias WHERE query = 'category_id=" . (int)$category_id . "') AS keyword FROM " . DB_PREFIX . "category c JOIN " . DB_PREFIX . "category_description cd ON (cd.category_id = c.category_id) WHERE c.category_id = '" . (int)$category_id . "'")->row;
     }
 
-
     public function getProducts($store = 0, $syncMethod = 0)
     {
         $sql = "SELECT * FROM " . DB_PREFIX . "product as p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)";
