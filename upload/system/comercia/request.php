@@ -120,7 +120,7 @@ class Request
 
     public function getUrl()
     {
-        return (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     }
 }
 

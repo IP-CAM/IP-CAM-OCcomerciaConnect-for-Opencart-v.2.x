@@ -53,24 +53,30 @@ class Document
     }
 
 
-    function addDependency($file){
-        if(is_array($file)){
-            $files=$file;
-            foreach($files as $file){
-                $this->addDependency($file);
+    function addDependency($file,$inTheme=false)
+    {
+
+        if (is_array($file)) {
+            $files = $file;
+            foreach ($files as $file) {
+                $this->addDependency($file,$inTheme);
             }
-            return true;
+            return $this;
         }
 
-        $exp=explode(".",$file);
-        $ext=$exp[count($exp)-1];
-        if($ext=="css"){
+        if($inTheme){
+            $file=Util::info()->theme(true).$file;
+        }
+
+        $exp = explode(".", $file);
+        $ext = $exp[count($exp) - 1];
+        if ($ext == "css") {
             $this->addStyle($file);
         }
-        if($ext=="js"){
+        if ($ext == "js") {
             $this->addScript($file);
         }
-        return true;
+        return $this;
     }
 }
 
