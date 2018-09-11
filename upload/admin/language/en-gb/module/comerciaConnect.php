@@ -58,4 +58,4 @@ $_["sync_model_import_order"]="Import orders";
 $_["sync_model_export_settings"]="Export settings";
 $_["sync_model_cleanup"]="Clean up deleted data";
 
-$_['msg_settings_saved']="Comercia Connect settings Successfully saved";
+$_['msg_settings_saved']="Comercia Connect settings successfully saved";
