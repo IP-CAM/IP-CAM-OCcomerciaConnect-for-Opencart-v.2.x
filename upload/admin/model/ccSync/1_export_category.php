@@ -16,7 +16,7 @@ class ModelCcSync1ExportCategory extends Model
         \comerciaConnect\lib\Debug::writeMemory("Loaded categories");
         foreach ($categories as $category) {
             \comerciaConnect\lib\Debug::writeMemory("Start prepare category " . $category["category_id"]);
-            $category = $data->categoryModel->getCategory($category['category_id']);
+            $category = $data->ccProductModel->getCategory($category['category_id'],$data->storeId);
 
             $apiCategory = $data->ccProductModel->createApiCategory($category, $data->session);
             if ($category["ccHash"] != $data->ccProductModel->getHashForCategory($category,$data->storeId)) {
