@@ -256,6 +256,15 @@ class Util
         }
         return $twig;
     }
+
+    public static function customer(){
+        static $customer = false;
+        if (!$customer) {
+            require_once(__DIR__ . "/customer.php");
+            $customer = new Customer();
+        }
+        return $customer;
+    }
 }
 
 ?>

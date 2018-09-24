@@ -236,6 +236,10 @@ class Load
 
         $file = DIR_TEMPLATE . $view;
 
+        if(!substr($file,-4)!=".tpl"){
+            $file.=".tpl";
+        }
+
         if (is_file($file)) {
             extract($_data);
             ob_start();
