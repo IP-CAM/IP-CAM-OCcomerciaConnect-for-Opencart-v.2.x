@@ -52,17 +52,16 @@ class ModelModuleComerciaconnectOrder extends Model
         $lines = $this->model_sale_order->getOrderProducts($order["order_id"]);
 
         foreach ($lines as $line) {
-            $product = $this->model_catalog_product->getProduct($line['product_id']);
+            $tcId = $this->db->query("SELECT tax_class_id FROM " . DB_PREFIX . "product p WHERE p.product_id = '" . (int)$line['product_id'] . "'")->row;
             $orderLines[] = new OrderLine($session, [
                 "product" => $productMap[$line["product_id"]],
                 "price" => $line["price"],
                 "quantity" => $line["quantity"],
                 "tax" => $line["tax"],
                 "priceWithTax" => $line["tax"] + $line["price"],
-                "taxGroup" => $product['tax_class_id']
+                "taxGroup" => $tcId['tax_class_id']
             ]);
         }
-
 
         $paymentMethod = new Product($session);
         $paymentMethod->id = $order['payment_code'] ?: 'connect_payment';

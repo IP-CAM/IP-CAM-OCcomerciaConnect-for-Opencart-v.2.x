@@ -78,4 +78,10 @@
             </add>
         </operation>
     </file>
+    <file name="system/framework.php">
+        <operation>
+            <search position="before"><![CDATA[$registry = new Registry();  ]]></search>
+            <add><![CDATA[global $registry;]]></add>
+        </operation>
+    </file>
 </modification>

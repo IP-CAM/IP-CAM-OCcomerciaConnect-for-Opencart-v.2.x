@@ -71,7 +71,7 @@ class ControllerModuleComerciaConnect extends Controller
                 Util::config($store["store_id"])->set("comerciaConnect", $configSet);
             }
 
-            Util::session()->success = $data['msg_settings_saved'];
+            Util::session()->success = @$data['msg_settings_saved']?:"";
         });
 
 
