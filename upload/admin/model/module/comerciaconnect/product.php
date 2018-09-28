@@ -215,7 +215,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->image = $this->model_tool_image->resize($product['image'], $this->imageWidth, $this->imageHeight);
 
 
-        //build original da
+        //build original data
         $originalData = $product;
 
 
