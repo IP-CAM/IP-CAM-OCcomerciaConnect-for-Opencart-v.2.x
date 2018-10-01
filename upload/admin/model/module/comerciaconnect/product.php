@@ -7,6 +7,11 @@ use comerciaConnect\logic\ProductDescription;
 
 class ModelModuleComerciaconnectProduct extends Model
 {
+
+    //2 megapixels, highest what a customer needs for now.
+    var $imageWidth="1756";
+    var $imageHeight="1168";
+
     function saveProduct($product)
     {
         if (is_numeric($product->id)) {
@@ -185,7 +190,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $extraImages = array();
 
         foreach ($productImages as $image) {
-            $extraImages[] = ['image' => $this->model_tool_image->resize($image['image'], 800, 600)];
+            $extraImages[] = ['image' => $this->model_tool_image->resize($image['image'], $this->imageWidth, $this->imageHeight)];
         }
 
         //create new api product
@@ -207,7 +212,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->taxGroup = $product['tax_class_id'];
         $apiProduct->active = $product['status'];
         //todo: in future make this configurable
-        $apiProduct->image = $this->model_tool_image->resize($product['image'], 800, 600);
+        $apiProduct->image = $this->model_tool_image->resize($product['image'], $this->imageWidth, $this->imageHeight);
 
 
         //build original data
