@@ -411,7 +411,7 @@ class ModelModuleComerciaconnectOrder extends Model
                 $product["total"] = $orderLine->price * $orderLine->quantity;
                 $product["tax"] = $orderLine->tax;
                 $product["reward"] = 0;
-                Util::db()->saveDataObject("order_product", $product, ["order_id", "product_id"]);
+                Util::db()->saveDataObject("order_product", $product, ["order_id", "model"]);
             }
         }
         $dbTotals = $this->totalsToDbTotals($totals);
