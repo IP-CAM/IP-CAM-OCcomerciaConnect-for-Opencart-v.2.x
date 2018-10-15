@@ -47,7 +47,7 @@ class ControllerModuleComerciaConnect extends Controller
     {
 
         //this is how we reconize a corrupted ccSync folder from before 2.2.4
-        if(file_exists(DIR_APPLICATION."model/ccSync/3_export_order.php")){
+        if (file_exists(DIR_APPLICATION . "model/ccSync/3_export_order.php")) {
             //if corrupted, do a dummy update
             Util::response()->redirect("module/comerciaConnect/update");
         }
@@ -71,7 +71,7 @@ class ControllerModuleComerciaConnect extends Controller
                 Util::config($store["store_id"])->set("comerciaConnect", $configSet);
             }
 
-            Util::session()->success = @$data['msg_settings_saved']?:"";
+            Util::session()->success = @$data['msg_settings_saved'] ?: "";
         });
 
 
@@ -121,6 +121,7 @@ class ControllerModuleComerciaConnect extends Controller
 
             $apiSession = $api->createSession($store['comerciaConnect_api_key']);
             $website = Website::getWebsite($apiSession);
+
             if ($website) {
                 $store['control_panel_url'] = $website->controlPanelUrl();
                 $store['login_success'] = true;
@@ -238,6 +239,7 @@ class ControllerModuleComerciaConnect extends Controller
             $api = $connect->getApi($baseUrl, $authUrl, $apiUrl);
 
             //load models
+            $session = $api->createSession($apiKey);
             $data = (object)[
                 'syncMethod' => $syncMethod,
                 'storeId' => $storeId,
@@ -248,7 +250,8 @@ class ControllerModuleComerciaConnect extends Controller
                 'ccProductModel' => Util::load()->model("module/comerciaconnect/product"),
                 'ccGeneralModel' => Util::load()->model("module/comerciaconnect/general"),
                 'orderModel' => Util::load()->model("sale/order"),
-                'session' => $api->createSession($apiKey),
+                'session' => $session,
+                'conditions' => Website::getConditions($session)
             ];
 
             $syncModels = Util::load()->model("module/comerciaconnect/general")->getSyncModels();
@@ -330,8 +333,8 @@ class ControllerModuleComerciaConnect extends Controller
 
 
         //delete sync models, they can potentially cause problems.
-        if(is_dir(DIR_APPLICATION."model/ccSync")){
-            $this->rmDirRecursive(DIR_APPLICATION."model/ccSync");
+        if (is_dir(DIR_APPLICATION . "model/ccSync")) {
+            $this->rmDirRecursive(DIR_APPLICATION . "model/ccSync");
         }
 
         //copy files

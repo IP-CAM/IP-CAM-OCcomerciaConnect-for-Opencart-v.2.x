@@ -8,9 +8,6 @@ use comerciaConnect\logic\ProductDescription;
 class ModelModuleComerciaconnectProduct extends Model
 {
 
-    //2 megapixels, highest what a customer needs for now.
-    var $imageWidth="1756";
-    var $imageHeight="1168";
 
     function saveProduct($product)
     {
@@ -76,7 +73,7 @@ class ModelModuleComerciaconnectProduct extends Model
         }
     }
 
-    function updateOptionQuantity($product,$storeId)
+    function updateOptionQuantity($product, $storeId)
     {
         //prepare some information
         $productModel = Util::load()->model("catalog/product");
@@ -93,9 +90,9 @@ class ModelModuleComerciaconnectProduct extends Model
                 $optionName = substr($optionKey, strlen($optionPrefix));
                 foreach ($ocOptions as $ocOption) {
                     if ($ocOption["name"] == $optionName) {
-                        foreach($ocOption["product_option_value"] as $ocOptionValue){
-                            $optionValueInfo=$this->getOptionValue($ocOptionValue["option_value_id"],$storeId);
-                            if($optionValueInfo["name"]==$optionValue) {
+                        foreach ($ocOption["product_option_value"] as $ocOptionValue) {
+                            $optionValueInfo = $this->getOptionValue($ocOptionValue["option_value_id"], $storeId);
+                            if ($optionValueInfo["name"] == $optionValue) {
                                 $ocUsedOptionValues[] = $ocOptionValue;
                                 if ($expectedQuantity < 0 || $ocOptionValue["quantity"] < $expectedQuantity) {
                                     $expectedQuantity = $ocOptionValue["quantity"];
@@ -108,10 +105,10 @@ class ModelModuleComerciaconnectProduct extends Model
         }
 
         //calculate the change made in the quantity
-        $diff=$expectedQuantity-$quantity;
+        $diff = $expectedQuantity - $quantity;
 
-        foreach($ocUsedOptionValues as $ocOptionValue){
-            Util::db()->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity=quantity-".$diff." WHERE product_option_value_id='".$ocOptionValue['product_option_value_id']."'" );
+        foreach ($ocUsedOptionValues as $ocOptionValue) {
+            Util::db()->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity=quantity-" . $diff . " WHERE product_option_value_id='" . $ocOptionValue['product_option_value_id'] . "'");
         }
     }
 
@@ -156,7 +153,7 @@ class ModelModuleComerciaconnectProduct extends Model
     }
 
 
-    function createApiProduct($product, $session, $categoriesMap)
+    function createApiProduct($product, $session, $categoriesMap, $conditions)
     {
         $this->load->model('localisation/tax_class');
         $this->load->model('localisation/stock_status');
@@ -174,7 +171,7 @@ class ModelModuleComerciaconnectProduct extends Model
 
         foreach ($languages as $language) {
             if (isset($productDescriptions[$language['language_id']])) {
-                $descriptions[] = new ProductDescription($language["code"], $productDescriptions[$language["language_id"]]["name"], $productDescriptions[$language["language_id"]]["description"],$productDescriptions[$language["language_id"]]);
+                $descriptions[] = new ProductDescription($language["code"], $productDescriptions[$language["language_id"]]["name"], $productDescriptions[$language["language_id"]]["description"], $productDescriptions[$language["language_id"]]);
             }
         }
 
@@ -189,8 +186,20 @@ class ModelModuleComerciaconnectProduct extends Model
         $productImages = $this->model_catalog_product->getProductImages($product["product_id"]);
         $extraImages = array();
 
+
+        if (@$conditions["img_min_width"]) {
+            $imageWidth = $conditions["img_min_width"];
+        } else {
+            $imageWidth = 800;
+        }
+        if (@$conditions["img_min_height"]) {
+            $imageHeight = $conditions["img_min_height"];
+        } else {
+            $imageHeight = 600;
+        }
+
         foreach ($productImages as $image) {
-            $extraImages[] = ['image' => $this->model_tool_image->resize($image['image'], $this->imageWidth, $this->imageHeight)];
+            $extraImages[] = ['image' => $this->model_tool_image->resize($image['image'], $imageWidth, $imageHeight)];
         }
 
         //create new api product
@@ -212,7 +221,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->taxGroup = $product['tax_class_id'];
         $apiProduct->active = $product['status'];
         //todo: in future make this configurable
-        $apiProduct->image = $this->model_tool_image->resize($product['image'], $this->imageWidth, $this->imageHeight);
+        $apiProduct->image = $this->model_tool_image->resize($product['image'], $imageWidth, $imageHeight);
 
 
         //build original data
@@ -391,7 +400,7 @@ class ModelModuleComerciaconnectProduct extends Model
         return $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_value_id = '" . (int)$option_value_id . "' AND ovd.language_id = '" . (int)Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($storeId) . "'")->row;
     }
 
-    public function getCategory($category_id,$storeId)
+    public function getCategory($category_id, $storeId)
     {
         $languageId = Util::load()->model("module/comerciaconnect/general")->getLanguageIdForStore($storeId);
         return $this->db->query("
