@@ -1,4 +1,5 @@
 <?php
+
 namespace comerciaConnect\logic;
 
 use comercia\Util;
@@ -26,7 +27,7 @@ class Product
     var $url = "";
     /** @var Description[] | Descriptions will be saved when the product is saved */
     var $descriptions = [];
-    /** @var Category[] | should contain only saved categories*/
+    /** @var Category[] | should contain only saved categories */
     var $categories = [];
     /** @var string */
     var $ean = "";
@@ -42,13 +43,13 @@ class Product
     var $taxGroup = "";
 
     /** @var  ProductImage[] */
-    var $extraImages=[];
+    var $extraImages = [];
 
     /** @var enum(PRODUCT_TYPE_PRODUCT,PRODUCT_TYPE_SERVICE,PRODUCT_TYPE_VIRTUAL,PRODUCT_TYPE_PAYMENT,PRODUCT_TYPE_SHIPPING ) */
     var $type = PRODUCT_TYPE_PRODUCT;
     /** @var string | should be unique */
     var $code = "";
-    /** @var string | the url of the image*/
+    /** @var string | the url of the image */
     var $image = "";
     /** @var string */
     var $brand = "";
@@ -92,21 +93,21 @@ class Product
     {
         $this->session = $session;
         foreach ($data as $key => $value) {
-            if(is_string($value)) {
+            if (is_string($value)) {
                 $this->{$key} = Encoding::fixUTF8($value);
-            }else{
+            } else {
                 $this->{$key} = $value;
             }
         }
 
-        if(is_string($this->originalData)){
-            $this->originalData=unserialize($this->originalData);
+        if (is_string($this->originalData)) {
+            $this->originalData = unserialize($this->originalData);
         }
 
-        if($this->parent) {
+        if ($this->parent) {
             $this->parent = new Product($session, $this->parent);
         }
-        $data=(object)$data;
+        $data = (object)$data;
         $this->extraImages = [];
         if (!empty($data->extraImages)) {
             foreach ($data->extraImages as $image) {
@@ -144,6 +145,7 @@ class Product
 
         return false;
     }
+
 
     /**
      * Deletes the product
@@ -220,9 +222,9 @@ class Product
             return true;
         }
 
-        if($this->session) {
+        if ($this->session) {
             $data = $this->session->get('product/changeId/' . $this->id . '/' . $new);
-            $this->id=$new;
+            $this->id = $new;
             return true;
         }
 
@@ -234,9 +236,10 @@ class Product
      * Touches a product in Comercia Connect.. Used to tell Comercia Connect that the client touched a product
      * @return bool Indicates if the product is successfully touched
      */
-    function touch(){
-        if($this->session) {
-            $this->session->get('product/touch/'.$this->id);
+    function touch()
+    {
+        if ($this->session) {
+            $this->session->get('product/touch/' . $this->id);
             return true;
         }
         return false;
@@ -249,9 +252,10 @@ class Product
      * @param Product[] $data
      * @return bool Indicates if the product is successfully saved
      */
-    static function saveBatch($session,$data){
-        $requestData=["data"=>$data];
-        return $session->post("product/saveBatch",$requestData);
+    static function saveBatch($session, $data)
+    {
+        $requestData = ["data" => $data];
+        return $session->post("product/saveBatch", $requestData);
     }
 
 
@@ -261,9 +265,10 @@ class Product
      * @param Product[] $data
      * @return bool Indicates if the product is successfully touched
      */
-    static function touchBatch($session,$data){
-        $requestData=["data"=>$data];
-        $session->post("product/touchBatch",$requestData);
+    static function touchBatch($session, $data)
+    {
+        $requestData = ["data" => $data];
+        $session->post("product/touchBatch", $requestData);
     }
 
     /**
@@ -273,7 +278,7 @@ class Product
      */
     function getImageData($url)
     {
-        if(substr($url, 0, strlen($this->session->api->base_url)) == $this->session->api->base_url) {
+        if (substr($url, 0, strlen($this->session->api->base_url)) == $this->session->api->base_url) {
             $url = str_replace($this->session->api->base_url, '', $url);
             $result = $this->session->get($url, false);
         } else {
@@ -296,4 +301,27 @@ class Product
         $requestData = ["deletedData" => $data];
         return $session->post("product/deactivateBatch", $requestData);
     }
+
+    /**
+     * Deactivates products children for product
+     */
+    function deactivateChildren()
+    {
+        if ($this->session) {
+            self::deactivateChildrenBatch($this->session, [$this]);
+        }
+    }
+
+    /**
+     * Deactivates products children in bulk
+     * @param Session $session
+     * @param int[] $data
+     * @return bool Indicates if the product is successfully deactivated
+     */
+    static function deactivateChildrenBatch($session, $data)
+    {
+        $requestData = ["data" => $data];
+        return $session->post("product/deactivateChildrenBatch", $requestData);
+    }
+
 }
