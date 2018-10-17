@@ -8,9 +8,6 @@ use comerciaConnect\logic\ProductDescription;
 class ModelModuleComerciaconnectProduct extends Model
 {
 
-    //2 megapixels, highest what a customer needs for now.
-    var $imageWidth = "1756";
-    var $imageHeight = "1168";
 
     function saveProduct($product)
     {
@@ -156,7 +153,7 @@ class ModelModuleComerciaconnectProduct extends Model
     }
 
 
-    function createApiProduct($product, $session, $categoriesMap)
+    function createApiProduct($product, $session, $categoriesMap, $conditions)
     {
         $this->load->model('localisation/tax_class');
         $this->load->model('localisation/stock_status');
@@ -189,8 +186,20 @@ class ModelModuleComerciaconnectProduct extends Model
         $productImages = $this->model_catalog_product->getProductImages($product["product_id"]);
         $extraImages = array();
 
+
+        if (@$conditions["img_min_width"]) {
+            $imageWidth = $conditions["img_min_width"];
+        } else {
+            $imageWidth = 800;
+        }
+        if (@$conditions["img_min_height"]) {
+            $imageHeight = $conditions["img_min_height"];
+        } else {
+            $imageHeight = 600;
+        }
+
         foreach ($productImages as $image) {
-            $extraImages[] = ['image' => $this->model_tool_image->resize($image['image'], $this->imageWidth, $this->imageHeight)];
+            $extraImages[] = ['image' => $this->model_tool_image->resize($image['image'], $imageWidth, $imageHeight)];
         }
 
         //create new api product
@@ -212,7 +221,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $apiProduct->taxGroup = $product['tax_class_id'];
         $apiProduct->active = $product['status'];
         //todo: in future make this configurable
-        $apiProduct->image = $this->model_tool_image->resize($product['image'], $this->imageWidth, $this->imageHeight);
+        $apiProduct->image = $this->model_tool_image->resize($product['image'], $imageWidth, $imageHeight);
 
 
         //build original data

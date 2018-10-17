@@ -1,5 +1,7 @@
 <?php
+
 namespace comerciaConnect\logic;
+
 use ForceUTF8\Encoding;
 
 /**
@@ -94,11 +96,19 @@ class Website
     {
         $this->session = $session;
         foreach ($data as $key => $value) {
-            if(is_string($value)) {
+            if (is_string($value)) {
                 $this->{$key} = Encoding::fixUTF8($value);
-            }else{
+            } else {
                 $this->{$key} = $value;
             }
+        }
+    }
+
+    public static function getConditions($session)
+    {
+        $data=$session->get("website/getConditions");
+        if($data["success"]){
+            return $data["data"];
         }
     }
 
