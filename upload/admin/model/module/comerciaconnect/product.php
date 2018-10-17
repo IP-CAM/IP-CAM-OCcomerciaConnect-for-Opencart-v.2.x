@@ -316,6 +316,17 @@ class ModelModuleComerciaconnectProduct extends Model
         return $product;
     }
 
+
+    function deactivateChildrenFor($apiProduct, $session = false)
+    {
+        if (is_object($apiProduct)) {
+            $apiProduct->deactivateChildren();
+        } elseif (is_array($apiProduct) && $session) {
+            return Product::deactivateChildrenBatch($session, $apiProduct)["success"];
+        }
+    }
+
+
     function sendProductToApi($apiProduct, $session = false)
     {
         if (is_object($apiProduct)) {
