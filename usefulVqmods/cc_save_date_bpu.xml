@@ -11,7 +11,7 @@
                 <![CDATA[if(isset($this->request->get['type']) && $this->request->get['type'] == "change_store"){]]></search>
             <add><![CDATA[
                     if(isset($this->request->get['type']) && isset($this->request->get['product_id'])){
-                        $this->db->query("update ".DB_PREFIX."product set date_modified = NOW() where product_id='".$this->request->get['product_id']."'");
+                        $this->db->query("UPDATE ".DB_PREFIX."product set date_modified = NOW() WHERE product_id='".$this->request->get['product_id']."'");
                     }
                     ]]></add>
         </operation>
