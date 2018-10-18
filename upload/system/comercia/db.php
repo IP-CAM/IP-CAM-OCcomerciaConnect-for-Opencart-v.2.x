@@ -46,7 +46,7 @@ class db
         }
 
         if ((!isset($result) || !$result) && count($keys) == 1) {
-            $result = $data[$keys[0]];
+            $result = [$data[$keys[0]]];
         } elseif (!$result) {
             $result = [];
             foreach ($keys as $key) {
