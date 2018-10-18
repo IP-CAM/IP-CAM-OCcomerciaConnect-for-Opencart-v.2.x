@@ -9,7 +9,7 @@ class ModelCcSync2ExportProduct extends Model
 
         $productMap = array();
         $productsChanged = array();
-        $allProductsChanged=[];
+        $allProductsChanged = [];
         $toSaveHash = [];
 
         \comerciaConnect\lib\Debug::writeMemory("Loaded products");
@@ -24,7 +24,7 @@ class ModelCcSync2ExportProduct extends Model
                 }
             }
 
-            $apiProduct = $data->ccProductModel->createApiProduct($product, $data->session, $data->categoriesMap);
+            $apiProduct = $data->ccProductModel->createApiProduct($product, $data->session, $data->categoriesMap,$data->conditions);
             $productMap[$product["product_id"]] = $apiProduct;
 
             //save product to comercia connect
@@ -42,7 +42,7 @@ class ModelCcSync2ExportProduct extends Model
                         $data->ccProductModel->saveHashForProduct($toSaveHashProduct, $data->storeId);
                     }
                 }
-                $allProductsChanged=array_merge($allProductsChanged,$productsChanged);
+                $allProductsChanged = array_merge($allProductsChanged, $productsChanged);
                 $toSaveHash = [];
                 $productsChanged = [];
                 \comerciaConnect\lib\Debug::writeMemory("Saved batch of products");
@@ -50,7 +50,7 @@ class ModelCcSync2ExportProduct extends Model
         }
 
         if (count($productsChanged)) {
-            $allProductsChanged=array_merge($allProductsChanged,$productsChanged);
+            $allProductsChanged = array_merge($allProductsChanged, $productsChanged);
             if ($data->ccProductModel->sendProductToApi($productsChanged, $data->session)) {
                 foreach ($toSaveHash as $toSaveHashProduct) {
                     $data->ccProductModel->saveHashForProduct($toSaveHashProduct, $data->storeId);
@@ -60,7 +60,7 @@ class ModelCcSync2ExportProduct extends Model
         }
 
 
-        $data->productsChanged=$allProductsChanged;
+        $data->productsChanged = $allProductsChanged;
         $data->productMap = $productMap;
     }
 
@@ -68,7 +68,7 @@ class ModelCcSync2ExportProduct extends Model
     {
         $products = $data->ccProductModel->getProducts($data->storeId, $data->syncMethod);
         foreach ($products as $product) {
-            $productMap[$product["product_id"]] = $data->ccProductModel->createApiProduct($product, $data->session, $data->categoriesMap);
+            $productMap[$product["product_id"]] = $data->ccProductModel->createApiProduct($product, $data->session, $data->categoriesMap, $data->conditions);
         }
         $data->productMap = $productMap;
     }

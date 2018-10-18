@@ -5,10 +5,13 @@ class ModelCcSync3ExportVariant extends Model
 {
     public function sync($data)
     {
-        $productsChanged=[];
+        $productsChanged = [];
+        $productsToResetDeactivate = [];
         foreach ($data->productsChanged as $product) {
+
             $productOptionMap = array();
             $productOptions = $data->productModel->getProductOptions($product->id);
+            $productsToResetDeactivate[] = $product;
 
             foreach ($productOptions as $productOption) {
                 $productOptionMap[$productOption['option_id']] = array_map(function ($productOptionValue) use ($data) {
@@ -25,11 +28,14 @@ class ModelCcSync3ExportVariant extends Model
 
 
             if (count($productsChanged) > CC_BATCH_SIZE) {
+                $data->ccProductModel->deactivateChildrenFor($productsToResetDeactivate, $data->session);
                 $data->ccProductModel->sendProductToApi($productsChanged, $data->session);
                 $productsChanged = [];
+                $productsToResetDeactivate = [];
             }
         }
         if (count($productsChanged)) {
+            $data->ccProductModel->deactivateChildrenFor($productsToResetDeactivate, $data->session);
             $data->ccProductModel->sendProductToApi($productsChanged, $data->session);
         }
 
