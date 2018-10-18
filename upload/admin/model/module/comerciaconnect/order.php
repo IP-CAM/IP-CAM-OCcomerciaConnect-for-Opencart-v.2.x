@@ -377,7 +377,7 @@ class ModelModuleComerciaconnectOrder extends Model
         $dbOrderInfo["total"] = $this->calculateTotalValue($totals);
 
         //complete and save the order
-        $order_id = Util::db()->saveDataObject("order", $dbOrderInfo);
+        $order_id = Util::db()->saveDataObject("order", $dbOrderInfo)[0];
         $dbOrderInfo["order_id"] = $order_id;
         $order->changeId($order_id);
         $this->saveHashForOrder($dbOrderInfo);

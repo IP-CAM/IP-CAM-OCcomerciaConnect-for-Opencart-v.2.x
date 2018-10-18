@@ -36,7 +36,7 @@ class ModelModuleComerciaconnectProduct extends Model
             $dbProduct["image"] = $image;
         }
 
-        $productId = Util::db()->saveDataObject("product", $dbProduct);
+        $productId = Util::db()->saveDataObject("product", $dbProduct)[0];
         $dbProduct["product_id"] = $productId;
         $product->changeId($productId);
 
