@@ -19,7 +19,7 @@ class ModelCcSync7ImportOrder extends Model
             }
 
             //break if same data is fetched, Most probably something went wrong
-            $resultHash = md5(print_r($orders));
+            $resultHash = md5(print_r($orders,true));
             if ($resultHash == $lastResultHash) {
                 \comerciaConnect\lib\Debug::writeMemory("Error: Same result hash and last result hash");
                 break;

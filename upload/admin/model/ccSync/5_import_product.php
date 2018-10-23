@@ -19,7 +19,7 @@ class ModelCcSync5ImportProduct extends Model
                 break;
             }
 
-            $resultHash = md5(print_r($products));
+            $resultHash = md5(print_r($products,true));
 
             //break if same data is fetched, Most probably something went wrong
             if ($resultHash == $lastResultHash) {
