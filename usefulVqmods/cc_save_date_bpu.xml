@@ -1,0 +1,18 @@
+<modification>
+    <id>Comercia Connect -- bpu save date fix</id>
+    <version>2.2.1</version>
+    <vqmver>2.3.0</vqmver>
+    <author>Comercia</author>
+
+    <file name="admin/controller/catalog/product_extra.php">
+        <operation>
+            <search position="before">
+                <![CDATA[if(isset($this->request->get['type']) && $this->request->get['type'] == "change_store"){]]></search>
+            <add><![CDATA[
+                    if(isset($this->request->get['type']) && isset($this->request->get['product_id'])){
+                        $this->db->query("UPDATE ".DB_PREFIX."product SET date_modified = NOW() WHERE product_id='".$this->request->get['product_id']."'");
+                    }
+                    ]]></add>
+        </operation>
+    </file>
+</modification>
