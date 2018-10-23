@@ -6,8 +6,8 @@ class db
     public function saveDataObject($table, $data, $keys = null, $structure = [], $events = [])
     {
 
-        if(@$events["preSave"]){
-            $events["preSave"]($table,$data,$keys,$structure);
+        if (@$events["preSave"]) {
+            $events["preSave"]($table, $data, $keys, $structure);
         }
 
         if (!$keys) {
@@ -47,48 +47,51 @@ class db
 
         if ((!isset($result) || !$result) && count($keys) == 1) {
             $result = [$data[$keys[0]]];
-        } elseif (!$result) {
+        } elseif (!@$result) {
             $result = [];
             foreach ($keys as $key) {
                 $result[] = $data[$key];
             }
         }
 
+
         foreach ($keys as $keyNumber => $key) {
-            $data[$key] = $result[$keyNumber];
+            if (!isset($data[$key])) {
+                $data[$key] = $result[$keyNumber];
+            }
         }
 
         if (!empty($structure)) {
             foreach ($structure as $field => $structureItem) {
-                //if the reference is on the new other side
+                //if the refference key is in the table of newly created record.
                 if (!$structureItem["ref"]) {
                     if (isset($data[$structureItem["field"]][0])) {
                         foreach ($data[$field] as &$dataItem) {
                             foreach ($structureItem["key"] as $currentTableKey => $connectedTableKey) {
                                 $dataItem[$connectedTableKey] = $data[$currentTableKey];
                             }
-                            $dataItem["__parent"]=$data;
+                            $dataItem["__parent"] = $data;
 
-                            $this->saveDataObject($structureItem["table"], $dataItem, [], $structureItem["structure"],$structureItem["events"]);
+                            $this->saveDataObject($structureItem["table"], $dataItem, [], $structureItem["structure"], $structureItem["events"]);
                         }
                     } else {
-                        $dataItem=$data[$field];
-                        $dataItem["__parent"]=$data;
+                        $dataItem = $data[$field];
+                        $dataItem["__parent"] = $data;
                         foreach ($structureItem["key"] as $currentTableKey => $connectedTableKey) {
                             $data[$structureItem["field"]][$connectedTableKey] = $data[$currentTableKey];
                         }
-                        $this->saveDataObject($structureItem["table"], $dataItem, [], $structureItem["structure"],$structureItem["events"]);
+                        $this->saveDataObject($structureItem["table"], $dataItem, [], $structureItem["structure"], $structureItem["events"]);
                     }
 
                     //if the reference is on the current table side
                 } else {
                     $dataItem = $data[$field];
-                    $dataItem["__parent"]=$data;
+                    $dataItem["__parent"] = $data;
                     $structureItemKeys = [];
                     foreach ($structureItem["key"] as $currentTableKey => $connectedTableKey) {
                         $structureItemKeys[] = $connectedTableKey;
                     }
-                    $saveResult = $this->saveDataObject($structureItem["table"], $dataItem, $structureItemKeys, $structureItem["structure"],$structureItem["events"]);
+                    $saveResult = $this->saveDataObject($structureItem["table"], $dataItem, $structureItemKeys, $structureItem["structure"], $structureItem["events"]);
 
                     if (!is_array($saveResult) && $saveResult) {
                         $saveResult = [$saveResult];
@@ -152,7 +155,7 @@ class db
             if ($akey > 0) {
                 $result .= " && ";
             }
-            $result .= " `" . $key . "` = '" . @$data[$key] . "' ";
+            $result .= " `" . $key . "` = '" . $this->escape(@$data[$key]) . "' ";
         }
 
         return $result;
@@ -249,7 +252,7 @@ class db
             }
         }
 
-        //note: if to select single row is taken away, to avoid unexpected behaviour
+        //note: In the past there was an if statement which gave in case of 1 row result, the row itself rather than an array with 1 row. To avoid unexpected behaviour this is taken away.
         return $rows;
     }
 
@@ -279,5 +282,35 @@ class db
 
         return [];
     }
+
+    /**
+     * @return \mysqli
+     */
+    function getConnection()
+    {
+        static $connection = false;
+        if (!$connection) {
+            $adaptor = Util::reflection()->getProperty($this->_db(), "adaptor");
+            $connection = Util::reflection()->getProperty($adaptor, "connection");
+        }
+        return $connection;
+    }
+
+    /**
+     * for now only available for mysqli
+     * @param callable result
+     */
+    function transaction($callable)
+    {
+        $conn = $this->getConnection();
+        $conn->begin_transaction();
+        $conn->autocommit(false);
+
+        $callable();
+
+        $conn->commit();
+        $conn->autocommit(true);
+    }
 }
+
 ?>
