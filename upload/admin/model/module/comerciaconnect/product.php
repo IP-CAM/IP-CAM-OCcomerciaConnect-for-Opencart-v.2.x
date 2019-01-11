@@ -290,6 +290,10 @@ class ModelModuleComerciaconnectProduct extends Model
             $name .= $value['full_value']['name'] . ' ';
             $id .= $value['option_value_id'] . '_';
             $originalData["option_" . $option['name']] = $value['full_value']['name'];
+
+            foreach ($value as $optionValueKey => $optionValueValue) {
+                $originalData["option_" . $optionValueKey] = $optionValueValue;
+            }
         }
 
         $id = rtrim($id, '_');
