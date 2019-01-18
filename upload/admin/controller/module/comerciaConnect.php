@@ -6,7 +6,7 @@ if (version_compare(phpversion(), '5.5.0', '<') == true) {
     include_once(DIR_SYSTEM . "/library/comerciaConnectApi/helpers/cartesian.php");
 }
 
-define("CC_VERSION", "2.3");
+define("CC_VERSION", "2.4");
 define("CC_RELEASE", CC_VERSION . ".5");
 define("CC_VERSION_URL", "https://api.github.com/repos/comercia-nl/OCcomerciaConnect/releases/latest");
 
