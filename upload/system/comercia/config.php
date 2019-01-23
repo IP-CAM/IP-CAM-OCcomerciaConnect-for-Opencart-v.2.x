@@ -13,7 +13,11 @@ class Config
         $this->store_id = $store_id;
         $data = Util::db()->query("SELECT * FROM " . DB_PREFIX . "setting WHERE store_id = " . $store_id . "");
         foreach ($data as $value) {
-            $this->data[$value["key"]] = $value["value"];
+            if (!$value['serialized']) {
+                $this->data[$value["key"]] = $value["value"];
+            } else {
+                $this->data[$value["key"]] = json_decode($value["value"], true);
+            }
         }
     }
 
@@ -30,12 +34,19 @@ class Config
 
     function get($key, $ignoreMainStore = false)
     {
+        $result = "";
         if (isset($this->data[$key])) {
-            return @$this->data[$key] ?: "";
+            $result = @$this->data[$key] ?: "";
         } elseif ($this->store_id && !$ignoreMainStore) {
-            return Util::config(0)->$key;
+            $result = Util::config(0)->$key;
         }
-        return "";
+
+        //Fall back to normal store configuration.
+        if (!isset($this->data[$key]) && empty($result)) {
+            $result = Util::registry()->get("config")->get($key);
+        }
+
+        return $result;
     }
 
     function getGroup($code)
@@ -49,7 +60,7 @@ class Config
             $key = [$key => $value];
         }
         $items = Util::arrayHelper()->allPrefixed($key, $code, false);
-        $items=array_merge($this->getGroup($code),$items);
+        $items = array_merge($this->getGroup($code), $items);
         $this->model->editSetting($code, $items, $this->store_id);
         foreach ($items as $key => $val) {
             $this->data[$key] = $val;
