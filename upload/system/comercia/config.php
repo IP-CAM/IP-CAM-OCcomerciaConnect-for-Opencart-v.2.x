@@ -16,7 +16,7 @@ class Config
             if (!$value['serialized']) {
                 $this->data[$value["key"]] = $value["value"];
             } else {
-                $this->data[$value["key"]] = json_decode($value["value"], true);
+                $this->data[$value["key"]] = $this->unserialize($value["value"], true);
             }
         }
     }
@@ -42,7 +42,7 @@ class Config
         }
 
         //Fall back to normal store configuration.
-        if (!isset($this->data[$key]) && empty($result)) {
+        if (empty($result)) {
             $result = Util::registry()->get("config")->get($key);
         }
 
@@ -60,11 +60,38 @@ class Config
             $key = [$key => $value];
         }
         $items = Util::arrayHelper()->allPrefixed($key, $code, false);
-        $items = array_merge($this->getGroup($code), $items);
-        $this->model->editSetting($code, $items, $this->store_id);
+
+        $currentSettings = $this->model->getSetting($code, $this->store_id);
+        $this->model->editSetting($code, array_replace_recursive($currentSettings, $items), $this->store_id);
         foreach ($items as $key => $val) {
             $this->data[$key] = $val;
         }
+    }
+
+    function serialize($str, $options = false)
+    {
+        if (Util::version()->isMinimal(2.1)) {
+            $result = json_encode($str, $options);
+        } else {
+            $result = \serialize($str);
+        }
+
+        return $result;
+    }
+
+    function unserialize($str, $options = false)
+    {
+        if (Util::version()->isMinimal(2.1)) {
+            $result = json_decode($str, $options);
+        } else {
+            if (!empty($options) && $options != 'allowed_classes') {
+                $options = false;
+            }
+
+            $result = \unserialize($str, $options);
+        }
+
+        return $result;
     }
 }
 
