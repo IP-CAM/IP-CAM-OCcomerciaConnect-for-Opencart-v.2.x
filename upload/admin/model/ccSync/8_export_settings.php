@@ -216,14 +216,14 @@ class ModelCcSync8ExportSettings extends Model
                 }
             }
 
-            $result["fields"]["option_" . $option['name']] = [
-                "name" => "option_" . $option['name'],
-                "options" => $value,
-            ];
-
-
-
+            if (isset($result["fields"]["option_" . $option['name']]) && is_array($result["fields"]["option_" . $option['name']])) {
+                array_merge($result["fields"]["option_" . $option['name']], ["name" => "option_" . $option['name'], "options" => $value]);
+            }
+            else {
+                $result["fields"]["option_" . $option['name']] = ["name" => "option_" . $option['name'], "options" => $value];
+            }
         }
+
         $attributeGroupModel=Util::load()->model("catalog/attribute_group");
         $attributes = $attributeGroupModel->getAttributeGroups();
         foreach ($attributes as $attribute) {
