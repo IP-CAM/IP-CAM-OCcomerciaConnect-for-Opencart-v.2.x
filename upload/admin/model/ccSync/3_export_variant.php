@@ -7,6 +7,8 @@ class ModelCcSync3ExportVariant extends Model
     {
         $productsChanged = [];
         $productsToResetDeactivate = [];
+        $productVariantsMap = [];
+
         foreach ($data->productsChanged as $product) {
 
             $productOptionMap = array();
@@ -22,10 +24,14 @@ class ModelCcSync3ExportVariant extends Model
 
             if (count($productOptionMap) > 0) {
                 foreach (cc_cartesian($productOptionMap) as $child) {
-                    $productsChanged[] = $data->ccProductModel->createChildProduct($data->session, $child, $product);
+                    $childProduct = $data->ccProductModel->createChildProduct($data->session, $child, $product);
+                    $productsChanged[] = $childProduct;
+                    $productVariantsMap[$product->id][] = [
+                        'id' => $childProduct->id,
+                        'optionValueIds' => $childProduct->optionValueIds
+                    ];
                 }
             }
-
 
             if (count($productsChanged) > CC_BATCH_SIZE) {
                 $data->ccProductModel->deactivateChildrenFor($productsToResetDeactivate, $data->session);
@@ -38,6 +44,7 @@ class ModelCcSync3ExportVariant extends Model
             $data->ccProductModel->deactivateChildrenFor($productsToResetDeactivate, $data->session);
             $data->ccProductModel->sendProductToApi($productsChanged, $data->session);
         }
+        $data->productVariantsMap = $productVariantsMap;
 
     }
 
