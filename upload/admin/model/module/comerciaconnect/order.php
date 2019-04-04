@@ -24,7 +24,7 @@ class ModelModuleComerciaconnectOrder extends Model
         Util::load()->model('localisation/geo_zone');
     }
 
-    public function createApiOrder($order, $session, $productMap, $storeId)
+    public function createApiOrder($order, $session, $productMap, $productVariantsMap, $storeId)
     {
         static $voucherProduct;
         static $couponProduct;
@@ -53,8 +53,32 @@ class ModelModuleComerciaconnectOrder extends Model
 
         foreach ($lines as $line) {
             $tcId = $this->db->query("SELECT tax_class_id FROM " . DB_PREFIX . "product p WHERE p.product_id = '" . (int)$line['product_id'] . "'")->row;
+
+            // Check if we need to cope with options for this line
+            $orderOptions = $this->model_sale_order->getOrderOptions($order["order_id"], $line["order_product_id"]);
+            if ( ! empty($orderOptions)) {
+                $ovidsForOrderLine = array();
+                foreach ($orderOptions as $orderOption) {
+                    $query = $this->db->query("SELECT option_value_id FROM " . DB_PREFIX . "product_option_value WHERE product_option_value_id = '" . $orderOption['product_option_value_id'] . "'");
+                    if ($query->num_rows) {
+                        $ovidsForOrderLine[] = $query->row['option_value_id'];
+                    }
+                }
+
+                foreach ($productVariantsMap[$line['product_id']] as $variantDetails) {
+                    // check if the intersect of the two arrays result in the same number of products, then we have our variant matched
+                    if (count(array_intersect($ovidsForOrderLine, $variantDetails['optionValueIds'])) == count($variantDetails['optionValueIds'])) {
+                        $product = $variantDetails['product'];
+                        break;
+                    }
+                }
+            }
+            else {
+                $product = $productMap[$line["product_id"]];
+            }
+
             $orderLines[] = new OrderLine($session, [
-                "product" => $productMap[$line["product_id"]],
+                "product" => $product,
                 "price" => $line["price"],
                 "quantity" => $line["quantity"],
                 "tax" => $line["tax"],
@@ -193,6 +217,8 @@ class ModelModuleComerciaconnectOrder extends Model
             ],
             "orderLines" => $orderLines
         ]);
+        $this->log->write("PURCHASE");
+        $this->log->write($purchase);
 
         return $purchase;
 

@@ -275,7 +275,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $specialPrice = $parent->specialPrice;
         $quantity = $parent->quantity;
         $originalData = $parent->originalData;
-
+        $optionValueIds = array();
 
         foreach ($child as $key => $value) {
             if ($value['quantity'] < $quantity) {
@@ -294,6 +294,7 @@ class ModelModuleComerciaconnectProduct extends Model
             foreach ($value as $optionValueKey => $optionValueValue) {
                 $originalData["option_" . $optionValueKey] = $optionValueValue;
             }
+            $optionValueIds[] = $value['option_value_id'];
         }
 
         $id = rtrim($id, '_');
@@ -313,6 +314,7 @@ class ModelModuleComerciaconnectProduct extends Model
             'image' => $parent->image,
             'brand' => $parent->brand,
             'active' => $parent->active,
+            'optionValueIds' => $optionValueIds,
             'parent' => $parent,
             'originalData' => $originalData
         ]);
