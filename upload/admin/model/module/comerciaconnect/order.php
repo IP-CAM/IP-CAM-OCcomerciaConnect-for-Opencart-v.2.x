@@ -57,7 +57,6 @@ class ModelModuleComerciaconnectOrder extends Model
             // Check if we need to cope with options for this line
             $orderOptions = $this->model_sale_order->getOrderOptions($order["order_id"], $line["order_product_id"]);
             if ( ! empty($orderOptions)) {
-                $productId = 0;
                 $ovidsForOrderLine = array();
                 foreach ($orderOptions as $orderOption) {
                     $query = $this->db->query("SELECT option_value_id FROM " . DB_PREFIX . "product_option_value WHERE product_option_value_id = '" . $orderOption['product_option_value_id'] . "'");
@@ -65,19 +64,10 @@ class ModelModuleComerciaconnectOrder extends Model
                         $ovidsForOrderLine[] = $query->row['option_value_id'];
                     }
                 }
-                $this->log->write("ovidsForOrderLine:");
-                $this->log->write($ovidsForOrderLine);
 
                 foreach ($productVariantsMap[$line['product_id']] as $variantDetails) {
-                    $this->log->write("optionValueIds:");
-                    $this->log->write($variantDetails['optionValueIds']);
-                    $this->log->write("intersect:");
-                    $this->log->write(array_intersect($ovidsForOrderLine, $variantDetails['optionValueIds']));
-
                     // check if the intersect of the two arrays result in the same number of products, then we have our variant matched
                     if (count(array_intersect($ovidsForOrderLine, $variantDetails['optionValueIds'])) == count($variantDetails['optionValueIds'])) {
-                        $this->log->write("They're equal, id?");
-                        $this->log->write($variantDetails["product"]->id);
                         $product = $variantDetails['product'];
                         break;
                     }
