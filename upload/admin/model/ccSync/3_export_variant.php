@@ -26,6 +26,7 @@ class ModelCcSync3ExportVariant extends Model
                 foreach (cc_cartesian($productOptionMap) as $child) {
                     $childProduct = $data->ccProductModel->createChildProduct($data->session, $child, $product);
                     $productsChanged[] = $childProduct;
+// TODO: keep this code a little for only short future reference when below code will be integrated with this code
 //                    $productVariantsMap[$product->id][] = [
 //                        'id' => $childProduct->id,
 //                        'optionValueIds' => $childProduct->optionValueIds
@@ -41,6 +42,8 @@ class ModelCcSync3ExportVariant extends Model
             }
         }
 
+        //TODO: A lot of duplicate code here to get a hold on to the productVariantsMap, though it performs well
+        //      Refactor please
         foreach ($data->productMap as $product) {
             $productOptionMap = array();
             $productOptions = $data->productModel->getProductOptions($product->id);
