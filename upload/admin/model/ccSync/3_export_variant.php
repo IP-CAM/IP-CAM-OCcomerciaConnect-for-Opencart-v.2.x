@@ -26,10 +26,10 @@ class ModelCcSync3ExportVariant extends Model
                 foreach (cc_cartesian($productOptionMap) as $child) {
                     $childProduct = $data->ccProductModel->createChildProduct($data->session, $child, $product);
                     $productsChanged[] = $childProduct;
-                    $productVariantsMap[$product->id][] = [
-                        'id' => $childProduct->id,
-                        'optionValueIds' => $childProduct->optionValueIds
-                    ];
+//                    $productVariantsMap[$product->id][] = [
+//                        'id' => $childProduct->id,
+//                        'optionValueIds' => $childProduct->optionValueIds
+//                    ];
                 }
             }
 
@@ -40,13 +40,33 @@ class ModelCcSync3ExportVariant extends Model
                 $productsToResetDeactivate = [];
             }
         }
+
+        foreach ($data->productMap as $product) {
+            $productOptionMap = array();
+            $productOptions = $data->productModel->getProductOptions($product->id);
+
+            foreach ($productOptions as $productOption) {
+                $productOptionMap[$productOption['option_id']] = array_map(function ($productOptionValue) use ($data) {
+                    $productOptionValue['full_value'] = $data->ccProductModel->getOptionValue($productOptionValue['option_value_id'], $data->storeId);
+                    return $productOptionValue;
+                }, $productOption['product_option_value']);
+            }
+
+            if (count($productOptionMap) > 0) {
+                foreach (cc_cartesian($productOptionMap) as $child) {
+                    $childProduct = $data->ccProductModel->createChildProduct($data->session, $child, $product);
+                    $productVariantsMap[$product->id][] = [
+                        'product' => $childProduct,
+                        'optionValueIds' => $childProduct->optionValueIds
+                    ];
+                }
+            }
+        }
+
         if (count($productsChanged)) {
             $data->ccProductModel->deactivateChildrenFor($productsToResetDeactivate, $data->session);
             $data->ccProductModel->sendProductToApi($productsChanged, $data->session);
         }
         $data->productVariantsMap = $productVariantsMap;
-
     }
-
-
 }
