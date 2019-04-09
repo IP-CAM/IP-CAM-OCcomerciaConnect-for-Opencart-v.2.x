@@ -13,6 +13,11 @@ class ProductImage
     /** @param array $data The data to initialize the image with */
     function __construct($data)
     {
-        $this->image = $data["image"];
+        if (is_array($data)) {
+            $this->image = $data["image"];
+        }
+        else {
+            $this->image = $data->image;
+        }
     }
 }
