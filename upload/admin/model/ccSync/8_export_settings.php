@@ -231,7 +231,7 @@ class ModelCcSync8ExportSettings extends Model
             $result["fields"]["attribute_" . $attribute["name"]] = [
                 "name" => "attribute_" . $attribute["name"],
             ];
-            
+
             $attributeDescriptions=$attributeGroupModel->getAttributeGroupDescriptions($attribute["attribute_id"]);
             foreach ($languages->rows as $language) {
                 $key = "attribute_" . $attribute["name"] . "_" . $language["code"];
