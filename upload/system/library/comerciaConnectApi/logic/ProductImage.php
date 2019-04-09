@@ -17,7 +17,7 @@ class ProductImage
             $this->image = $data["image"];
         }
         else {
-            $this->iamge = $data->image;
+            $this->image = $data->image;
         }
     }
 }
