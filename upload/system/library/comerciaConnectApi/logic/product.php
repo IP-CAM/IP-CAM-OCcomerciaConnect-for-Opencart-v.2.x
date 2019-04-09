@@ -110,8 +110,13 @@ class Product
         $data = (object)$data;
         $this->extraImages = [];
         if (!empty($data->extraImages)) {
-            foreach ($data->extraImages as $image) {
-                $this->extraImages[] = new ProductImage($image);
+            if (gettype($data->extraImages[0]) == "object") {
+                $this->extraImages = $data->extraImages;
+            }
+            elseif (gettype($data->extraImages[0]) == "string") {
+                foreach ($data->extraImages as $image) {
+                    $this->extraImages[] = new ProductImage($image);
+                }
             }
         }
 
