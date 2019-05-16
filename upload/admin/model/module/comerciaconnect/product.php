@@ -272,6 +272,7 @@ class ModelModuleComerciaconnectProduct extends Model
         $id = $parent->id . '_';
         $name = $parent->name . ' - ';
         $price = $parent->price;
+        $ean = $parent->ean;
         $specialPrice = $parent->specialPrice;
         $quantity = $parent->quantity;
         $originalData = $parent->originalData;
@@ -280,6 +281,9 @@ class ModelModuleComerciaconnectProduct extends Model
         foreach ($child as $key => $value) {
             if ($value['quantity'] < $quantity) {
                 $quantity = $value['quantity'];
+            }
+            if (@$value['ean']) {
+                $ean = $value['ean'];
             }
             $option = Util::load()->model("catalog/option")->getOption($value["full_value"]["option_id"]);
             $price = ($value['price_prefix'] == '-') ? $price - (float)$value['price'] : $price + (float)$value['price'];
@@ -304,6 +308,7 @@ class ModelModuleComerciaconnectProduct extends Model
             'id' => $id,
             'name' => rtrim($name),
             'code' => $parent->code . '_' . $id,
+            'ean' => $ean,
             'quantity' => $quantity,
             'price' => $price,
             'descriptions' => $parent->descriptions,
