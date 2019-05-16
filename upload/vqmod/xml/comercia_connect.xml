@@ -54,6 +54,13 @@
         </operation>
     </file>
 
+    <file name="admin/model/catalog/product.php">
+        <operation>
+            <search position="before"><![CDATA[foreach ($data['product_option'] as $product_option) {]]></search>
+            <add><![CDATA[$data['product_option'] = array_reverse($data['product_option']);]]></add>
+        </operation>
+    </file>
+
     <file name="admin/view/template/sale/order_list.tpl">
         <operation error="skip">
             <search position="replace">
