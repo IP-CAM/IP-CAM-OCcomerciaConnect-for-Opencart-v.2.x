@@ -17,11 +17,10 @@ class ModelCcSync2ExportProduct extends Model
 
             \comerciaConnect\lib\Debug::writeMemory("Start prepare product " . $product["product_id"]);
             $product['specialPrice'] = 0;
-            $specialPrices = $data->productModel->getProductSpecials($product['product_id']);
+
+            $specialPrices = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_special WHERE product_id = '" . (int)$product['product_id'] . "' AND customer_group_id = '" . \comercia\Util::config()->get('config_customer_group_id') . "' AND ((date_start = '0000-00-00' OR date_start < NOW()) AND (date_end = '0000-00-00' OR date_end > NOW())) ORDER BY priority, price")->rows;
             foreach ($specialPrices as $specialPrice) {
-                if ($specialPrice['customer_group_id'] == \comercia\Util::config()->get('config_customer_group_id')) {
-                    $product['specialPrice'] = $specialPrice['price'];
-                }
+                $product['specialPrice'] = $specialPrice['price'];
             }
 
             $apiProduct = $data->ccProductModel->createApiProduct($product, $data->session, $data->categoriesMap,$data->conditions);
