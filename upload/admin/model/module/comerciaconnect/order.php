@@ -358,7 +358,9 @@ class ModelModuleComerciaconnectOrder extends Model
 
 
         $dbOrderInfo['shipping_method'] = 'ConnectShipping';
+        $dbOrderInfo['shipping_code'] = 'connect_shipping';
         $dbOrderInfo['payment_method'] = 'ConnectPayment';
+        $dbOrderInfo['payment_code'] = 'connect_payment';
 
         //calculate totals
         foreach ($order->orderLines as $orderLine) {
