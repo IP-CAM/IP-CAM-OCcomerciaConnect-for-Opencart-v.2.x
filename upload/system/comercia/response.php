@@ -19,7 +19,11 @@ class Response
 
     function addHeader($key, $value)
     {
-        Util::registry()->get("response")->addHeader($key . ":" . $value);
+        if ($this->bufferMode) {
+            header($key . ":" . $value);
+        } else {
+            Util::registry()->get("response")->addHeader($key . ":" . $value);
+        }
     }
 
     function setCompression($level)
@@ -45,11 +49,12 @@ class Response
         }
     }
 
-    function renderJson($data){
+    function renderJson($data) {
+        $this->bufferMode = true;
         $this->addHeader("content-type","application/json");
         $this->write(json_encode($data));
+        die();
     }
-
 
     function toVariable($function){
         $oldBufferMode=  $this->bufferMode;

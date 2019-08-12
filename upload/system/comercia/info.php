@@ -1,21 +1,24 @@
 <?php
 
 namespace comercia;
-
 class Info
 {
-    function IsInAdmin()
+    function isInAdmin()
     {
         global $application_context;
         return $application_context !== null && $application_context == "admin" ||
             (defined("HTTPS_CATALOG") && HTTPS_CATALOG != HTTPS_SERVER || defined("HTTP_CATALOG") && HTTP_CATALOG != HTTPS_SERVER);
     }
 
+    function getEnv(){
+        return $this->isInAdmin()?"admin":"catalog";
+    }
+
     function theme($location = false)
     {
         static $themeName = false;
         if (!$themeName) {
-            $themeName = Util::config()->config_template;
+            $themeName = @Util::config()->config_template?:@Util::config()->config_theme;
         }
         if (!$themeName) {
             $themeName = Util::config()->theme_default_directory;
@@ -28,7 +31,6 @@ class Info
 
         return $themeName;
     }
-
 
     function stores()
     {
@@ -50,9 +52,21 @@ class Info
             });
             $stores = array_values($stores);
         }
-        return $stores;
-    }
+        
+        //Make store id as key
+        $storeIDKeyArray = [];
+        foreach($stores as $store) {
+            $storeIDKeyArray[$store['store_id']] = $store;
+        }
+        return $storeIDKeyArray;
+   }
 
+  function getModuleCode($name, $type) {
+        if(Util::version()->isMinimal("3")) {
+            return $type . '_' . $name;
+        }
+        return $name;
+    }
 
     function currentStore()
     {

@@ -115,7 +115,7 @@ class ModelModuleComerciaconnectProduct extends Model
     private function getLanguageByCode($code)
     {
         $code = is_array($code) ? $code['language'] : $code;
-        if (Util::version()->isMaximal("1.6")) {
+        if (Util::version()->isMaximal("2.1.0.3")) {
             $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "language` WHERE code = '" . $this->db->escape($code) . "'");
             return $query->row;
         } else {

@@ -4,7 +4,7 @@ class Url
 {
     function image($image)
     {
-        if (Util::info()->IsInAdmin()) {
+        if (Util::info()->isInAdmin()) {
             if (defined(HTTPS_CATALOG)) {
                 return HTTPS_CATALOG . "image/" . $image;
             }
@@ -27,7 +27,7 @@ class Url
 
     function getCatalogUrl($ssl = true)
     {
-        if (Util::info()->IsInAdmin()) {
+        if (Util::info()->isInAdmin()) {
             if (defined(HTTPS_CATALOG) && $ssl) {
                 return HTTPS_CATALOG;
             }
