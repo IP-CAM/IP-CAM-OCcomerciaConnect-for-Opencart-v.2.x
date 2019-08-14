@@ -3,7 +3,7 @@ namespace comercia;
 
 class db
 {
-    public function saveDataObject($table, $data, $keys = null, $structure = [], $events = [])
+    public function saveDataObject($table, $data, $keys = null, $structure = [], $events = [], $returnKeys = [])
     {
 
         if (@$events["preSave"]) {
@@ -110,6 +110,16 @@ class db
                 }
             }
         }
+
+        if(!empty($returnKeys)) {
+            $queryResult = @$this->query("SELECT * FROM " . DB_PREFIX . $table . " WHERE " . $this->whereForKeys($table, $data, $keys))[0];
+            if ($queryResult) {
+                $result = [];
+                foreach ($returnKeys as $keyNumber => $keyName) {
+                    $result[$keyNumber] = $queryResult[$keyName];
+                }
+            }
+        }
         return $result;
     }
 
@@ -131,6 +141,13 @@ class db
         $query = $this->_db()->query($query);
 
         return (bool)$query->num_rows;
+    }
+
+    public function getFields($table) {
+        $query = $this->query("SHOW COLUMNS FROM `" . DB_PREFIX . $table . "`");
+        return array_map(function ($row) {
+            return $row["Field"];
+        }, $query);
     }
 
     public function columnExists($table, $column)
@@ -236,7 +253,11 @@ class db
                         } else {
                             $where = [];
                             foreach ($structureItem["key"] as $currentTableKey => $connectedTableKey) {
-                                $where[$connectedTableKey] = $row[$currentTableKey];
+                                if(isset($row[$currentTableKey])) {
+                                    $where[$connectedTableKey] = $row[$currentTableKey];
+                                } else {
+                                    $where[$currentTableKey] = $connectedTableKey;
+                                }
                             }
 
                             $result = $this->select($structureItem["table"], $structureItem["fields"], $where, $structureItem["structure"]);
@@ -268,7 +289,7 @@ class db
 
     function script($load = false, $save = false)
     {
-        return ["load_callable" => $load, "save_callable" => $save];
+        return ["load_callable" => Util::lambda()->getCallable($load), "save_callable" => Util::lambda()->getCallable($save)];
     }
 
 

@@ -1,7 +1,12 @@
 <?php
 namespace comercia;
+
 class Request
 {
+
+    /**
+     * @return ArrayObject
+     */
     function get()
     {
         static $get = false;
@@ -11,6 +16,9 @@ class Request
         return $get;
     }
 
+    /**
+     * @return ArrayObject
+     */
     function post()
     {
         static $post = false;
@@ -26,12 +34,28 @@ class Request
         return $post;
     }
 
+
+    /**
+     * @return ArrayObject
+     */
+    function file()
+    {
+        static $file = false;
+        if (!$file) {
+            $file = new ArrayObject(Util::registry("load")->get("request")->files,true);
+        }
+        return $file;
+    }
+
+    /**
+     * @return ArrayObject
+     */
     function server()
     {
         static $server = false;
         if (!$server) {
-            $serverObject=array_merge(Util::registry("load")->get("request")->server,[
-                "protocol"=>(!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://"
+            $serverObject = array_merge(Util::registry("load")->get("request")->server, [
+                "protocol" => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://"
             ]);
             $server = new ArrayObject($serverObject);
         }
@@ -105,7 +129,6 @@ class Request
 
         return $result;
     }
-
 
 
     public function getClientLanguage()

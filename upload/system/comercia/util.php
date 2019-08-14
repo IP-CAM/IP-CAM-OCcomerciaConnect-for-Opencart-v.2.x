@@ -3,6 +3,8 @@ namespace comercia;
 
 use Cache\File;
 
+include_once(__DIR__ . "/constants.php");
+
 class Util
 {
 
@@ -134,7 +136,7 @@ class Util
     static function config($store_id = 0)
     {
         static $config = array();
-        if (!@$config[$store_id]) {
+        if (!@isset($config[$store_id])) {
             require_once(__DIR__ . "/config.php");
             $config[$store_id] = new Config($store_id);
         }
@@ -169,10 +171,10 @@ class Util
     /**
      * @return Language
      */
-    static function language($language=false)
+    static function language($language = false)
     {
         static $languages = [];
-        if (!@$languages[$language]) {
+        if (!@isset($languages[$language])) {
             require_once(__DIR__ . "/language.php");
             $languages[$language] = new Language($language);
         }
@@ -257,7 +259,25 @@ class Util
         return $twig;
     }
 
-    public static function customer(){
+    static function validation(&$data = array(), $store_id = -1, $error = array())
+    {
+        require_once(__DIR__ . "/validation.php");
+        return new Validation($data, $store_id, $error);
+    }
+
+    public static function lambda()
+    {
+        static $lambda;
+        if (!$lambda) {
+            require_once(__DIR__ . "/lambda.php");
+            $lambda = new Lambda();
+        }
+
+        return $lambda;
+    }
+
+    public static function customer()
+    {
         static $customer = false;
         if (!$customer) {
             require_once(__DIR__ . "/customer.php");
@@ -265,6 +285,72 @@ class Util
         }
         return $customer;
     }
+
+    public static function hooks()
+    {
+        static $hooks = false;
+        if (!$hooks) {
+            require_once(__DIR__ . "/hooks.php");
+            require_once(__DIR__ . "/abstract/baseHook.php");
+            $hooks = new Hooks();
+        }
+        return $hooks;
+    }
+
+    public static function importFunctions()
+    {
+        static $importFunctions;
+        if (!$importFunctions) {
+            require_once(__DIR__ . "/importFunctions.php");
+            $importFunctions = new ImportFunctions();
+        }
+
+        return $importFunctions;
+    }
+
+    public static function reflection()
+    {
+        static $reflection;
+        if (!$reflection) {
+            require_once(__DIR__ . "/reflection.php");
+            $reflection = new Reflection();
+        }
+
+        return $reflection;
+    }
+
+    public static function log()
+    {
+        static $log;
+        if (!$log) {
+            require_once(__DIR__ . "/log.php");
+            $log = new Log();
+        }
+        return $log;
+    }
+
+    public static function elasticSearch()
+    {
+        static $elasticSearch;
+        if (!$elasticSearch) {
+            require_once(__DIR__ . "/elasticSearch.php");
+            $elasticSearch = new ElasticSearch();
+        }
+
+        return $elasticSearch;
+    }
+
+    static function proxy()
+    {
+        static $proxy = false;
+        if (!$proxy) {
+            require_once(__DIR__ . "/proxy.php");
+            $proxy = new Proxy();
+        }
+        return $proxy;
+    }
+
 }
+
 
 ?>

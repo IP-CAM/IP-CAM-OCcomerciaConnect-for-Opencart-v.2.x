@@ -16,7 +16,7 @@ class Http
     function applicationPath()
     {
         $path = HTTPS_SERVER ? HTTPS_SERVER : HTTP_SERVER;
-        if (!Util::info()->IsInAdmin()) {
+        if (!Util::info()->isInAdmin()) {
             $filePath = DIR_APPLICATION;
             $exp = explode("/", $filePath);
             $dir = $exp[count($exp) - 2];

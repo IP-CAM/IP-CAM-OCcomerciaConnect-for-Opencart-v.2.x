@@ -1,4 +1,5 @@
 <?php
+
 namespace comercia;
 class Document
 {
@@ -36,13 +37,23 @@ class Document
 
     public function addStyle($href, $rel = 'stylesheet', $media = 'screen')
     {
-        $this->document->addStyle(Util::http()->getPathFor($href), $rel, $media);
+        global $journal2;
+        if (@$journal2) {
+            $journal2->minifier->addStyle(Util::http()->getPathFor($href));
+        } else {
+            $this->document->addStyle(Util::http()->getPathFor($href), $rel, $media);
+        }
         return $this;
     }
 
     public function addScript($href, $position = 'header')
     {
-        $this->document->addScript(Util::http()->getPathFor($href), $position);
+        global $journal2;
+        if (@$journal2) {
+            $journal2->minifier->addScript(Util::http()->getPathFor($href));
+        } else {
+            $this->document->addScript(Util::http()->getPathFor($href), $position);
+        }
         return $this;
     }
 
@@ -53,19 +64,19 @@ class Document
     }
 
 
-    function addDependency($file,$inTheme=false)
+    function addDependency($file, $inTheme = false)
     {
 
         if (is_array($file)) {
             $files = $file;
             foreach ($files as $file) {
-                $this->addDependency($file,$inTheme);
+                $this->addDependency($file, $inTheme);
             }
             return $this;
         }
 
-        if($inTheme){
-            $file=Util::info()->theme(true).$file;
+        if ($inTheme) {
+            $file = Util::info()->theme(true) . $file;
         }
 
         $exp = explode(".", $file);

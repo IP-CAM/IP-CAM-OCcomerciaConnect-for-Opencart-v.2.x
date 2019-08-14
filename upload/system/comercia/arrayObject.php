@@ -1,16 +1,28 @@
 <?php
 namespace comercia;
 
-class ArrayObject
+class ArrayObject implements \ArrayAccess, \Countable, \Iterator
 {
     private $data;
+    private $useSubObjects;
 
-    function __construct(&$data)
+    function __construct(&$data, $useSubObjects = false)
     {
+
         $this->data =& $data;
+        $this->useSubObjects = $useSubObjects;
     }
 
     function __get($name)
+    {
+        if ($this->useSubObjects && is_array($this->data[$name])) {
+            $dataArray=&$this->data[$name]?:[];
+            return new ArrayObject($dataArray, true);
+        }
+        return @$this->data[$name] ?: "";
+    }
+
+    function get($name)
     {
         return @$this->data[$name] ?: "";
     }
@@ -55,7 +67,67 @@ class ArrayObject
 
     function allPrefixed($prefix, $removePrefix = true)
     {
-        return Util::arrayHelper()->allPrefixed($this->all(),$prefix,$removePrefix);
+        return Util::arrayHelper()->allPrefixed($this->all(), $prefix, $removePrefix);
+    }
+
+
+    //for easy itteration
+    private $position = 0;
+
+    public function rewind()
+    {
+        $this->position = 0;
+    }
+
+    public function current()
+    {
+        return $this->data[$this->position];
+    }
+
+    public function key()
+    {
+        return $this->position;
+    }
+
+    public function next()
+    {
+        ++$this->position;
+    }
+
+    public function valid()
+    {
+        return isset($this->data[$this->position]);
+    }
+
+
+    public function offsetSet($offset, $value)
+    {
+        if (is_null($offset)) {
+            $this->data[] = $value;
+        } else {
+            $this->data[$offset] = $value;
+        }
+    }
+
+    public function offsetExists($offset)
+    {
+        return isset($this->data[$offset]);
+    }
+
+    public function offsetUnset($offset)
+    {
+        unset($this->data[$offset]);
+    }
+
+    public function offsetGet($offset)
+    {
+        return isset($this->data[$offset]) ? $this->data[$offset] : null;
+    }
+
+
+    function count()
+    {
+        return count($this->data);
     }
 }
 

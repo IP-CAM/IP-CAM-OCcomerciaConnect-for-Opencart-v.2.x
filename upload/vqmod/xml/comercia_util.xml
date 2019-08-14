@@ -4,14 +4,15 @@
     <vqmver>2.3.0</vqmver>
     <author>Comercia - Mark Smit</author>
 
-    <file name="system/startup.php">
-        <operation error="skip">
-            <search position="after"><![CDATA[<?php]]></search>
-            <add><![CDATA[include_once(DIR_SYSTEM."/comercia/util.php");]]></add>
-        </operation>
-    </file>
 
     <file name="system/framework.php">
+        <operation error="skip">
+            <search position="before"><![CDATA[$route->dispatch(]]></search>
+            <add><![CDATA[include_once(DIR_SYSTEM."/comercia/util.php");
+            \comercia\util::hooks()->run();
+            ]]></add>
+        </operation>
+
         <operation error="skip">
             <search position="before"><![CDATA[$registry = new Registry();]]></search>
             <add><![CDATA[
@@ -22,6 +23,27 @@
         </operation>
     </file>
 
+    <file name="system/startup.php">
+        <operation error="skip">
+            <search position="after"><![CDATA[<?php]]></search>
+            <add><![CDATA[include_once(DIR_SYSTEM."/comercia/util.php");]]></add>
+        </operation>
+
+        <operation error="skip">
+            <search position="after"><![CDATA[error_reporting]]></search>
+            <add><![CDATA[register_shutdown_function(function(){
+                  $error = error_get_last();
+                    if ($error['type'] === E_ERROR || $error['type'] == E_PARSE) {
+                        $handle = fopen(DIR_LOGS . "error.log", 'a');
+                        fwrite($handle, date('Y-m-d G:i:s') . ' - ' . print_r($error, true) . "\n");
+                        fclose($handle);
+                        //todo: in the future maybe redirect to an error page
+                        echo "A fatal error occurred.";
+                    }
+            });]]>
+            </add>
+        </operation>
+    </file>
 
     <file name="catalog/view/theme/*/template/common/header.tpl" error="skip">
         <operation>
@@ -41,7 +63,7 @@
 
 
     <file name="catalog/view/theme/*/template/common/header.twig" error="skip">
-        <operation >
+        <operation>
             <search position="after"><![CDATA[<head>]]></search>
             <add><![CDATA[{{ html_variables() }}]]>
             </add>
@@ -56,8 +78,6 @@
         </operation>
     </file>
 
-
-
     <file name="system/library/template/twig.php" error="skip">
         <operation>
             <search position="after"><![CDATA[$this->twig = new \Twig_Environment]]></search>
@@ -68,20 +88,12 @@
         </operation>
     </file>
 
-
-
     <file name="system/engine/action.php" error="skip">
         <operation error="skip">
             <search position="replace"><![CDATA[if (is_dir(DIR_APPLICATION . 'controller/' . $path)) {]]></search>
             <add>
                 <![CDATA[	if (is_dir(DIR_APPLICATION . 'controller/' . $path) && !is_file(DIR_APPLICATION . 'controller/' . str_replace(array('../', '..\\', '..'), '', $path) . '.php')) {]]>
             </add>
-        </operation>
-    </file>
-    <file name="system/framework.php">
-        <operation>
-            <search position="before"><![CDATA[$registry = new Registry();  ]]></search>
-            <add><![CDATA[global $registry;]]></add>
         </operation>
     </file>
 </modification>

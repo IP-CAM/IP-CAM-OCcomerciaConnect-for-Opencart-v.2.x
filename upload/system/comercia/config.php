@@ -60,9 +60,7 @@ class Config
             $key = [$key => $value];
         }
         $items = Util::arrayHelper()->allPrefixed($key, $code, false);
-
-        $currentSettings = $this->model->getSetting($code, $this->store_id);
-        $this->model->editSetting($code, array_replace_recursive($currentSettings, $items), $this->store_id);
+		$this->model->editSetting($code, $items, $this->store_id);
         foreach ($items as $key => $val) {
             $this->data[$key] = $val;
         }

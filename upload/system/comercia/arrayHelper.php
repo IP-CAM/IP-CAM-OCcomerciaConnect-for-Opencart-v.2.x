@@ -1,4 +1,5 @@
 <?php
+
 namespace comercia;
 class ArrayHelper
 {
@@ -13,10 +14,11 @@ class ArrayHelper
         return $array;
     }
 
-    function keyValuePairs($array,$keyField,$valueField){
-        $result=[];
-        foreach($array as $arrayItem){
-            $result[$arrayItem[$keyField]]=$arrayItem[$valueField];
+    function keyValuePairs($array, $keyField, $valueField)
+    {
+        $result = [];
+        foreach ($array as $arrayItem) {
+            $result[$arrayItem[$keyField]] = $arrayItem[$valueField];
         }
         return $result;
     }
@@ -29,7 +31,8 @@ class ArrayHelper
         }
         return $new;
     }
-    function allPrefixed($input,$prefix, $removePrefix = true)
+
+    function allPrefixed($input, $prefix, $removePrefix = true)
     {
         $result = [];
         $prefixLen = strlen($prefix);
@@ -42,6 +45,30 @@ class ArrayHelper
             }
         }
         return $result;
+    }
+
+    function prefixAllValues($prefix, $input)
+    {
+        $result = [];
+        foreach ($input as $val) {
+            $result[] = $prefix . $val;
+        }
+        return $result;
+    }
+
+    function flatValues($array)
+    {
+        $flat = "";
+
+        foreach ($array as $value) {
+            if (is_array($value)) {
+                $flat .= $this->flatValues($value);
+            } else {
+                $flat .= $value . "\n";
+            }
+        }
+
+        return $flat;
     }
 }
 
