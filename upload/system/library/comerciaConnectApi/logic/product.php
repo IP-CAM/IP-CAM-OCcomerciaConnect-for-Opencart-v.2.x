@@ -93,7 +93,7 @@ class Product
     {
         $this->session = $session;
         foreach ($data as $key => $value) {
-            if (is_string($value)) {
+            if (is_string($value) && $key != 'originalData') {
                 $this->{$key} = Encoding::fixUTF8($value);
             } else {
                 $this->{$key} = $value;
