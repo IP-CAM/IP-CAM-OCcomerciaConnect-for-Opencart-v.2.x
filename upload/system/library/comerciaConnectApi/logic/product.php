@@ -97,7 +97,7 @@ class Product
         }
 
         if (is_string($this->originalData)) {
-            $this->originalData = unserialize($this->originalData);
+            $this->originalData = $this->unserializeOriginalData();
         }
 
         if ($this->parent) {
@@ -323,6 +323,55 @@ class Product
     {
         $requestData = ["data" => $data];
         return $session->post("product/deactivateChildrenBatch", $requestData);
+    }
+
+    private function unserializeOriginalData($fixUTF = false)
+    {
+        if ($fixUTF) {
+            $originalData = unserialize(Encoding::fixUTF8($this->originalData));
+        } else {
+            $originalData = unserialize($this->originalData);
+        }
+
+        if (is_array($originalData)) {
+            return $originalData;
+        } elseif ($originalData === false) {
+            if(!$fixUTF) {
+                return $this->unserializeOriginalData(true);
+            } else {
+                return false;
+            }
+        }
+
+        if (is_string($originalData)) {
+            if (substr($originalData, 0, 2) === 's:') {
+                $originalData = strstr($originalData, 'a:');
+                $originalData = substr($originalData, 0, -2);
+                $originalData = unserialize($originalData);
+            }
+        }
+
+        if (is_string($originalData)) {
+            if (substr($originalData, 0, 2) === 's:') {
+                $originalData = strstr($originalData, 'a:');
+                $originalData = substr($originalData, 0, -2);
+                $originalData = unserialize($originalData);
+            }
+        }
+
+        if (!is_array($originalData) && $originalData !== false) {
+            $originalData1 = unserialize($originalData);
+
+            if (is_array($originalData1)) {
+                $originalData = $originalData1;
+            }
+        }
+
+        if (is_array($originalData)) {
+            return $originalData;
+        } else {
+            return false;
+        }
     }
 
 }
