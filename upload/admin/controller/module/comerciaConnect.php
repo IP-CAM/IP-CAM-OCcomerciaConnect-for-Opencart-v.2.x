@@ -295,7 +295,10 @@ class ControllerModuleComerciaConnect extends Controller
     {
         //load cc module for libraries
         $connect = Util::load()->library("comerciaConnect");
-        $connect->getApi("");
+        $baseUrl = Util::config()->comerciaConnect_base_url;
+        $authUrl = Util::config()->comerciaConnect_auth_url;
+        $apiUrl = Util::config()->comerciaConnect_api_url;
+        $connect->getApi($baseUrl, $authUrl, $apiUrl);
 
         //get info
         $client = new \comerciaConnect\lib\HttpClient();
