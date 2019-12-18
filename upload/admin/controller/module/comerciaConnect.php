@@ -295,7 +295,7 @@ class ControllerModuleComerciaConnect extends Controller
     {
         //load cc module for libraries
         $connect = Util::load()->library("comerciaConnect");
-        $connect->getApi("");
+        $connect->getApi("", "", "");
 
         //get info
         $client = new \comerciaConnect\lib\HttpClient();
